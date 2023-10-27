@@ -36,7 +36,3 @@ jobs:
 
       - name: Run Pylint
         run: pylint $(git ls-files '*.py')
-
-      - name: Failure logs
-        if: failure()
-        run: cat /path/to/your/logfile.log
