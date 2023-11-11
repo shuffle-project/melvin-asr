@@ -1,12 +1,17 @@
-import subprocess
+"""Module providing the run_whisper function that calls whisper cpp via command line"""
 import os
-import json
+import subprocess
 
-
-def run_whisper(
+# Need to have this many arguments to fulfill whisper.cpp parameters
+# pylint: disable=R0912
+# pylint: disable=R0913
+# pylint: disable=R0914
+# pylint: disable=R0915
+def transcribe(
     main_path,
     model_path,
     audio_file_path,
+    debug=False,
     output_json=False,
     threads=4,
     processors=1,
@@ -43,7 +48,7 @@ def run_whisper(
     prompt=None,
     ov_e_device="CPU",
     log_score=False,
-):
+) -> None:
     """
     Run the whisper.cpp executable with the provided arguments.
     """
@@ -85,7 +90,6 @@ def run_whisper(
         str(ov_e_device),
     ]
 
-    # Flags without parameters
     if split_on_word:
         command.append("-sow")
     if debug_mode:
@@ -125,16 +129,15 @@ def run_whisper(
     if log_score:
         command.append("-ls")
 
-    # Optional arguments with potential default values
     if font_path:
         command.append("-fp")
         command.append("{font_path}")
     if output_file:
         command.append("-of")
-        command.append("{output_file}")
+        command.append(os.getcwd() + output_file)
     if prompt:
         command.append("--prompt")
-        command.append("{prompt}") 
+        command.append("{prompt}")
 
     command += [
         "-m",
@@ -143,39 +146,18 @@ def run_whisper(
         os.getcwd() + audio_file_path,
     ]
 
-    process = subprocess.run(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
-    )
+    with subprocess.Popen(
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    ) as process:
+        stdout, stderr = process.communicate()
 
-    # Process the output
-    if len(process.stderr) == 0:
-        print("Command executed successfully.")
-        return process.stdout
-    else:
+    if debug:
         print("----------")
         print("Command:")
         print(command)
         print("----------")
         print("STDOUT:")
-        print(process.stdout)
+        print(stdout)
         print("----------")
         print("STDERR:")
-        print(process.stderr)
-        raise ValueError("An error occurred:" + process.stderr)
-
-
-# Example of calling the function
-output = run_whisper(
-    main_path="/whisper.cpp/main",
-    model_path="/whisper.cpp/models/ggml-small.bin",
-    audio_file_path="/whisper.cpp/samples/jfk.wav",
-    output_json=True,
-)
-
-# If you want to capture the JSON in a variable, make sure to pass output_json=True
-if output:
-    try:
-        output_data = json.loads(output)
-        print(output_data)
-    except json.JSONDecodeError as e:
-        print("Failed to decode JSON output:", e)
+        print(stderr)
