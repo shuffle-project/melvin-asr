@@ -9,8 +9,9 @@ def main() -> None:
         model_path="/whisper.cpp/models/ggml-small.bin",
         audio_file_path="/whisper.cpp/samples/jfk.wav",
         output_file="/data/main",
-        debug=True
+        debug=True,
     )
     print(results)
+
 
 main()
