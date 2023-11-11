@@ -1,6 +1,6 @@
 """Module is starting the models and handling queued requests"""
 from whispercpp_binding.transcribe_to_json import transcript_to_json
-from transcription_handler import handle_transcription_request
+from transcription_handler import *
 from flask import Flask
 
 app = Flask(__name__)
@@ -34,6 +34,10 @@ def hello_world():
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
     return handle_transcription_request()
+
+@app.route('/get_transcription_status/<transcription_id>', methods=['GET'])
+def get_transcription_status_route(transcription_id):
+    return get_transcription_status(transcription_id)
 
 # API-Endpunkt für die Transkription von Streaming Audio über Websockets
 @app.route("/stream_transcribe", methods=["POST"])
