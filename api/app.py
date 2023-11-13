@@ -1,6 +1,8 @@
-"""Module is starting the models and handling queued requests"""
+"""
+This module contains the Flask app and the API endpoints.
+"""
 from whispercpp_binding.transcribe_to_json import transcript_to_json
-from transcription_handler import *
+from transcription_handler import get_transcription_status, handle_transcription_request
 from flask import Flask
 
 app = Flask(__name__)
@@ -48,17 +50,16 @@ Feel free to explore and use these endpoints for your transcription needs!
 
     return api_info
 
-# API-Endpunkt für die Transkription von Audiodateien über HTTP
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
+    """API endpoint to transcribe an audio file"""
     return handle_transcription_request()
 
 @app.route('/get_transcription_status/<transcription_id>', methods=['GET'])
 def get_transcription_status_route(transcription_id):
+    """API endpoint to get the status of a transcription"""
     return get_transcription_status(transcription_id)
 
-# API-Endpunkt für die Transkription von Streaming Audio über Websockets
 @app.route("/stream_transcribe", methods=["POST"])
 def stream_transcribe():
     """transcribes an audio stream"""
-

@@ -1,5 +1,7 @@
+"""
+This module contains the functions to generate a status JSON and save it to a file.
+"""
 import json
-from datetime import datetime
 
 def generate_status_json(status, transcription_id, start_time):
     """
@@ -32,5 +34,5 @@ def save_json_to_file(data, file_path):
     - data (dict): The JSON data to be saved.
     - file_path (str): The file path where the JSON data will be saved.
     """
-    with open(file_path, 'w') as json_file:
+    with open(file_path, 'w', encoding='utf-8') as json_file:
         json.dump(data, json_file, indent=2)
