@@ -35,15 +35,15 @@ def handle_transcription_request():
         start_time=start_time
     )
 
-    directory = "transcriptions"
+    directory = "data/transcriptions"
 
     if not os.path.exists(directory):
         os.makedirs(directory)
 
     # Save the transcription status data to a file
-    save_json_to_file(transcription_data, f"transcriptions/{transcription_id}.json")
+    save_json_to_file(transcription_data, f"{directory}/{transcription_id}.json")
 
-    return jsonify(transcription_data)
+    return transcription_data
 
 def generate_unique_transcription_id():
     """

@@ -1,13 +1,14 @@
 """
 This module contains the Flask app and the API endpoints.
 """
+from src.convert_save_received_audio_files import convert_to_wav
 from whispercpp_binding.transcribe_to_json import transcript_to_json
 from transcription_handler import get_transcription_status, handle_transcription_request
-from flask import Flask
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
 
 
@@ -24,7 +25,6 @@ def main() -> None:
 
 
 # main()
-
 
 
 # Base endpoint with API usage information
@@ -50,15 +50,29 @@ Feel free to explore and use these endpoints for your transcription needs!
 
     return api_info
 
+
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
     """API endpoint to transcribe an audio file"""
-    return handle_transcription_request()
+    if "file" not in request.files:
+        return "No file part"
+    file = request.files["file"]
+    if file.filename == "":
+        return "No selected file"
+    if file:
+        transcription_data = handle_transcription_request()
+        result = convert_to_wav(file, "data/audio_files", transcription_data['transcription_id'])
+        if result["success"] is True:
+            return jsonify(transcription_data)
+        # set transcription object status to failed
+        return result["message"]
 
-@app.route('/get_transcription_status/<transcription_id>', methods=['GET'])
+
+@app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
 def get_transcription_status_route(transcription_id):
     """API endpoint to get the status of a transcription"""
     return get_transcription_status(transcription_id)
+
 
 @app.route("/stream_transcribe", methods=["POST"])
 def stream_transcribe():

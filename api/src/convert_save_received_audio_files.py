@@ -5,7 +5,9 @@ from pydub.exceptions import CouldntDecodeError
 from werkzeug.datastructures import FileStorage
 
 
-def convert_to_wav(file: FileStorage, output_directory: str, output_filename: str):
+def convert_to_wav(
+    file: FileStorage, output_directory: str, output_filename: str
+) -> {"success": bool, "message": str}:
     """
     Converts an uploaded audio file to a 16kHz mono WAV file.
 
@@ -37,14 +39,17 @@ def convert_to_wav(file: FileStorage, output_directory: str, output_filename: st
         # Export the converted file
         audio.export(output_file_path, format="wav")
 
-        return output_file_path
+        return {"success": True, "message": "Data converted successfully"}
 
     except CouldntDecodeError:
-        return "Error: The file could not be decoded. It might not be an audio file or the format is not supported."
+        return {
+            "success": False,
+            "message": "Error: The file could not be decoded, does not exists or any other error",
+        }
     # Need to catch all Exceptions
     # pylint: disable=W0718
     except Exception as e:
-        return f"An error occurred: {str(e)}"
+        return {"success": False, "message": f"An error occurred: {str(e)}"}
 
 
 # Example usage within Flask route:
