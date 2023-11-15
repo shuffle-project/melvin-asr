@@ -1,12 +1,21 @@
 """
 This module contains the Flask app and the API endpoints.
 """
-from src.convert_save_received_audio_files import convert_to_wav
-from whispercpp_binding.transcribe_to_json import transcript_to_json
-from transcription_handler import get_transcription_status, handle_transcription_request
 from flask import Flask, request, jsonify
+from whispercpp_binding.transcribe_to_json import transcript_to_json
+from src.transcription_handling.transcription_model import (
+    Transcription,
+    TranscriptionStatusValue,
+)
+from src.helper.convert_save_received_audio_files import convert_to_wav
+
+# from src.transcription_handling.transcription_handler import (
+#     get_transcription_status,
+#     handle_transcription_request,
+# )
 
 app = Flask(__name__)
+transcriptions: [Transcription] = []
 
 if __name__ == "__main__":
     app.run()
@@ -60,20 +69,27 @@ def transcribe_audio():
     if file.filename == "":
         return "No selected file"
     if file:
-        transcription_data = handle_transcription_request()
-        result = convert_to_wav(file, "data/audio_files", transcription_data['transcription_id'])
+        transcription = Transcription()
+        result = convert_to_wav(
+            file, "data/audio_files", transcription.transcription_id
+        )
         if result["success"] is True:
-            return jsonify(transcription_data)
-        # set transcription object status to failed
-        return result["message"]
+            transcriptions.append(transcription)
+        else:
+            transcription.status = TranscriptionStatusValue.ERROR
+            transcription.error_message = result["message"]
+        return jsonify(transcription.print_object())
 
 
 @app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
 def get_transcription_status_route(transcription_id):
     """API endpoint to get the status of a transcription"""
-    return get_transcription_status(transcription_id)
+    for transcription in transcriptions:
+        if transcription.transcription_id == transcription_id:
+            return jsonify(transcription.print_object())
+        return "Could not get transcription_id {transcription_id}"
 
 
-@app.route("/stream_transcribe", methods=["POST"])
-def stream_transcribe():
-    """transcribes an audio stream"""
+# @app.route("/stream_transcribe", methods=["POST"])
+# def stream_transcribe():
+#     """transcribes an audio stream"""
