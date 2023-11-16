@@ -84,10 +84,13 @@ def transcribe_audio():
 @app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
 def get_transcription_status_route(transcription_id):
     """API endpoint to get the status of a transcription"""
+    error_message = jsonify(f"Could not get transcription of id {transcription_id}")
+    if len(transcriptions) == 0:
+        return error_message
     for transcription in transcriptions:
         if transcription.transcription_id == transcription_id:
             return jsonify(transcription.print_object())
-        return "Could not get transcription_id {transcription_id}"
+        return error_message
 
 
 # @app.route("/stream_transcribe", methods=["POST"])
