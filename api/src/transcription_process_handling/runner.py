@@ -25,7 +25,7 @@ class Runner:
             print("RUNNER: Model is not valid, fallback to " + FALLBACK_MODEL + ".")
             self.model = FALLBACK_MODEL
 
-    def startup(self) -> None:
+    def run(self) -> None:
         """continuously checks for new transcriptions to process"""
         while True:
             next_file_name = self.get_oldest_audio_file()
