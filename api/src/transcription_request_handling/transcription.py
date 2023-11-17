@@ -1,4 +1,5 @@
 """types of the transcription object"""
+import os
 import uuid
 from enum import Enum
 from datetime import datetime
@@ -7,11 +8,11 @@ from datetime import datetime
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
     INPROGRESS = "in_progress"
-    PENDING = "pending"
+    FINISHED = "finished"
     ERROR = "error"
 
 
-TRANSCRIPTIONS_DIR = "data/transcriptions"
+TRANSCRIPTIONS_DIR = "/data/transcripts"
 
 
 class TranscriptionNotFoundError(Exception):
@@ -49,3 +50,13 @@ class Transcription:
             "transcript": self.transcript,
             "error_message": self.error_message,
         }
+
+    def update_status(self):
+        """updates the status of the transcription if there is a transcription"""
+        files = os.listdir(os.getcwd() + TRANSCRIPTIONS_DIR)
+        print("update_status", files)
+        if (self.transcription_id + ".wav.json") in files:
+            self.status = TranscriptionStatusValue.FINISHED
+            self.end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        return
+

@@ -2,14 +2,8 @@
 import time
 import os
 from datetime import datetime
+from CONFIG import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
 from whispercpp_binding.transcribe_to_json import transcript_to_json
-
-AUDIO_FILE_PATH = "/data/audio_files/"
-AUDIO_FILE_FORMAT = ".wav"
-
-WHISPER_MODELS = ["small", "medium", "large-v1"]
-FALLBACK_MODEL = "small"
-
 
 class Runner:
     """

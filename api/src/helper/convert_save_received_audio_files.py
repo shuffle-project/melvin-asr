@@ -19,6 +19,8 @@ def convert_to_wav(
     Returns:
     str: The path to the converted WAV file or an error message.
     """
+    # remove first "/" from output_directory to make it work with CONFIG paths
+    output_directory = output_directory[1:]
 
     # Check if the output directory exists, if not, create it
     if not os.path.exists(output_directory):
