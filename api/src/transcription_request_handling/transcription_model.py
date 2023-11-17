@@ -49,4 +49,3 @@ class Transcription:
             "transcript": self.transcript,
             "error_message": self.error_message,
         }
-

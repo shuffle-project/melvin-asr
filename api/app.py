@@ -1,9 +1,12 @@
 """
 This module contains the Flask app and the API endpoints.
 """
+from multiprocessing import Process
+import sys
 from flask import Flask, request, jsonify
 from whispercpp_binding.transcribe_to_json import transcript_to_json
-from src.transcription_handling.transcription_model import (
+from src.transcription_process_handling.process_handler import Handler
+from src.transcription_request_handling.transcription_model import (
     Transcription,
     TranscriptionStatusValue,
 )
@@ -18,7 +21,11 @@ app = Flask(__name__)
 transcriptions: [Transcription] = []
 
 if __name__ == "__main__":
-    app.run()
+    handler = Handler()
+    p = Process(target=handler.startup)
+    p.start()
+    app.run(debug=True, use_reloader=False)
+    p.join()
 
 
 def main() -> None:
