@@ -7,7 +7,8 @@ from datetime import datetime
 
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
-    INPROGRESS = "in_progress"
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
     FINISHED = "finished"
     ERROR = "error"
 
@@ -34,7 +35,7 @@ class Transcription:
 
     def __init__(self):
         self.transcription_id: str = str(uuid.uuid4())
-        self.status: TranscriptionStatusValue = TranscriptionStatusValue.INPROGRESS
+        self.status: TranscriptionStatusValue = TranscriptionStatusValue.IN_PROGRESS
         self.start_time: str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self.end_time: str = ""
         self.transcript = ""
@@ -59,4 +60,6 @@ class Transcription:
             self.status = TranscriptionStatusValue.FINISHED
             self.end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         return
+    
+    
 

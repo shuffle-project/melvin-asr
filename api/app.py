@@ -41,15 +41,18 @@ def transcribe_audio():
             file, AUDIO_FILE_PATH, transcription.transcription_id
         )
 
+        # TODO: Improve this, so no sleep statement is needed.
         time.sleep(3)
 
-        # access and store settings as json
-        settings = json.loads(request.form["settings"])
-        with open(os.getcwd() + SETTING_PATH + transcription.transcription_id + ".json", "w", encoding="utf-8") as json_file:
-            json.dump(settings, json_file, indent=4)
+        if request.form["settings"]:
+            # access and store settings as json
+            settings = json.loads(request.form["settings"])
+            with open(os.getcwd() + SETTING_PATH + transcription.transcription_id + ".json", "w", encoding="utf-8") as json_file:
+                json.dump(settings, json_file, indent=4)
 
         if result["success"] is True:
             transcriptions.append(transcription)
+            save_json_to_file(transcription.print_object(), f"data/transcripts/{transcription.transcription_id}.json")
         else:
             transcription.status = TranscriptionStatusValue.ERROR
             transcription.error_message = result["message"]
@@ -57,20 +60,45 @@ def transcribe_audio():
     return "Something went wrong"
 
 
+def save_json_to_file(data, file_path):
+    """
+    Save JSON data to a file.
+    Parameters:
+    - data (dict): The JSON data to be saved.
+    - file_path (str): The file path where the JSON data will be saved.
+    """
+    print(os.getcwd())
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=2)
+
+
 @app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
 def get_transcription_status_route(transcription_id):
     """API endpoint to get the status of a transcription"""
-    error_message = jsonify(f"Could not get transcription of id {transcription_id}")
-    if len(transcriptions) == 0:
-        return error_message
-    for transcription in transcriptions:
-        if transcription.transcription_id == transcription_id:
-            transcription.update_status()
-            return jsonify(transcription.print_object())
-        # else create transcription object
-        return error_message
+    #error_message = jsonify(f"Could not get transcription of id {transcription_id}")
+    #if len(transcriptions) == 0:
+    #    return error_message
+    #for transcription in transcriptions:
+    #    if transcription.transcription_id == transcription_id:
+    #        transcription.update_status()
+    #        return jsonify(transcription.print_object())
+    #    # else create transcription object
+    #    return error_message
+    return get_transcription_status(transcription_id)
 
 
 # @app.route("/stream_transcribe", methods=["POST"])
 # def stream_transcribe():
 #     """transcribes an audio stream"""
+
+
+def get_transcription_status(transcription_id):
+    filename = os.path.join("data/transcripts", f"{transcription_id}.json")
+
+    if not os.path.exists(filename):
+        return jsonify({"error": "Transcription not found"}), 404
+
+    with open(filename, "r") as file:
+        transcription_data = json.load(file)
+
+    return jsonify(transcription_data)

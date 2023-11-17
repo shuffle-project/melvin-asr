@@ -2,12 +2,15 @@
 # KISS relative import
 # pylint: disable=E0402 
 from .transcribe import transcribe
+import os
+import datetime
 
 
 # Need to have this many arguments to fulfill whisper.cpp parameters
 # pylint: disable=R0913
 # pylint: disable=R0914
 def transcript_to_json(
+    id,
     main_path,
     model_path,
     audio_file_path,
@@ -72,8 +75,21 @@ def transcript_to_json(
             ov_e_device=ov_e_device,
         )
 
+        update_status(id)
+
     # Need to catch all Exceptions here
     # pylint: disable=W0718
     except Exception as e:
         raise RuntimeError("run_whisper() failed for" + str(e)) from e
+    
+
+def update_status(self, id):
+        TRANSCRIPTIONS_DIR = "/data/transcripts"
+        """updates the status of the transcription if there is a transcription"""
+        files = os.listdir(os.getcwd() + TRANSCRIPTIONS_DIR)
+        print("update_status", files)
+        if (id + ".wav.json") in files:
+            self.status = "finished"
+            self.end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        return
 
