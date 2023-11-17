@@ -1,9 +1,8 @@
 """
 This module contains the Flask app and the API endpoints.
 """
-from multiprocessing import Process
 from flask import Flask, request, jsonify
-from src.transcription_process_handling.runner import Runner
+from src.helper.welcome_message import welcome_message
 from src.transcription_request_handling.transcription import (
     Transcription,
     TranscriptionStatusValue,
@@ -14,33 +13,13 @@ app = Flask(__name__)
 transcriptions: [Transcription] = []
 
 if __name__ == "__main__":
-    runner = Runner(1, "large-v1")
-    p = Process(target=runner.startup)
-    p.start()
-    app.run(debug=True, use_reloader=False)
-    p.join()
-
+    app.run(debug=True, port=5000)
 
 # Base endpoint with API usage information
 @app.route("/")
 def welcome():
-    """Function that returns information about the API usage."""
-    return """
-            Welcome to the Transcription API!
-
-            Here are the available endpoints:
-
-            1. `/transcribe` (POST): Transcribe audio files over HTTP.
-            Example: curl -X POST http://your-server-address/transcribe -H "Content-Type: audio/*" --data-binary @your-audio-file.mp3
-
-            2. `/get_transcription_status/<transcription_id>` (GET): Get transcription status for a given transcription ID.
-            Example: curl http://your-server-address/get_transcription_status/your-transcription-id
-
-            3. `/stream_transcribe` (POST): Transcribe streaming audio over Websockets.
-            Example: Implement WebSocket connection and send audio data. (Work in progress)
-
-            Feel free to explore and use these endpoints for your transcription needs!
-            """
+    """Function that returns basic information about the API usage."""
+    return welcome_message()
 
 
 @app.route("/transcribe", methods=["POST"])
@@ -62,6 +41,7 @@ def transcribe_audio():
             transcription.status = TranscriptionStatusValue.ERROR
             transcription.error_message = result["message"]
         return jsonify(transcription.print_object())
+    return "Something went wrong"
 
 
 @app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
