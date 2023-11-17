@@ -27,26 +27,31 @@ class TestConvertTestAudio(unittest.TestCase):
         )
 
         # Define the output directory and filename
-        output_directory = "src"
+        output_directory = "src/helper/"
         output_filename = "converted_audio"
+        output = output_directory + output_filename + ".wav"
 
         # Call the function under test
-        result_path = convert_to_wav(
+        result_message = convert_to_wav(
             audio_file_storage, output_directory, output_filename
         )
 
+        self.assertEqual(
+            result_message, {'success': True, 'message': 'Data converted successfully'}, "The function did not return the expected message."
+        )
+
         # Check that the output file was created and is a valid WAV file
-        self.assertTrue(os.path.exists(result_path), "The WAV file was not created.")
+        self.assertTrue(os.path.exists(output_directory), "The WAV file was not created.")
 
         # Additional checks can be performed such as file content analysis, duration, etc.
-        converted_audio = AudioSegment.from_file(result_path)
+        converted_audio = AudioSegment.from_file(output)
         self.assertEqual(
             converted_audio.frame_rate, 16000, "The frame rate is not 16kHz."
         )
         self.assertEqual(converted_audio.channels, 1, "The audio is not mono.")
 
         # Clean up the created file after the test
-        os.remove(result_path)
+        os.remove(output)
 
 
 if __name__ == "__main__":
