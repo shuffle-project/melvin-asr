@@ -2,69 +2,45 @@
 This module contains the Flask app and the API endpoints.
 """
 from multiprocessing import Process
-import sys
 from flask import Flask, request, jsonify
-from whispercpp_binding.transcribe_to_json import transcript_to_json
-from src.transcription_process_handling.process_handler import Handler
-from src.transcription_request_handling.transcription_model import (
+from src.transcription_process_handling.runner import Runner
+from src.transcription_request_handling.transcription import (
     Transcription,
     TranscriptionStatusValue,
 )
 from src.helper.convert_save_received_audio_files import convert_to_wav
 
-# from src.transcription_handling.transcription_handler import (
-#     get_transcription_status,
-#     handle_transcription_request,
-# )
-
 app = Flask(__name__)
 transcriptions: [Transcription] = []
 
 if __name__ == "__main__":
-    handler = Handler()
-    p = Process(target=handler.startup)
+    runner = Runner(1, "large-v1")
+    p = Process(target=runner.startup)
     p.start()
     app.run(debug=True, use_reloader=False)
     p.join()
-
-
-def main() -> None:
-    """Loop to handle request queue"""
-    results = transcript_to_json(
-        main_path="/whisper.cpp/main",
-        model_path="/whisper.cpp/models/ggml-small.bin",
-        audio_file_path="/whisper.cpp/samples/jfk.wav",
-        output_file="/data/main",
-        debug=True,
-    )
-    print(results)
-
-
-# main()
 
 
 # Base endpoint with API usage information
 @app.route("/")
 def welcome():
     """Function that returns information about the API usage."""
-    api_info = """
-Welcome to the Transcription API!
+    return """
+            Welcome to the Transcription API!
 
-Here are the available endpoints:
+            Here are the available endpoints:
 
-1. `/transcribe` (POST): Transcribe audio files over HTTP.
-   Example: curl -X POST http://your-server-address/transcribe -H "Content-Type: audio/*" --data-binary @your-audio-file.mp3
+            1. `/transcribe` (POST): Transcribe audio files over HTTP.
+            Example: curl -X POST http://your-server-address/transcribe -H "Content-Type: audio/*" --data-binary @your-audio-file.mp3
 
-2. `/get_transcription_status/<transcription_id>` (GET): Get transcription status for a given transcription ID.
-   Example: curl http://your-server-address/get_transcription_status/your-transcription-id
+            2. `/get_transcription_status/<transcription_id>` (GET): Get transcription status for a given transcription ID.
+            Example: curl http://your-server-address/get_transcription_status/your-transcription-id
 
-3. `/stream_transcribe` (POST): Transcribe streaming audio over Websockets.
-   Example: Implement WebSocket connection and send audio data. (Work in progress)
+            3. `/stream_transcribe` (POST): Transcribe streaming audio over Websockets.
+            Example: Implement WebSocket connection and send audio data. (Work in progress)
 
-Feel free to explore and use these endpoints for your transcription needs!
-"""
-
-    return api_info
+            Feel free to explore and use these endpoints for your transcription needs!
+            """
 
 
 @app.route("/transcribe", methods=["POST"])
