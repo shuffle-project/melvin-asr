@@ -9,7 +9,9 @@ from CONFIG import AUDIO_FILE_PATH, SETTING_PATH
 from src.helper.welcome_message import welcome_message
 from src.transcription_request_handling.transcription import (
     Transcription,
+    TranscriptionNotFoundError,
     TranscriptionStatusValue,
+    search_undefined_transcripts,
 )
 from src.helper.convert_save_received_audio_files import convert_to_wav
 
@@ -18,6 +20,7 @@ transcriptions: [Transcription] = []
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
 
 # Base endpoint with API usage information
 @app.route("/")
@@ -29,7 +32,7 @@ def welcome():
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio():
     """API endpoint to transcribe an audio file"""
-    # access and store audio file as wav
+    print("request.files", request.files)
     if "file" not in request.files:
         return "No file part"
     file = request.files["file"]
@@ -37,9 +40,7 @@ def transcribe_audio():
         return "No selected file"
     if file:
         transcription = Transcription()
-        result = convert_to_wav(
-            file, AUDIO_FILE_PATH, transcription.transcription_id
-        )
+        result = convert_to_wav(file, AUDIO_FILE_PATH, transcription.transcription_id)
 
         # TODO: Improve this, so no sleep statement is needed.
         time.sleep(3)
@@ -75,16 +76,18 @@ def save_json_to_file(data, file_path):
 @app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
 def get_transcription_status_route(transcription_id):
     """API endpoint to get the status of a transcription"""
-    #error_message = jsonify(f"Could not get transcription of id {transcription_id}")
-    #if len(transcriptions) == 0:
-    #    return error_message
-    #for transcription in transcriptions:
-    #    if transcription.transcription_id == transcription_id:
-    #        transcription.update_status()
-    #        return jsonify(transcription.print_object())
-    #    # else create transcription object
-    #    return error_message
-    return get_transcription_status(transcription_id)
+    # search for the transcription in RAM
+    for transcription in transcriptions:
+        if transcription.transcription_id == transcription_id:
+            transcription.update_status()
+            return jsonify(transcription.print_object())
+    # search for the transcription in the file system
+    try:
+        new_transcription = search_undefined_transcripts(transcription_id)
+        transcriptions.append(new_transcription)
+        return jsonify(new_transcription.print_object())
+    except TranscriptionNotFoundError as e:
+        return e
 
 
 # @app.route("/stream_transcribe", methods=["POST"])
