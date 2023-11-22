@@ -33,7 +33,7 @@ class TestConvertTestAudio(unittest.TestCase):
 
         # Call the function under test
         result_message = convert_to_wav(
-            audio_file_storage, output_directory, output_filename
+            audio_file_storage, "/"+output_directory, output_filename
         )
 
         self.assertEqual(
