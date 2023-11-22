@@ -1,6 +1,6 @@
 """Module calls the run_whisper function returning the results as JSON"""
 # KISS relative import
-# pylint: disable=E0402 
+# pylint: disable=E0402
 from .transcribe import transcribe
 
 
@@ -76,4 +76,3 @@ def transcript_to_json(
     # pylint: disable=W0718
     except Exception as e:
         raise RuntimeError("run_whisper() failed for" + str(e)) from e
-
