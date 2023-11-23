@@ -13,7 +13,7 @@ from .transcribe import transcribe
 # Need to have this many arguments to fulfill whisper.cpp parameters
 # pylint: disable=R0913
 # pylint: disable=R0914
-def transcript_to_json(
+def transcribe_to_json(
     main_path,
     model_path,
     audio_file_path,

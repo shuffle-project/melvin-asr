@@ -3,9 +3,9 @@ import time
 import os
 from datetime import datetime
 from config.config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
-from runner.binding.transcribe_to_json import transcript_to_json
+from whispercpp_runner.binding.transcribe_to_json import transcribe_to_json
 
-class WhisperCppRunner:
+class Runner:
     """
     This class handles the transcription process by running whisper continuously.
     """
@@ -63,7 +63,7 @@ class WhisperCppRunner:
 
         print("Running whisper on file: " + audio_file_name)
 
-        transcript_to_json(
+        transcribe_to_json(
             main_path="/whisper.cpp/main",
             model_path="/whisper.cpp/models/ggml-small.bin",
             audio_file_path=AUDIO_FILE_PATH + audio_file_name,
