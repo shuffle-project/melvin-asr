@@ -3,16 +3,16 @@ import os
 import uuid
 from enum import Enum
 from datetime import datetime
-from CONFIG import AUDIO_FILE_PATH, TRANSCRIPT_PATH
-from src.helper.parse_json_file import parse_json_file
-
-
+from config.config import AUDIO_FILE_PATH, TRANSCRIPT_PATH
+from api.src.helper.parse_json_file import parse_json_file
 
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
+
     INPROGRESS = "in_progress"
     FINISHED = "finished"
     ERROR = "error"
+
 
 class TranscriptionNotFoundError(Exception):
     """
@@ -53,9 +53,16 @@ class Transcription:
     def update_status(self) -> None:
         """updates the status of the transcription if there is a transcription"""
         files = os.listdir(os.getcwd() + TRANSCRIPT_PATH)
+        # pylint: disable=C0325
         if (self.transcription_id + ".wav.json") in files:
             try:
-                self.transcript = parse_json_file(os.getcwd() + TRANSCRIPT_PATH + "/" + self.transcription_id + ".wav.json")
+                self.transcript = parse_json_file(
+                    os.getcwd()
+                    + TRANSCRIPT_PATH
+                    + "/"
+                    + self.transcription_id
+                    + ".wav.json"
+                )
             # Need to catch all Exceptions
             # pylint: disable=W0718
             except Exception as e:
@@ -63,17 +70,21 @@ class Transcription:
                 # if there is now .wav file and no transcript, then we have an error
             self.status = TranscriptionStatusValue.FINISHED
             self.end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        return
+
 
 def search_undefined_transcripts(transcription_id) -> Transcription:
     """Searches in Transcripts_dir for uninstanciated transcripts and return new object"""
     transcription_files = os.listdir(os.getcwd() + TRANSCRIPT_PATH)
     audio_files = os.listdir(os.getcwd() + AUDIO_FILE_PATH)
+    # pylint: disable=C0325
     if (transcription_id + ".wav.json") in transcription_files:
         new_transcription = Transcription(transcription_id)
         new_transcription.update_status()
         return new_transcription
+    # pylint: disable=C0325
     if (transcription_id + ".wav") in audio_files:
         new_transcription = Transcription(transcription_id)
         return new_transcription
-    raise TranscriptionNotFoundError(f"Transcription with id {transcription_id} not found")
+    raise TranscriptionNotFoundError(
+        f"Transcription with id {transcription_id} not found"
+    )

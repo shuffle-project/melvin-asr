@@ -5,21 +5,18 @@ import json
 import os
 import time
 from flask import Flask, request, jsonify
-from CONFIG import AUDIO_FILE_PATH, SETTING_PATH
-from src.helper.welcome_message import welcome_message
-from src.transcription_request_handling.transcription import (
+from config.config import AUDIO_FILE_PATH, SETTING_PATH
+from api.src.helper.welcome_message import welcome_message
+from api.src.transcription_request_handling.transcription import (
     Transcription,
     TranscriptionNotFoundError,
     TranscriptionStatusValue,
     search_undefined_transcripts,
 )
-from src.helper.convert_save_received_audio_files import convert_to_wav
+from api.src.helper.convert_save_received_audio_files import convert_to_wav
 
 app = Flask(__name__)
 transcriptions: [Transcription] = []
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
 
 
 # Base endpoint with API usage information
@@ -82,3 +79,6 @@ def get_transcription_status_route(transcription_id):
 # @app.route("/stream_transcribe", methods=["POST"])
 # def stream_transcribe():
 #     """transcribes an audio stream"""
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

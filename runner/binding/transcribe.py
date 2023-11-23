@@ -1,4 +1,8 @@
 """Module providing the run_whisper function that calls whisper cpp via command line"""
+
+# binding requires similar lines in 2 files
+# pylint: disable=R0801
+
 import os
 import subprocess
 
@@ -53,12 +57,10 @@ def transcribe(
     Run the whisper.cpp executable with the provided arguments.
     """
 
-    # Base command with model and file
     command = [
         os.getcwd() + main_path,
     ]
 
-    # Add optional arguments based on the function parameters
     command += [
         "-t",
         str(threads),

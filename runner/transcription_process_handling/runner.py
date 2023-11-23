@@ -2,8 +2,8 @@
 import time
 import os
 from datetime import datetime
-from CONFIG import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
-from whispercpp_binding.transcribe_to_json import transcript_to_json
+from config.config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
+from runner.binding.transcribe_to_json import transcript_to_json
 
 class Runner:
     """

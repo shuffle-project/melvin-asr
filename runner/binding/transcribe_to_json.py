@@ -1,7 +1,13 @@
+
 """Module calls the run_whisper function returning the results as JSON"""
-import json
-import os
-from whispercpp_binding.transcribe import transcribe
+
+# binding requires similar lines in 2 files
+# pylint: disable=R0801
+
+# KISS relative import
+# pylint: disable=E0402
+
+from .transcribe import transcribe
 
 
 # Need to have this many arguments to fulfill whisper.cpp parameters
@@ -36,7 +42,7 @@ def transcript_to_json(
     detect_language=False,
     prompt=None,
     ov_e_device="CPU",
-):
+) -> None:
     """calls the run_whisper function returning the results as JSON object"""
     try:
         output_json = True
@@ -71,25 +77,8 @@ def transcript_to_json(
             prompt=prompt,
             ov_e_device=ov_e_device,
         )
-        transcript = read_json_file(output_file, debug)
-        if transcript is False:
-            raise RuntimeError("Could not get transcription JSON from output_file path")
-        return transcript
 
     # Need to catch all Exceptions here
     # pylint: disable=W0718
     except Exception as e:
         raise RuntimeError("run_whisper() failed for" + str(e)) from e
-
-
-def read_json_file(path: str, debug: bool) -> any:
-    """reads a json file of a path and returns the results as JSON object"""
-    json_path = os.getcwd() + path + ".json"
-    if debug:
-        print("JSON output path:" + json_path)
-    if os.path.isfile(json_path):
-        with open(json_path, "r", encoding="utf-8") as json_file:
-            output_json = json.load(json_file)
-            return output_json
-    else:
-        return False
