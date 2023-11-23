@@ -5,7 +5,7 @@ from datetime import datetime
 from config.config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
 from runner.binding.transcribe_to_json import transcript_to_json
 
-class Runner:
+class WhisperCppRunner:
     """
     This class handles the transcription process by running whisper continuously.
     """
