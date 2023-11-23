@@ -1,3 +1,6 @@
+# similar lines in 2 files do not matter
+# pylint: disable=R0801
+
 """dir we store audio files in"""
 AUDIO_FILE_PATH = "/data/audio_files/"
 
