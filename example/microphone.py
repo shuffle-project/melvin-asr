@@ -1,3 +1,4 @@
+#pylint: skip-file
 """This gets the audio from the microphone and stores it in a file"""
 
 # required pip installs for this file:
