@@ -3,7 +3,7 @@ import time
 import os
 from datetime import datetime
 # pylint: disable=C0301
-from config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
+from config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, MODEL_PATH_FROM_ROOT, WHISPER_CPP_PATH, WHISPER_MODELS, FALLBACK_MODEL
 from binding.transcribe_to_json import transcribe_to_json
 
 class Runner:
@@ -65,8 +65,8 @@ class Runner:
         print("Running whisper on file: " + audio_file_name)
 
         transcribe_to_json(
-            main_path="/whisper.cpp/main",
-            model_path="/whisper.cpp/models/ggml-small.bin",
+            main_path=WHISPER_CPP_PATH,
+            model_path=MODEL_PATH_FROM_ROOT + f"ggml-self.{self.model}.bin",
             audio_file_path=AUDIO_FILE_PATH + audio_file_name,
             output_file="/data/transcripts/" + audio_file_name,
             debug=False,

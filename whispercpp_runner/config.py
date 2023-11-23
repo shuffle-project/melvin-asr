@@ -18,3 +18,10 @@ WHISPER_MODELS = ["small", "medium", "large-v1"]
 
 """fallback model"""
 FALLBACK_MODEL = "small"
+
+"""path to the whisper.cpp models"""
+MODEL_PATH_FROM_ROOT = "/whispercpp_runner/whisper.cpp/models/"
+
+
+"""path to the whisper.cpp executable"""
+WHISPER_CPP_PATH = "/whispercpp_runner/whisper.cpp/main"

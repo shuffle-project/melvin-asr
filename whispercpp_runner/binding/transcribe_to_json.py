@@ -81,4 +81,4 @@ def transcribe_to_json(
     # Need to catch all Exceptions here
     # pylint: disable=W0718
     except Exception as e:
-        raise RuntimeError("run_whisper() failed for" + str(e)) from e
+        raise RuntimeError("transcribe_to_json() failed for" + str(e)) from e
