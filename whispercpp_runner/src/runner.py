@@ -3,7 +3,7 @@ import time
 import os
 from datetime import datetime
 # pylint: disable=C0301
-from config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, MODEL_PATH_FROM_ROOT, WHISPER_CPP_PATH, WHISPER_MODELS, FALLBACK_MODEL
+from runner_config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, MODEL_PATH_FROM_ROOT, WHISPER_CPP_PATH, WHISPER_MODELS, FALLBACK_MODEL
 from binding.transcribe_to_json import transcribe_to_json
 
 class Runner:
