@@ -2,8 +2,9 @@
 import time
 import os
 from datetime import datetime
-from config.config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
-from whispercpp_runner.binding.transcribe_to_json import transcribe_to_json
+# pylint: disable=C0301
+from config import AUDIO_FILE_PATH, AUDIO_FILE_FORMAT, WHISPER_MODELS, FALLBACK_MODEL
+from binding.transcribe_to_json import transcribe_to_json
 
 class Runner:
     """

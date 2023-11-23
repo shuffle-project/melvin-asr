@@ -1,5 +1,7 @@
 always run in the ./api directory!
 
+Update pylance extension paths to support imports in sub-packages api and runner
+
 run: 
     flask run
     python app.py --debug

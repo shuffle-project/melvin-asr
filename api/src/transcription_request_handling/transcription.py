@@ -3,8 +3,8 @@ import os
 import uuid
 from enum import Enum
 from datetime import datetime
-from config.config import AUDIO_FILE_PATH, TRANSCRIPT_PATH
-from api.src.helper.parse_json_file import parse_json_file
+from config import AUDIO_FILE_PATH, TRANSCRIPT_PATH
+from src.helper.parse_json_file import parse_json_file
 
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
