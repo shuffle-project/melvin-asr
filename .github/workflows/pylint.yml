@@ -37,5 +37,8 @@ jobs:
       - name: Run Pylint
         run: pylint $(git ls-files '*.py')
 
+      - name: Install Test Dependencies
+        run: sudo apt-get install ffmpeg
+
       - name: Run Pytest
         run: pytest
