@@ -3,7 +3,6 @@ from flask import Flask
 
 app = Flask(__name__)
 
-
 @app.route("/")
 def hello_world():
     """Function that returns the string 'Hello, World!'"""
