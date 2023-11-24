@@ -66,8 +66,8 @@ class Runner:
 
         transcribe_to_json(
             main_path=WHISPER_CPP_PATH,
-            model_path=MODEL_PATH_FROM_ROOT + f"ggml-self.{self.model}.bin",
+            model_path=MODEL_PATH_FROM_ROOT + f"ggml-{self.model}.bin",
             audio_file_path=AUDIO_FILE_PATH + audio_file_name,
             output_file="/data/transcripts/" + audio_file_name,
-            debug=False,
+            debug=True,
         )
