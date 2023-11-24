@@ -7,8 +7,7 @@ volumes:
 
 services:
   api:
-    image: ghcr.io/shuffle-project/melvin-backend:main
-    container_name: melvin-backend
+    build: ./api
     volumes:
       -   audio_files:/data/audio_files
       -   settings:/data/settings
@@ -16,8 +15,7 @@ services:
     ports:
       - "8041:8041"
   whispercpp_runner:
-    image: ghcr.io/shuffle-project/melvin-backend:main
-    container_name: melvin-backend
+    build: ./whispercpp_runner
     volumes:
       -   audio_files:/data/audio_files
       -   settings:/data/settings

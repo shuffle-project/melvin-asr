@@ -90,6 +90,12 @@ def create_app():
         except TranscriptionNotFoundError as e:
             return e
 
+
+    @app.route("/health", methods=["GET"])
+    def health_check():
+        """return health status"""
+        return "OK"
+
     # @app.route("/stream_transcribe", methods=["POST"])
     # def stream_transcribe():
     #     """transcribes an audio stream"""
