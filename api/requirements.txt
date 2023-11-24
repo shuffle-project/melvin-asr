@@ -1,5 +1,6 @@
 Flask==3.0.0
-Gunicorn==21.2.0
-Pylint>=3.0.2
-pydub>=0.25.1
-pytest>=7.4.3
+waitress==2.1.2
+python-dotenv==1.0.0
+Pylint==3.0.2
+pydub==0.25.1
+pytest==7.4.3

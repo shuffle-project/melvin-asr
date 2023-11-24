@@ -1,15 +1,14 @@
-FROM python:3.9
+FROM python:3.12
 
-WORKDIR /app
+WORKDIR /api
 
-COPY ./api /app
+COPY . .
+COPY ./.env.prod ./.env
 
-RUN pip install -r /app/requirements.txt
+RUN pip install -r ./requirements.txt
 
 EXPOSE 80
 
-ENV NAME Placeholder
+WORKDIR /
 
-# CMD ["python", "/app/app.py"]
-# Change -w 1 to amount of available CPU cores
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:80", "app:app"]
+CMD ["python", "api"]
