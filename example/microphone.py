@@ -1,3 +1,4 @@
+#pylint: skip-file
 """This gets the audio from the microphone and stores it in a file"""
 
 # required pip installs for this file:
@@ -9,8 +10,10 @@ import threading
 import time
 import speech_recognition as sr
 
+
 # Function to handle the audio listening
 def listen_for_speech(recognizer, stop_event):
+    """listens for speech and saves it into a wav file"""
     with sr.Microphone() as source:
         i = 0
         while True:
@@ -27,8 +30,9 @@ def listen_for_speech(recognizer, stop_event):
                 f.write(audio_data.get_wav_data())
             print("Audio saved to output.wav")
 
+
 # Main program
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize recognizer and stop event
     r = sr.Recognizer()
     stop_listening = threading.Event()

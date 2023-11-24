@@ -1,3 +1,4 @@
+#pylint: skip-file
 """ This is a websocket client example for ASR-API"""
 
 # required pip installs for this file:

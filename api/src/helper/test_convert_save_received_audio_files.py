@@ -33,15 +33,19 @@ class TestConvertTestAudio(unittest.TestCase):
 
         # Call the function under test
         result_message = convert_to_wav(
-            audio_file_storage, "/"+output_directory, output_filename
+            audio_file_storage, "/" + output_directory, output_filename
         )
 
         self.assertEqual(
-            result_message, {'success': True, 'message': 'Data converted successfully'}, "The function did not return the expected message."
+            result_message,
+            {"success": True, "message": "Data converted successfully"},
+            "The function did not return the expected message.",
         )
 
         # Check that the output file was created and is a valid WAV file
-        self.assertTrue(os.path.exists(output_directory), "The WAV file was not created.")
+        self.assertTrue(
+            os.path.exists(output_directory), "The WAV file was not created."
+        )
 
         # Additional checks can be performed such as file content analysis, duration, etc.
         converted_audio = AudioSegment.from_file(output)
