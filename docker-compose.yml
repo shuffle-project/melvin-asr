@@ -1,6 +1,12 @@
 version: '3'
 services:
   api:
-    build: .
+    build: ./api
     ports:
       - "80:80"
+  whispercpp_runner:
+    build: ./whispercpp_runner
+    volumes:
+      - ./whispercpp_runner:/app
+    depends_on:
+      - api
