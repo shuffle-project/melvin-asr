@@ -1,4 +1,4 @@
-name: Python Linting on Pull Request Pushes
+name: Python Linting and PyTest on Main Pull Request Pushes
 
 on:
   pull_request:
