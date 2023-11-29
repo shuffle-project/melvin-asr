@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y ffmpeg
 
 RUN pip install -r ./requirements.txt
 
-EXPOSE 80
-
 WORKDIR /
 
 CMD ["python", "api"]
