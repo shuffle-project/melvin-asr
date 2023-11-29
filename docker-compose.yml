@@ -8,8 +8,7 @@ volumes:
 
 services:
   api:
-    # main is pulling the most current version of the image build from the main branch
-    image: ghcr.io/shuffle-project/asr-api-api::pr-29
+    image: ghcr.io/shuffle-project/asr-api-api:pr-29
     container_name: asr-api-api
     volumes:
       - audio_files:/data/audio_files
@@ -17,9 +16,9 @@ services:
       - transcripts:/data/transcripts
     ports:
       - "8041:8041"
+
   whispercpp_runner:
-    # main is pulling the most current version of the image build from the main branch
-    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner::pr-29
+    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:pr-29
     container_name: asr-api-whispercpp_runner
     volumes:
       - audio_files:/data/audio_files
