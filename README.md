@@ -1,6 +1,10 @@
-The ASR-API is a simple toolkit of two services providing endpoints for transcription of audio files. 
-1. API: A Flask API handling audio files and returning the transcriptions as JSON objecets.(`./api`)
-2. WhisperCPP_runner: A handler of WhisperCPP that works with the API to transcribe the incoming audio files. (`./whispercpp_runner`)
+# ASR-API
+
+ASR-API is a simple toolkit of two services providing REST and Websocket endpoints for the transcription of audio files. 
+
+1. **API**: A Flask API handling audio files and returning the transcriptions as JSON objecets.(`./api`)
+
+2. **WhisperCPP_runner**: A handler of WhisperCPP that works with the API to transcribe the incoming audio files. (`./whispercpp_runner`)
 
 ## Prerequisites
 
