@@ -81,7 +81,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   deploy: 
-    # needs: [api, whispercpp_runner]
+    needs: [api, whispercpp_runner]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
