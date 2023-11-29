@@ -100,12 +100,12 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         # runs docker-compose and removes old containers
-        script: |
-          cd asr-api-prod
-          docker compose down
-          docker compose up -d
-          docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
-          docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi    
+        # script: |
+        #   cd asr-api-prod
+        #   docker compose down
+        #   docker compose up -d
+        #   docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
+        #   docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi    
         scp_files: "docker-compose.yml"
         scp_target: "asr-api-prod/"
         scp_extra_args: "-o StrictHostKeyChecking=no"
