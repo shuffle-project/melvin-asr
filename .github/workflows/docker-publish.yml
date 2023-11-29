@@ -91,31 +91,32 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-    
-    - name: Show Runner directory
+  
+    - name: Installing SSH Client
       run: |
-        ls -la
+        sudo apt-get update
+        sudo apt-get install -y sshpass
 
-    - name: Copy Docker Compose File and Run Commands
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        password: ${{ secrets.PASSWORD }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        # runs docker-compose and removes old containers
-        # script: |
-        #   cd asr-api-prod
-        #   docker compose down
-        #   docker compose up -d
-        #   docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
-        #   docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi    
-        scp_files: "./docker-compose.yml"
-        scp_target: "/home/shuffle/asr-api-prod/"
-        scp_extra_args: "-o StrictHostKeyChecking=no"
-        command_timeout: 2m
-        script: |
-          cd asr-api-prod
-          ls -la
+    - name: SSH and Run Commands
+      env:
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USER }}
+        SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        echo "StrictHostKeyChecking no" > ~/.ssh/config
+
+        scp -i ~/.ssh/id_rsa ./docker-compose.yml $USERNAME@$HOST:/home/shuffle/asr-api-prod/
+        
+        ssh -i ~/.ssh/id_rsa $USERNAME@$HOST << EOF
+          cd /home/shuffle/asr-api-prod
+          docker compose down
+          docker compose up -d
+          docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
+          docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi
+        EOF
+      
 
       
