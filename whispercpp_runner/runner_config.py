@@ -14,9 +14,9 @@ SETTING_PATH = "/data/settings/"
 AUDIO_FILE_FORMAT = ".wav"
 
 """models we can use"""
-WHISPER_MODELS = ["small", "medium", "large-v1"]
+WHISPER_MODELS = ["small"]
 
-"""fallback model"""
+"""fallback model (must be included in WHISPER_MODELS)"""
 FALLBACK_MODEL = "small"
 
 """path to the whisper.cpp models"""

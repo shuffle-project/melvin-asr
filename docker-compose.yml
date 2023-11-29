@@ -1,6 +1,28 @@
 version: '3'
+
+volumes:
+  audio_files:
+  settings:
+  transcripts:
+
+
 services:
   api:
-    build: .
+    image: ghcr.io/shuffle-project/asr-api-api:deploy
+    container_name: asr-api-api
+    volumes:
+      - audio_files:/data/audio_files
+      - settings:/data/settings
+      - transcripts:/data/transcripts
     ports:
-      - "80:80"
+      - "8041:8041"
+
+  whispercpp_runner:
+    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:deploy
+    container_name: asr-api-whispercpp_runner
+    volumes:
+      - audio_files:/data/audio_files
+      - settings:/data/settings
+      - transcripts:/data/transcripts
+    depends_on:
+      - api
