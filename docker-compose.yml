@@ -8,7 +8,7 @@ volumes:
 
 services:
   api:
-    image: ghcr.io/shuffle-project/asr-api-api:pr-29
+    image: ghcr.io/shuffle-project/asr-api-api:deploy
     container_name: asr-api-api
     volumes:
       - audio_files:/data/audio_files
@@ -18,7 +18,7 @@ services:
       - "8041:8041"
 
   whispercpp_runner:
-    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:pr-29
+    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:deploy
     container_name: asr-api-whispercpp_runner
     volumes:
       - audio_files:/data/audio_files
