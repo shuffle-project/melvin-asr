@@ -5,22 +5,25 @@ volumes:
   settings:
   transcripts:
 
+
 services:
   api:
-    image: ghcr.io/shuffle-project/melvin-backend:main
-    container_name: melvin-backend
+    # main is pulling the most current version of the image build from the main branch
+    image: ghcr.io/shuffle-project/asr-api-api:main
+    container_name: asr-api-api
     volumes:
-      -   audio_files:/data/audio_files
-      -   settings:/data/settings
-      -   transcripts:/data/transcripts
+      - audio_files:/data/audio_files
+      - settings:/data/settings
+      - transcripts:/data/transcripts
     ports:
       - "8041:8041"
   whispercpp_runner:
-    image: ghcr.io/shuffle-project/melvin-backend:main
-    container_name: melvin-backend
+    # main is pulling the most current version of the image build from the main branch
+    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:main
+    container_name: asr-api-whispercpp_runner
     volumes:
-      -   audio_files:/data/audio_files
-      -   settings:/data/settings
-      -   transcripts:/data/transcripts
+      - audio_files:/data/audio_files
+      - settings:/data/settings
+      - transcripts:/data/transcripts
     depends_on:
       - api
