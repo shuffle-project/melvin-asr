@@ -101,33 +101,17 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         echo "StrictHostKeyChecking no" > ~/.ssh/config
 
-    - name: Copy docker-compose.yml to server
+    - name: Transfer docker-compose.yml and startup.sh to server
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
       run: |
         scp -i ~/.ssh/id_rsa ./docker-compose.yml $USER@$HOST:/home/shuffle/asr-api-prod/
-        
-    - name: Run docker compose
-      env:
-        HOST: ${{ secrets.HOST }}
-        USER: ${{ secrets.USER }}
-      run: |
-        ssh -i ~/.ssh/id_rsa -T $USER@$HOST << EOF
-          cd /home/shuffle/asr-api-prod
-          docker compose down
-          docker compose up -d
-        EOF
-      
-    - name: Remove old images
-      env:
-        HOST: ${{ secrets.HOST }}
-        USER: ${{ secrets.USER }}
-      run: |
-        ssh -i ~/.ssh/id_rsa -T $USER@$HOST << EOF
-          docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
-          docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi
-        EOF
-      
+        scp -i ~/.ssh/id_rsa ./scripts/startup.sh $USER@$HOST:/home/shuffle/asr-api-prod/
 
-      
+    - name: Run Startup Script
+      env:
+        HOST: ${{ secrets.HOST }}
+        USER: ${{ secrets.USER }}
+      run: |
+        ssh -i ~/.ssh/id_rsa $USER@$HOST "chmod +x /home/shuffle/asr-api-prod/startup.sh && /home/shuffle/asr-api-prod/startup.sh"      
