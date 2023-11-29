@@ -91,6 +91,10 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+    
+    - name: Show Runner directory
+      run: |
+        ls -la
 
     - name: Copy Docker Compose File and Run Commands
       uses: appleboy/ssh-action@master
@@ -111,6 +115,7 @@ jobs:
         scp_extra_args: "-o StrictHostKeyChecking=no"
         command_timeout: 2m
         script: |
+          cd asr-api-prod
           ls -la
 
       
