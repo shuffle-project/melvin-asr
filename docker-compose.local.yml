@@ -1,0 +1,26 @@
+version: '3'
+
+volumes:
+  audio_files:
+  settings:
+  transcripts:
+
+services:
+  api:
+    build: ./api
+    container_name: asr-api-api
+    volumes:
+      -   audio_files:/data/audio_files
+      -   settings:/data/settings
+      -   transcripts:/data/transcripts
+    ports:
+      - "8041:8041"
+  whispercpp_runner:
+    build: ./whispercpp_runner
+    container_name: asr-api-whispercpp_runner
+    volumes:
+      -   audio_files:/data/audio_files
+      -   settings:/data/settings
+      -   transcripts:/data/transcripts
+    depends_on:
+      - api
