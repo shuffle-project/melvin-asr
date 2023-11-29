@@ -113,7 +113,7 @@ jobs:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
       run: |
-        ssh -i ~/.ssh/id_rsa $USER@$HOST << EOF
+        ssh -i ~/.ssh/id_rsa -T $USER@$HOST << EOF
           cd /home/shuffle/asr-api-prod
           docker compose down
           docker compose up -d
@@ -124,7 +124,7 @@ jobs:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
       run: |
-        ssh -i ~/.ssh/id_rsa $USER@$HOST << EOF
+        ssh -i ~/.ssh/id_rsa -T $USER@$HOST << EOF
           docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
           docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi
         EOF
