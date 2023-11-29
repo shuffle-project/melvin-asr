@@ -107,7 +107,7 @@ jobs:
         #   docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
         #   docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi    
         scp_files: "docker-compose.yml"
-        scp_target: "asr-api-prod/"
+        scp_target: "/home/shuffle/asr-api-prod"
         scp_extra_args: "-o StrictHostKeyChecking=no"
         command_timeout: 2m
         script: |
