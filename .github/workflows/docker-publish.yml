@@ -91,29 +91,41 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-  
-    - name: Installing SSH Client
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y sshpass
 
-    - name: SSH and Run Commands
+    - name: Add SSH key
       env:
-        HOST: ${{ secrets.HOST }}
-        USERNAME: ${{ secrets.USER }}
-        SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         echo "StrictHostKeyChecking no" > ~/.ssh/config
 
+    - name: Copy docker-compose.yml to server
+      env:
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USER }}
+      run: |
+
         scp -i ~/.ssh/id_rsa ./docker-compose.yml $USERNAME@$HOST:/home/shuffle/asr-api-prod/
         
+    - name: Run docker compose
+      env:
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USER }}
+      run: |
         ssh -i ~/.ssh/id_rsa $USERNAME@$HOST << EOF
           cd /home/shuffle/asr-api-prod
           docker compose down
           docker compose up -d
+        EOF
+      
+    - name: Remove old images
+      env:
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USER }}
+      run: |
+        ssh -i ~/.ssh/id_rsa $USERNAME@$HOST << EOF
           docker images -a | grep 'asr-api-api' | awk '{print $3}' | xargs -r docker rmi    
           docker images -a | grep 'asr-api-whispercpp_runner' | awk '{print $3}' | xargs -r docker rmi
         EOF
