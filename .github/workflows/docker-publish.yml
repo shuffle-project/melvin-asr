@@ -109,5 +109,8 @@ jobs:
         scp_files: "docker-compose.yml"
         scp_target: "asr-api-prod/"
         scp_extra_args: "-o StrictHostKeyChecking=no"
+        command_timeout: 2m
+        script: |
+          ls -la
 
       
