@@ -58,20 +58,10 @@ def create_app():
 
             time.sleep(1)
 
-            # TODO: Remove this, once runner takes settings from status file
-            # access and store settings as json
-            settings = json.loads(request.form["settings"])
-            with open(
-                os.getcwd() + SETTING_PATH + transcription.transcription_id + ".json",
-                "w",
-                encoding="utf-8",
-            ) as json_file:
-                json.dump(settings, json_file, indent=4)
-
-            transcription.settings = settings
+            transcription.settings = json.loads(request.form["settings"])
 
             if result["success"] is not True:
-                transcription.status = TranscriptionStatusValue.ERROR
+                transcription.status = TranscriptionStatusValue.ERROR.value
                 transcription.error_message = result["message"]
 
             transcription.save_to_file()
