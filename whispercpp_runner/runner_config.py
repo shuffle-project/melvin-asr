@@ -10,6 +10,9 @@ TRANSCRIPT_PATH = "/data/transcripts/"
 """dir we store settings in"""
 SETTING_PATH = "/data/settings/"
 
+"""dir we store status information in"""
+STATUS_PATH = "/data/status"
+
 """format of audio files"""
 AUDIO_FILE_FORMAT = ".wav"
 

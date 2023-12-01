@@ -4,6 +4,7 @@ volumes:
   audio_files:
   settings:
   transcripts:
+  status:
 
 services:
   api:
@@ -13,6 +14,7 @@ services:
       -   audio_files:/data/audio_files
       -   settings:/data/settings
       -   transcripts:/data/transcripts
+      -   status:/data/status
     ports:
       - "8041:8041"
   whispercpp_runner:
@@ -22,5 +24,6 @@ services:
       -   audio_files:/data/audio_files
       -   settings:/data/settings
       -   transcripts:/data/transcripts
+      -   status:/data/status
     depends_on:
       - api
