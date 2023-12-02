@@ -40,7 +40,8 @@ def create_app():
         """Function that returns basic information about the API usage."""
         return welcome_message()
 
-    @app.route("/transcribe", methods=["POST"])
+
+    @app.route("/transcriptions", methods=["POST"])
     def transcribe_audio():
         """API endpoint to transcribe an audio file"""
         # TODO: Once status handling is done, move this to a separate function
@@ -68,7 +69,7 @@ def create_app():
             return jsonify(transcription.get_status())
         return "Something went wrong"
 
-    @app.route("/get_transcription_status/<transcription_id>", methods=["GET"])
+    @app.route("/transcriptions/<transcription_id>", methods=["GET"])
     def get_transcription_status_route(transcription_id):
         """API endpoint to get the status of a transcription"""
         # TODO: Once status handling is done, move this to a separate function
