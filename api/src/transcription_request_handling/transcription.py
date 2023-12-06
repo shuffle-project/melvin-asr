@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from config import AUDIO_FILE_PATH, TRANSCRIPT_PATH, STATUS_PATH
+from config import STATUS_PATH
 
 
 class TranscriptionStatusValue(Enum):
@@ -27,7 +27,14 @@ class TranscriptionNotFoundError(Exception):
 
 
 class Transcription:
+    """
+    Class representing a transcription.
+    """
     def __init__(self, transcription_id: uuid.UUID):
+        """
+        Constructor of the Transcription class.
+        :param transcription_id: The id of the transcription.
+        """
         self.transcription_id: str = str(transcription_id)
         self.status: TranscriptionStatusValue = TranscriptionStatusValue.IN_QUERY
         self.start_time: str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -35,6 +42,9 @@ class Transcription:
         self.settings = None
 
     def save_to_file(self):
+        """
+        Saves the transcription to a file.
+        """
         status_dir = STATUS_PATH
         if not os.path.exists(status_dir):
             os.makedirs(status_dir)
@@ -53,33 +63,17 @@ class Transcription:
         if self.error_message is not None:
             data["error_message"] = self.error_message
 
-        with open(file_path, 'w') as file:
+        with open(file_path, 'w', encoding="utf-8") as file:
             json.dump(data, file)
 
     def get_status(self):
+        """
+        Returns the status file of the transcription.
+        """
         file_path = os.path.join(STATUS_PATH, f"{self.transcription_id}.json")
 
         if os.path.exists(file_path):
-            with open(file_path, 'r') as file:
+            with open(file_path, 'r', encoding="utf-8") as file:
                 return json.load(file)
         else:
             return None
-
-
-# TODO: Determine if we still need this
-def search_undefined_transcripts(transcription_id) -> Transcription:
-    """Searches in Transcripts_dir for uninstanciated transcripts and return new object"""
-    transcription_files = os.listdir(os.getcwd() + TRANSCRIPT_PATH)
-    audio_files = os.listdir(os.getcwd() + AUDIO_FILE_PATH)
-    # pylint: disable=C0325
-    if (transcription_id + ".wav.json") in transcription_files:
-        new_transcription = Transcription(transcription_id)
-        new_transcription.update_status()
-        return new_transcription
-    # pylint: disable=C0325
-    if (transcription_id + ".wav") in audio_files:
-        new_transcription = Transcription(transcription_id)
-        return new_transcription
-    raise TranscriptionNotFoundError(
-        f"Transcription with id {transcription_id} not found"
-    )

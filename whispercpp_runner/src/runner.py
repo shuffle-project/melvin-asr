@@ -15,6 +15,7 @@ class Runner:
     """
 
     def __init__(self, ident: int, model: str):
+        """Constructor of the Runner class."""
         self.ident = ident
         if model in WHISPER_MODELS:
             print("RUNNER: Model is valid, running " + model + ".")
@@ -23,6 +24,7 @@ class Runner:
             print("RUNNER: Model is not valid, fallback to " + FALLBACK_MODEL + ".")
             self.model = FALLBACK_MODEL
 
+    # pylint: disable=W0718
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
         while True:
@@ -36,7 +38,6 @@ class Runner:
                 self.run_whisper(transcription_id)
             except Exception as e:
                 print("Error running whisper: " + str(e))
-                # TODO: Use enum
                 self.update_status_file("error", str(e))
                 continue
 
@@ -51,23 +52,23 @@ class Runner:
 
         files = os.listdir(full_dir)
 
-        status_files = [file for file in files]
+        status_files = list(files)
         if len(status_files) == 0:
             return "None"
 
         return self.get_oldest_transcription_in_query(full_dir)
 
     def get_oldest_transcription_in_query(self, folder_path) -> str:
+        """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id = None
 
         for filename in os.listdir(folder_path):
             if filename.endswith('.json'):
                 file_path = os.path.join(folder_path, filename)
-                with open(file_path, 'r') as file:
+                with open(file_path, 'r', encoding="utf-8") as file:
                     data = json.load(file)
                     current_status = data.get('status')
-                    # TODO: Use enum instead of string like in api. Ideally we would use the same enum.
                     if current_status == "in_query":
                         current_start_time = data.get('start_time')
                         if current_start_time:
@@ -78,8 +79,7 @@ class Runner:
 
         if oldest_transcription_id:
             return oldest_transcription_id
-        else:
-            return "None"
+        return "None"
 
     def run_whisper(self, transcription_id: str) -> None:
         """Runs whisper"""
@@ -98,17 +98,19 @@ class Runner:
             debug=True,
         )
 
-    def update_status_file(self, status: str, transcription_id: str, status_file_path: str = STATUS_PATH):
+    def update_status_file(self, status: str, transcription_id: str, status_file_path: str = STATUS_PATH, error_message: str = None):
         """Updates the status file of the transcription."""
         file_name = f"{transcription_id}.json"
         file_path = os.path.join(status_file_path, file_name)
 
         if os.path.exists(file_path):
-            with open(file_path, 'r') as file:
+            with open(file_path, 'r', encoding="utf-8") as file:
                 data = json.load(file)
                 data['status'] = status
                 if status == "done":
                     data['end_time'] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                if error_message is not None:
+                    data['error_message'] = error_message
 
             with open(file_path, 'w') as file:
                 json.dump(data, file, indent=4)
@@ -117,6 +119,7 @@ class Runner:
             print(f"File for transcription ID {transcription_id} not found.")
 
     def merge_transcript_to_status(self, transcription_id: str):
+        """Merges the transcript file to the status file."""
         transcript_file_name = f"{transcription_id}{AUDIO_FILE_FORMAT}.json"
         status_file_name = f"{transcription_id}.json"
 
@@ -124,14 +127,14 @@ class Runner:
         status_file_path = os.path.join(STATUS_PATH, status_file_name)
 
         if os.path.exists(transcript_file_path) and os.path.exists(status_file_path):
-            with open(transcript_file_path, 'r') as transcript_file:
+            with open(transcript_file_path, 'r', encoding="utf-8") as transcript_file:
                 transcript_data = json.load(transcript_file)
 
-            with open(status_file_path, 'r') as status_file:
+            with open(status_file_path, 'r', encoding="utf-8") as status_file:
                 status_data = json.load(status_file)
                 status_data['transcript'] = transcript_data  # Merge transcript data into status JSON
 
-            with open(status_file_path, 'w') as status_file:
+            with open(status_file_path, 'w', encoding="utf-8") as status_file:
                 json.dump(status_data, status_file, indent=4)
                 print(f"Transcript merged into {status_file_name}")
 
@@ -140,6 +143,4 @@ class Runner:
             self.update_status_file("done", transcription_id)
         else:
             print(f"Transcript or Status file for {transcription_id} not found.")
-            self.update_status_file("error", transcription_id)
-            # TODO: Add error_message to status file
-
+            self.update_status_file("error", transcription_id, STATUS_PATH, "Transcript file not found.")

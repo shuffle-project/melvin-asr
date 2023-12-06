@@ -9,7 +9,7 @@ import uuid
 import waitress
 from flask import Flask, request, jsonify
 from dotenv import dotenv_values
-from config import AUDIO_FILE_PATH, SETTING_PATH, STATUS_PATH
+from config import AUDIO_FILE_PATH, STATUS_PATH
 from src.helper.welcome_message import welcome_message
 from src.transcription_request_handling.transcription import (
     Transcription,
@@ -44,7 +44,6 @@ def create_app():
     @app.route("/transcriptions", methods=["POST"])
     def transcribe_audio():
         """API endpoint to transcribe an audio file"""
-        # TODO: Once status handling is done, move this to a separate function
         print("request.files", request.files)
         if "file" not in request.files:
             return "No file part"
@@ -72,11 +71,10 @@ def create_app():
     @app.route("/transcriptions/<transcription_id>", methods=["GET"])
     def get_transcription_status_route(transcription_id):
         """API endpoint to get the status of a transcription"""
-        # TODO: Once status handling is done, move this to a separate function
         try:
             file_path = os.path.join(STATUS_PATH, f"{transcription_id}.json")
             if os.path.exists(file_path):
-                with open(file_path, 'r') as file:
+                with open(file_path, 'r', encoding='utf-8') as file:
                     return jsonify(json.load(file))
             else:
                 raise TranscriptionNotFoundError(transcription_id)
