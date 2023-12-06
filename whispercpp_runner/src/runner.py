@@ -112,7 +112,7 @@ class Runner:
                 if error_message is not None:
                     data['error_message'] = error_message
 
-            with open(file_path, 'w') as file:
+            with open(file_path, 'w', encoding="utf-8") as file:
                 json.dump(data, file, indent=4)
                 print(f"Status updated for {transcription_id} to {status}")
         else:
