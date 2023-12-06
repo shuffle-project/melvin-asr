@@ -7,6 +7,9 @@ AUDIO_FILE_PATH = "/data/audio_files/"
 """dir we store transcripts in"""
 TRANSCRIPT_PATH = "/data/transcripts/"
 
+"""dir we store status information in"""
+STATUS_PATH = "/data/status"
+
 """dir we store settings in"""
 SETTING_PATH = "/data/settings/"
 

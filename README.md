@@ -46,19 +46,19 @@ Before you begin, ensure you have installed the following tools:
 - **URL:** `/`
 - **Response:** JSON object containing basic information about the API.
 
-### /transcribe Endpoint (POST)
+### /transcriptions Endpoint (POST)
 - **Description:** Submit an audio file for transcription.
 - **Method:** POST
-- **URL:** `/transcribe`
+- **URL:** `/transcriptions`
 - **Request Body:**
   - `file`: Audio file (multipart/form-data)
   - `settings`: Any value (work in progress for future updates)
 - **Response:** Confirmation of transcription request submission.
 
-### /get_transcription_status/<transcription_id> Endpoint (GET)
+### /transcriptions/<transcription_id> Endpoint (GET)
 - **Description:** Get the transcription status for a given transcription ID.
 - **Method:** GET
-- **URL:** `/get_transcription_status/<transcription_id>`
+- **URL:** `/transcriptions/<transcription_id>`
 - **Parameters:**
   - `transcription_id`: ID received upon submitting a transcription request.
 - **Response:** Transcription status file for the given ID.

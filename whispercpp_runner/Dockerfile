@@ -6,8 +6,8 @@ COPY . .
 # Create data folders
 # RUN mkdir -p /data
 # RUN mkdir -p /data/audio_files
-# RUN mkdir -p /data/settings
 # RUN mkdir -p /data/transcripts
+# RUN mkdir -p /data/status
 # # Copy test audio file in audo_files folder
 # COPY ./infrastrucure/jfk.wav /data/audio_files/jfk.wav
 

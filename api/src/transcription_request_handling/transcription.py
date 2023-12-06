@@ -1,15 +1,18 @@
 """types of the transcription object"""
+import json
 import os
 import uuid
-from enum import Enum
 from datetime import datetime
-from config import AUDIO_FILE_PATH, TRANSCRIPT_PATH
-from src.helper.parse_json_file import parse_json_file
+from enum import Enum
+
+from config import STATUS_PATH
+
 
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
 
-    INPROGRESS = "in_progress"
+    IN_QUERY = "in_query"
+    IN_PROGRESS = "in_progress"
     FINISHED = "finished"
     ERROR = "error"
 
@@ -19,72 +22,58 @@ class TranscriptionNotFoundError(Exception):
     Exception raised when a transcription is not found.
     """
 
+    def __str__(self):
+        return f"Transcription not found: {super().__str__()}"
+
 
 class Transcription:
     """
-    Class of the objects that enable transcription handling
-    - transcription_id (str): The unique id for the transcription. (ENUM TranscriptionStatusValue)
-    - status (str): The status of the transcription.
-    - start_time (str): The start time of the transcription (formatted as "YYYY-MM-DDTHH:mm:ssZ").
-    - end_time (str): The end time of the transcription (formatted as "YYYY-MM-DDTHH:mm:ssZ").
-    - transcript (str): The transcription text (optional).
-    - error_message (str): Any error message in case of failure (optional).
+    Class representing a transcription.
     """
-
-    def __init__(self, transcription_id: str = uuid.uuid4()):
+    def __init__(self, transcription_id: uuid.UUID):
+        """
+        Constructor of the Transcription class.
+        :param transcription_id: The id of the transcription.
+        """
         self.transcription_id: str = str(transcription_id)
-        self.status: TranscriptionStatusValue = TranscriptionStatusValue.INPROGRESS
+        self.status: TranscriptionStatusValue = TranscriptionStatusValue.IN_QUERY
         self.start_time: str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        self.end_time: str = ""
-        self.transcript = ""
-        self.error_message = ""
+        self.error_message = None
+        self.settings = None
 
-    def print_object(self):
-        """returns the object as JSON"""
-        return {
+    def save_to_file(self):
+        """
+        Saves the transcription to a file.
+        """
+        status_dir = STATUS_PATH
+        if not os.path.exists(status_dir):
+            os.makedirs(status_dir)
+
+        file_path = os.path.join(status_dir, f"{self.transcription_id}.json")
+
+        data = {
             "transcription_id": self.transcription_id,
             "status": self.status.value,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
-            "transcript": self.transcript,
-            "error_message": self.error_message,
+            "start_time": self.start_time
         }
 
-    def update_status(self) -> None:
-        """updates the status of the transcription if there is a transcription"""
-        files = os.listdir(os.getcwd() + TRANSCRIPT_PATH)
-        # pylint: disable=C0325
-        if (self.transcription_id + ".wav.json") in files:
-            try:
-                self.transcript = parse_json_file(
-                    os.getcwd()
-                    + TRANSCRIPT_PATH
-                    + "/"
-                    + self.transcription_id
-                    + ".wav.json"
-                )
-            # Need to catch all Exceptions
-            # pylint: disable=W0718
-            except Exception as e:
-                print("ERROR reading transcript for id {self.transcription_id}:" + e)
-                # if there is now .wav file and no transcript, then we have an error
-            self.status = TranscriptionStatusValue.FINISHED
-            self.end_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        if self.settings is not None:
+            data["settings"] = self.settings
 
+        if self.error_message is not None:
+            data["error_message"] = self.error_message
 
-def search_undefined_transcripts(transcription_id) -> Transcription:
-    """Searches in Transcripts_dir for uninstanciated transcripts and return new object"""
-    transcription_files = os.listdir(os.getcwd() + TRANSCRIPT_PATH)
-    audio_files = os.listdir(os.getcwd() + AUDIO_FILE_PATH)
-    # pylint: disable=C0325
-    if (transcription_id + ".wav.json") in transcription_files:
-        new_transcription = Transcription(transcription_id)
-        new_transcription.update_status()
-        return new_transcription
-    # pylint: disable=C0325
-    if (transcription_id + ".wav") in audio_files:
-        new_transcription = Transcription(transcription_id)
-        return new_transcription
-    raise TranscriptionNotFoundError(
-        f"Transcription with id {transcription_id} not found"
-    )
+        with open(file_path, 'w', encoding="utf-8") as file:
+            json.dump(data, file)
+
+    def get_status(self):
+        """
+        Returns the status file of the transcription.
+        """
+        file_path = os.path.join(STATUS_PATH, f"{self.transcription_id}.json")
+
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding="utf-8") as file:
+                return json.load(file)
+        else:
+            return None

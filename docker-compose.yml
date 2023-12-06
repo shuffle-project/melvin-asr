@@ -2,8 +2,8 @@ version: '3'
 
 volumes:
   audio_files:
-  settings:
   transcripts:
+  status:
 
 
 services:
@@ -12,8 +12,8 @@ services:
     container_name: asr-api-api
     volumes:
       - audio_files:/data/audio_files
-      - settings:/data/settings
       - transcripts:/data/transcripts
+      - status:/data/status
     ports:
       - "8041:8041"
 
@@ -22,7 +22,7 @@ services:
     container_name: asr-api-whispercpp_runner
     volumes:
       - audio_files:/data/audio_files
-      - settings:/data/settings
       - transcripts:/data/transcripts
+      - status:/data/status
     depends_on:
       - api
