@@ -20,7 +20,8 @@ def listen_for_speech(recognizer, stop_event):
             i += 1
             print("Say something!")
             # Start listening in the background
-            audio_data = recognizer.listen(source, phrase_time_limit=2)
+            audio_data = recognizer.listen(source, phrase_time_limit=60)
+            print(audio_data)
             # Stop the listening process if the stop event is set
             if stop_event.is_set():
                 print("Listening stopped.")
