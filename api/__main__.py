@@ -40,6 +40,38 @@ def create_app():
         """Function that returns basic information about the API usage."""
         return welcome_message()
 
+    # API endpoint to get all transcriptions and their status in a list
+    @app.route("/transcriptions", methods=["GET"])
+    def get_transcriptions():
+        status_order = {"in_query": 0, "in_progress": 1, "error": 2, "done": 3}
+
+        status_files = list(os.listdir(STATUS_PATH))
+        status_param = request.args.get("sort")  # Get the sort parameter from the query string
+
+        # Sort statuses based on the provided parameter or use default order if not specified
+        sorted_statuses = sorted(status_files, key=lambda x: (
+            status_order[status_param] if status_param and status_param in status_order else (
+                4 if get_status(x) not in status_order else status_order[get_status(x)]
+            )
+        ))
+
+        # Extract transcription_id and status from each file and create a list
+        transcriptions = []
+        for file_name in sorted_statuses:
+            with open(os.path.join(STATUS_PATH, file_name), 'r') as file:
+                data = json.load(file)
+                transcription_id = data.get("transcription_id")
+                status = data.get("status")
+                transcriptions.append({"transcription_id": transcription_id, "status": status})
+
+        return jsonify(transcriptions)
+
+    # Helper function to get status from a file
+    def get_status(file):
+        with open(os.path.join(STATUS_PATH, file), 'r') as f:
+            data = json.load(f)
+            return data.get("status")
+
 
     @app.route("/transcriptions", methods=["POST"])
     def transcribe_audio():
