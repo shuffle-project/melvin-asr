@@ -16,7 +16,8 @@ services:
       - status:/data/status
     ports:
       - "8041:8041"
-
+      - "8042:8042"
+      
   whispercpp_runner:
     image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:deploy
     container_name: asr-api-whispercpp_runner

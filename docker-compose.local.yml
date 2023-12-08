@@ -15,6 +15,8 @@ services:
       -   status:/data/status
     ports:
       - "8041:8041"
+      - "8042:8042"
+      
   whispercpp_runner:
     build: ./whispercpp_runner
     container_name: asr-api-whispercpp_runner

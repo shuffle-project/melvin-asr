@@ -45,7 +45,7 @@ class Transcription:
         """
         Saves the transcription to a file.
         """
-        status_dir = STATUS_PATH
+        status_dir = os.getcwd() + STATUS_PATH
         if not os.path.exists(status_dir):
             os.makedirs(status_dir)
 

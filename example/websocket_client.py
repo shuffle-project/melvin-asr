@@ -19,7 +19,7 @@ async def resample_ffmpeg_async(infile):
     return await asyncio.create_subprocess_shell(cmd, stdout=subprocess.PIPE)
 
 async def send_file_as_websocket(infile):
-    async with websockets.connect("ws://localhost:1235") as websocket:
+    async with websockets.connect("ws://localhost:1338") as websocket:
         proc = await resample_ffmpeg_async(infile)
         while True:
             data = await proc.stdout.read(2000)
