@@ -30,8 +30,8 @@ class Runner:
         while True:
             transcription_id = self.get_oldest_audio_file()
             if transcription_id == "None":
-                print("No files to process.")
-                time.sleep(3)
+                # print("No files to process.")
+                time.sleep(0.2)
                 continue
             print("Processing file: " + transcription_id)
             try:
@@ -95,12 +95,13 @@ class Runner:
             model_path=MODEL_PATH_FROM_ROOT + f"ggml-{self.model}.bin",
             audio_file_path=AUDIO_FILE_PATH + audio_file_name,
             output_file="/data/transcripts/" + audio_file_name,
-            debug=True,
+            debug=False,
         )
 
-    def update_status_file(self, status: str, transcription_id: str, status_file_path: str = STATUS_PATH, error_message: str = None):
+    def update_status_file(self, status: str, transcription_id: str, error_message: str = None):
         """Updates the status file of the transcription."""
         file_name = f"{transcription_id}.json"
+        status_file_path = os.getcwd() + STATUS_PATH
         file_path = os.path.join(status_file_path, file_name)
 
         if os.path.exists(file_path):
@@ -116,15 +117,15 @@ class Runner:
                 json.dump(data, file, indent=4)
                 print(f"Status updated for {transcription_id} to {status}")
         else:
-            print(f"File for transcription ID {transcription_id} not found.")
+            print(f"File for transcription ID {transcription_id} not found at PATH: {status_file_path}")
 
     def merge_transcript_to_status(self, transcription_id: str):
         """Merges the transcript file to the status file."""
         transcript_file_name = f"{transcription_id}{AUDIO_FILE_FORMAT}.json"
         status_file_name = f"{transcription_id}.json"
 
-        transcript_file_path = os.path.join(TRANSCRIPT_PATH, transcript_file_name)
-        status_file_path = os.path.join(STATUS_PATH, status_file_name)
+        transcript_file_path = os.path.join(os.getcwd() + TRANSCRIPT_PATH, transcript_file_name)
+        status_file_path = os.path.join(os.getcwd() + STATUS_PATH, status_file_name)
 
         if os.path.exists(transcript_file_path) and os.path.exists(status_file_path):
             with open(transcript_file_path, 'r', encoding="utf-8") as transcript_file:
@@ -143,4 +144,4 @@ class Runner:
             self.update_status_file("done", transcription_id)
         else:
             print(f"Transcript or Status file for {transcription_id} not found.")
-            self.update_status_file("error", transcription_id, STATUS_PATH, "Transcript file not found.")
+            self.update_status_file("error", transcription_id, "Transcript file not found.")

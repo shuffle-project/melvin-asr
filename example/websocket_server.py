@@ -29,7 +29,7 @@ async def echo(websocket):
         audio_data.extend(message)
 
 async def main():
-    async with websockets.serve(echo, "localhost", 1235):
+    async with websockets.serve(echo, "localhost", 1338):
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":

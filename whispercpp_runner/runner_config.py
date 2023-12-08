@@ -17,7 +17,7 @@ STATUS_PATH = "/data/status"
 AUDIO_FILE_FORMAT = ".wav"
 
 """models we can use"""
-WHISPER_MODELS = ["small"]
+WHISPER_MODELS = ["small", "tiny"]
 
 """fallback model (must be included in WHISPER_MODELS)"""
 FALLBACK_MODEL = "small"

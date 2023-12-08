@@ -1,56 +1,78 @@
-#pylint: skip-file
-"""This gets the audio from the microphone and stores it in a file"""
-
-# required pip installs for this file:
-# pylint: disable=C0301
-# 1. pip install pyaudio (Apple M-Chips https://stackoverflow.com/questions/73268630/error-could-not-build-wheels-for-pyaudio-which-is-required-to-install-pyprojec)
-# 2. pip install speechRecognition
-
+import asyncio
 import threading
 import time
 import speech_recognition as sr
+from pydub import AudioSegment
+import websockets
+import queue
 
 
-# Function to handle the audio listening
-def listen_for_speech(recognizer, stop_event):
-    """listens for speech and saves it into a wav file"""
-    with sr.Microphone() as source:
-        i = 0
-        while True:
-            i += 1
-            print("Say something!")
-            # Start listening in the background
-            audio_data = recognizer.listen(source, phrase_time_limit=60)
-            print(audio_data)
-            # Stop the listening process if the stop event is set
-            if stop_event.is_set():
-                print("Listening stopped.")
-                return
+class SpeechListener:
+    def __init__(self):
+        self.recognizer = sr.Recognizer()
+        self.stop_event = threading.Event()
+        self.audio_queue = queue.Queue()
+        self.loop = asyncio.new_event_loop()
+        self.websocket_task = threading.Thread(target=self.start_websocket_task)
 
-            with open(f"output{i}.wav", "wb") as f:
-                f.write(audio_data.get_wav_data())
-            print("Audio saved to output.wav")
+    async def send_file_as_websocket(self):
+        while not self.stop_event.is_set():
+            try:
+                data = self.audio_queue.get(timeout=1)
+            except queue.Empty:
+                continue
+
+            async with websockets.connect("ws://localhost:1338") as websocket:
+                await websocket.send(data)
+                print("Sent audio data")
+                response = await websocket.recv()
+                print("\n**************")
+                print("Server response:", response)
+                print("**************\n")
+
+    def listen_for_speech(self):
+        with sr.Microphone() as source:
+            while not self.stop_event.is_set():
+                print("Say something!")
+                audio_data = self.recognizer.listen(source, phrase_time_limit=2)
+
+                audio_segment = AudioSegment(
+                    data=audio_data.get_wav_data(),
+                    sample_width=audio_data.sample_width,
+                    frame_rate=audio_data.sample_rate,
+                    channels=1,
+                )
+
+                resampled_audio = audio_segment.set_frame_rate(16000).set_channels(1)
+                resampled_audio_data = resampled_audio.raw_data
+                self.audio_queue.put(resampled_audio_data)
+
+    def start_listening(self):
+        self.listen_thread = threading.Thread(target=self.listen_for_speech)
+        self.listen_thread.start()
+        self.websocket_task.start()
+
+    def start_websocket_task(self):
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_until_complete(self.send_file_as_websocket())
+
+    def stop_listening(self):
+        self.stop_event.set()
+        self.listen_thread.join()
+        self.loop.call_soon_threadsafe(self.loop.stop)
+        self.websocket_task.join()
 
 
-# Main program
 if __name__ == "__main__":
-    # Initialize recognizer and stop event
-    r = sr.Recognizer()
-    stop_listening = threading.Event()
+    listener = SpeechListener()
+    listener.start_listening()
+    print("Listening stopped.")
 
-    # Start the listening thread
-    listen_thread = threading.Thread(target=listen_for_speech, args=(r, stop_listening))
-    listen_thread.start()
-
-    # Wait for a command to stop listening
     try:
         while True:
-            time.sleep(0.1)  # Sleep briefly to avoid busy waiting
-            # You can implement any condition to set the stop event here
-            # For example, a keyboard input or a certain signal
+            time.sleep(2)  # Sleep briefly to avoid busy waiting
     except KeyboardInterrupt:
-        # When you press Ctrl+C, the stop event is set, and the thread will finish
-        stop_listening.set()
-        listen_thread.join()
+        pass
 
+    listener.stop_listening()
     print("Program ended.")

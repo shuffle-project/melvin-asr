@@ -3,6 +3,7 @@ import json
 import os
 import time
 import uuid
+from pydub import AudioSegment
 from flask import Flask, jsonify, request
 from config import AUDIO_FILE_PATH, STATUS_PATH
 from src.helper.convert_save_received_audio_files import convert_to_wav
@@ -36,8 +37,11 @@ def create_app():
             return "No selected file"
         if file:
             transcription = Transcription(uuid.uuid4())
+            audio = AudioSegment.from_file(
+                file.stream
+            )
             result = convert_to_wav(
-                file, AUDIO_FILE_PATH, transcription.transcription_id
+                audio, AUDIO_FILE_PATH, transcription.transcription_id
             )
 
             time.sleep(1)
@@ -45,7 +49,7 @@ def create_app():
             transcription.settings = json.loads(request.form["settings"])
 
             if result["success"] is not True:
-                transcription.status = TranscriptionStatusValue.ERROR.value
+                transcription.status = TranscriptionStatusValue.ERROR
                 transcription.error_message = result["message"]
 
             transcription.save_to_file()
