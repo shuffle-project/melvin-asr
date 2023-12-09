@@ -2,12 +2,17 @@
 import json
 import os
 
+from src.helper.logger import Logger, Color
+
 # Need to catch all Exceptions here
 # pylint: disable=W0718
 
 
 class FileHandler:
     """This class handles the reading and writing of JSON files."""
+
+    def __init__(self):
+        self.log = Logger("FileHandler", Color.YELLOW)
 
     def read_json(self, file_path):
         """Reads a JSON file and returns the data."""
@@ -16,7 +21,7 @@ class FileHandler:
                 data = json.load(file)
             return data
         except Exception as e:
-            print("[JsonFileHandler] Error reading JSON file: " + str(e))
+            self.log.print_error("Error reading JSON file: " + str(e))
             return None
 
     def write_json(self, file_path, data) -> bool:
@@ -26,7 +31,7 @@ class FileHandler:
                 json.dump(data, file)
             return True
         except Exception as e:
-            print("[JsonFileHandler] Error writing JSON file: " + str(e))
+            self.log.print_error("Error writing JSON file: " + str(e))
             return False
     
     def delete (self, file_path) -> bool:
@@ -35,5 +40,5 @@ class FileHandler:
             os.remove(file_path)
             return True
         except Exception as e:
-            print("[JsonFileHandler] Error deleting file: " + str(e))
+            self.log.print_error("Error deleting file: " + str(e))
             return False
