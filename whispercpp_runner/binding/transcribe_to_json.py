@@ -38,8 +38,8 @@ def transcribe_to_json(
     tinydiarize=False,
     no_fallback=False,
     no_timestamps=False,
-    language="en",
-    detect_language=False,
+    language=None,
+    detect_language=True,
     prompt=None,
     ov_e_device="CPU",
 ) -> None:
