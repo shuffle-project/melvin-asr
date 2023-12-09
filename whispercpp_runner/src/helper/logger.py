@@ -55,7 +55,7 @@ class Logger:
             print(
                 self.debug_color
                 + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {message}"
-                + self.debug_color
+                + Color.ENDC
             )
 
     def print_error(self, message: str) -> None:
@@ -63,5 +63,5 @@ class Logger:
         print(
             self.error_color
             + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {message}"
-            + self.error_color
+            + Color.ENDC
         )

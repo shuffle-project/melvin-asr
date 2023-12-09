@@ -1,5 +1,6 @@
 """ This module contains the handler for the transcription process. """
 import os
+import time
 from runner_config import (
     AUDIO_FILE_PATH,
     AUDIO_FILE_FORMAT,
@@ -32,12 +33,20 @@ class Runner:
     # pylint: disable=W0718
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
+        c = 0
         while True:
+            c += 1
             transcription_id = self.data_handler.get_oldest_status_file_in_query()
             if transcription_id == "None":
-                # print("No files to process.")
-                self.data_handler.delete_oldest_done_status_files()
+                time.sleep(0.1)
+                if c > 10000:
+                    self.data_handler.delete_oldest_done_status_files()
+                    self.log.print_log("Deleted old done files.")
+                    c = 0
+                if c % 50 == 0:
+                    self.log.print_log("Waiting...")
                 continue
+
             self.log.print_log("Processing file: " + transcription_id)
             try:
                 self.run_whisper(transcription_id)
