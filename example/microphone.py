@@ -30,7 +30,7 @@ class SpeechListener:
             except queue.Empty:
                 continue
 
-            async with websockets.connect("ws://localhost:1338") as websocket:
+            async with websockets.connect("ws://localhost:8394") as websocket:
                 await websocket.send(data)
                 print("Sent audio data")
                 response = await websocket.recv()
