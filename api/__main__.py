@@ -53,7 +53,7 @@ if config["ENVIRONMENT"] == "production":
     websocket_server.join()
     flask_server.join()
 
-if config["ENVIRONMENT"] == "development":
+elif config["ENVIRONMENT"] == "development":
     print("Running development..")
     if len(sys.argv) > 1:
         if sys.argv[1] == "websocket":
@@ -67,5 +67,6 @@ if config["ENVIRONMENT"] == "development":
             "No specific server type provided," +
             "please use 'python api websocket' or 'python api flask'"
         )
+        
 else:
     print("ENVIRONMENT is not set correctly")

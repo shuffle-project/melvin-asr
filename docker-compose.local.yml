@@ -14,8 +14,8 @@ services:
       -   transcripts:/data/transcripts
       -   status:/data/status
     ports:
+      - "8040:8040"
       - "8041:8041"
-      - "8042:8042"
       
   whispercpp_runner:
     build: ./whispercpp_runner
