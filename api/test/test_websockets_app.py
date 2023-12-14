@@ -1,9 +1,10 @@
+"""Test the WebSocket server."""
 import asyncio
+import os
+import multiprocessing
 import time
 import pytest
 import websockets
-import os
-import multiprocessing
 from websocket.websockets_app import WebSocketServer
 
 # Constants for testing
@@ -23,6 +24,7 @@ def run_server():
 
 @pytest.fixture(scope='session', autouse=True)
 def server():
+    """Fixture to start the WebSocket server."""
     # Start the server in a separate process
     print("Websocket starting server")
     server_process = multiprocessing.Process(target=run_server)
@@ -40,6 +42,7 @@ def server():
 
 @pytest.mark.asyncio
 async def test_send_audio_data():
+    """Test sending audio data to the WebSocket server."""
     # Read the audio data from jfk.wav
     with open(jfk_wav_path, 'rb') as file:
         test_audio_data = file.read()

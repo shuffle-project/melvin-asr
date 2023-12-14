@@ -15,7 +15,7 @@ from src.transcription_request_handling.transcription import (
 from websocket.websockets_transcriptions_config import WebsocketsTranscriptionsConfig
 
 WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
-TRANSCRIPTION_TIMEOUT_SLEEP = 60 # seconds to sleep after timeout
+TRANSCRIPTION_TIMEOUT_SLEEP = 60  # seconds to sleep after timeout
 TIMEOUT_COUNT = 3  # number of timeouts before stopping the server
 
 
@@ -63,7 +63,11 @@ class WebSocketServer:
             self.timeout_counter += 1
         else:
             self.timeout_counter = 0
-        await websocket.send(str(response))
+
+        if isinstance(response, dict):
+            await websocket.send(json.dumps(response))
+        else:
+            await websocket.send(str(response))
 
     async def wait_for_transcription(
         self, transcription_id, timeout=WAIT_FOR_TRANSCRIPTION

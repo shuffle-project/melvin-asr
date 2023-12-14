@@ -1,12 +1,12 @@
 """This class handles the transcription configuration of the websockets server."""
 
-
+# pylint: disable=too-few-public-methods
 class WebsocketsTranscriptionsConfig:
     """This class handles the transcription configuration of the websockets server."""
 
     def __init__(self):
         self.language = "auto"
-        self.translate = True
+        self.translate = False
         self.split_on_word = True
         self.max_len = 1
 

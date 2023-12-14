@@ -10,13 +10,14 @@ from runner_config import (
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Color, Logger
 
-
+# Need this many instance attributes to fulfill business requirements
+# pylint: disable=R0902
 class DataHandler:
     """This class handles the data folder."""
 
-    def __init__(self, root_path: str = os.getcwd()):
-        self.log = Logger("DataHandler", False,  Color.GREEN)
-        self.root_path = root_path
+    def __init__(self):
+        self.log = Logger("DataHandler", False, Color.GREEN)
+        self.root_path = os.getcwd()
         self.data_folder = os.path.join(self.root_path, "data")
         self.file_handler = FileHandler()
 
@@ -43,7 +44,7 @@ class DataHandler:
             self.log.print_log(f"Status file {file_name} updated (status: {status})")
         else:
             self.log.print_error(
-                f"File for transcription ID {transcription_id} not found at PATH: {self.status_path}"
+                f"File for transcription ID {transcription_id} not found, PATH: {self.status_path}"
             )
 
     def merge_transcript_to_status(self, transcription_id: str):
@@ -103,7 +104,8 @@ class DataHandler:
         return "None"
 
     def delete_oldest_done_status_files(self):
-        """Deletes the oldest status files with current_status="done" if there are more than set in CONFIG MAX_DONE_FILES number."""
+        """Deletes the oldest status files with current_status="done"
+        if there are more than set in CONFIG MAX_DONE_FILES number."""
         done_files = []
         for filename in os.listdir(self.status_path):
             if filename.endswith(".json"):

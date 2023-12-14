@@ -1,23 +1,29 @@
+"""Example of using the Websocket Server by sending Microphone audio asynchronously."""
 import asyncio
+import json
 import threading
 import time
+import queue
 import speech_recognition as sr
 from pydub import AudioSegment
 import websockets
-import queue
 
 AUDIO_FILE_LENGTH = 4  # seconds
 
 
 class SpeechListener:
+    """Listens to the microphone and sends the audio data to the websocket server."""
+
     def __init__(self):
         self.recognizer = sr.Recognizer()
         self.stop_event = threading.Event()
         self.audio_queue = queue.Queue()
         self.loop = asyncio.new_event_loop()
         self.websocket_task = threading.Thread(target=self.start_websocket_task)
+        self.listen_thread = None
 
     async def send_file_as_websocket(self):
+        """Sends the input file to the WebSocket server."""
         while not self.stop_event.is_set():
             try:
                 data = self.audio_queue.get(timeout=1)
@@ -29,8 +35,18 @@ class SpeechListener:
                 print("Sent audio data")
                 response = await websocket.recv()
                 print("\033[90m" + response + "\033[0m")
+                try:
+                    data = json.loads(response.replace("'", '"'))
+                    if "transcription" in data:
+                        text = ""
+                        for transcription in data["transcription"]:
+                            text += transcription["text"]
+                    print("\033[96m" + text + "\033[0m")
+                except json.JSONDecodeError as e:
+                    print("\033[96m" + str(e) + "\033[0m")
 
     def listen_for_speech(self):
+        """Listens to the microphone and puts the audio data into the queue."""
         with sr.Microphone() as source:
             while not self.stop_event.is_set():
                 print("Say something!")
@@ -39,7 +55,8 @@ class SpeechListener:
 
                 elapsed_time = time.time() - start_time
                 if elapsed_time < AUDIO_FILE_LENGTH:
-                    # If recording is shorter than AUDIO_FILE_LENGTH seconds, add silence to make it AUDIO_FILE_LENGTH seconds long
+                    # If recording is shorter than AUDIO_FILE_LENGTH seconds,
+                    # add silence to make it AUDIO_FILE_LENGTH seconds long
                     silence_duration = AUDIO_FILE_LENGTH - elapsed_time
                     silence = AudioSegment.silent(duration=silence_duration * 1000)
                     audio_segment = AudioSegment(
@@ -62,15 +79,18 @@ class SpeechListener:
                 self.audio_queue.put(resampled_audio_data)
 
     def start_listening(self):
+        """Starts the listening thread and the websocket task."""
         self.listen_thread = threading.Thread(target=self.listen_for_speech)
         self.listen_thread.start()
         self.websocket_task.start()
 
     def start_websocket_task(self):
+        """Starts the websocket task."""
         asyncio.set_event_loop(self.loop)
         self.loop.run_until_complete(self.send_file_as_websocket())
 
     def stop_listening(self):
+        """Stops the listening thread and the websocket task."""
         self.stop_event.set()
         self.listen_thread.join()
         self.loop.call_soon_threadsafe(self.loop.stop)

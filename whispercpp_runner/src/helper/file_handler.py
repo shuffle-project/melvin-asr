@@ -33,8 +33,8 @@ class FileHandler:
         except Exception as e:
             self.log.print_error("Error writing JSON file: " + str(e))
             return False
-    
-    def delete (self, file_path) -> bool:
+
+    def delete(self, file_path) -> bool:
         """Deletes a file."""
         try:
             os.remove(file_path)

@@ -1,3 +1,4 @@
+""" Example of sending a file to the WebSocket server using the websockets library. """
 import asyncio
 import os
 import subprocess
@@ -15,10 +16,12 @@ if not os.path.exists(INPUT_FILE):
     sys.exit(1)
 
 async def resample_ffmpeg_async(infile):
+    """Resamples the input file to 16kHz mono using FFmpeg."""
     cmd = f"ffmpeg -nostdin -loglevel quiet -i '{infile}' -ar 16000 -ac 1 -f s16le -"
     return await asyncio.create_subprocess_shell(cmd, stdout=subprocess.PIPE)
 
 async def send_file_as_websocket(infile):
+    """Sends the input file to the WebSocket server."""
     async with websockets.connect("ws://localhost:1338") as websocket:
         proc = await resample_ffmpeg_async(infile)
         while True:

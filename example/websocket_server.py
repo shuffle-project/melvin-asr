@@ -1,3 +1,4 @@
+"""A simple WebSocket server that echoes received messages back."""
 import asyncio
 import os
 import wave
@@ -19,6 +20,7 @@ def bytes_to_wav(data, outfile = OUTPUT_FILE):
         wav_file.writeframes(data)
 
 async def echo(websocket):
+    """Echoes the received message back."""
     print('Connection from', websocket.remote_address)
     audio_data = bytearray()
     async for message in websocket:
@@ -29,6 +31,7 @@ async def echo(websocket):
         audio_data.extend(message)
 
 async def main():
+    """Starts the WebSocket server."""
     async with websockets.serve(echo, "localhost", 1338):
         await asyncio.Future()  # Run forever
 

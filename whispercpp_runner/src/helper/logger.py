@@ -3,9 +3,11 @@
 from datetime import datetime
 from runner_config import LOGGER_DEBUG
 
+
 # pylint: disable=R0903
 class Color:
     """This class contains ANSI escape sequences for colored output."""
+
     ENDC = "\033[0m"
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -44,11 +46,12 @@ class Logger:
         error_color: Color = Color.FAIL,
     ):
         """Constructor of the Logger class."""
-        if (LOGGER_DEBUG):
-            self.debug = debug
+        self.debug = debug
         self.identifier = identifier
         self.debug_color = debug_color
         self.error_color = error_color
+        if LOGGER_DEBUG is False:
+            self.debug = False
 
     def print_log(self, message: str) -> None:
         """Prints a log message."""

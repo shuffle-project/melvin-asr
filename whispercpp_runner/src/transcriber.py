@@ -1,9 +1,16 @@
+""" Module to handle the transcription process """
 from binding.transcribe_to_json import transcribe_to_json
 from src.helper.logger import Logger, Color
 
+# Need to have this many arguments to fulfill whisper.cpp parameters
+# pylint: disable=R0912
+# pylint: disable=R0913
+# pylint: disable=R0914
+# pylint: disable=R0915
+# pylint: disable=R0903
 
 class Transcriber:
-
+    """ Class to handle the transcription process """
     def __init__(
         self,
         main_path,
@@ -23,28 +30,29 @@ class Transcriber:
         self.settings = settings
 
     def transcribe(self):
-        threads=4
-        processors=1
-        offset_t=0
-        offset_n=0
-        duration=0
-        max_context=-1
-        max_len=0
-        split_on_word=False
-        best_of=2
-        beam_size=-1
-        word_thold=0.01
-        entropy_thold=2.40
-        logprob_thold=-1.00
-        debug_mode=False
-        translate=False
-        diarize=False
-        tinydiarize=False
-        no_fallback=False
-        no_timestamps=False
-        language="auto"
-        prompt=False
-        ov_e_device="CPU",
+        """Function to run the transcription process"""
+        threads = 4
+        processors = 1
+        offset_t = 0
+        offset_n = 0
+        duration = 0
+        max_context = -1
+        max_len = 0
+        split_on_word = False
+        best_of = 2
+        beam_size = -1
+        word_thold = 0.01
+        entropy_thold = 2.40
+        logprob_thold = -1.00
+        debug_mode = False
+        translate = False
+        diarize = False
+        tinydiarize = False
+        no_fallback = False
+        no_timestamps = False
+        language = "auto"
+        prompt = False
+        ov_e_device = ("CPU",)
 
         # if "threads" in self.settings:
         #     threads = self.settings["threads"]
@@ -111,7 +119,6 @@ class Transcriber:
             ov_e_device = self.settings["ov_e_device"]
             self.log.print_log(f"ov_e_device: {ov_e_device}")
 
-            
         transcribe_to_json(
             main_path=self.main_path,
             model_path=self.model_path,
