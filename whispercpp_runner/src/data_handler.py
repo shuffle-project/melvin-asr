@@ -15,7 +15,7 @@ class DataHandler:
     """This class handles the data folder."""
 
     def __init__(self, root_path: str = os.getcwd()):
-        self.log = Logger("DataHandler", Color.GREEN)
+        self.log = Logger("DataHandler", False,  Color.GREEN)
         self.root_path = root_path
         self.data_folder = os.path.join(self.root_path, "data")
         self.file_handler = FileHandler()
@@ -121,3 +121,19 @@ class DataHandler:
             for i in range(len(done_files) - self.max_done_files):
                 file_to_delete = done_files[i][0]
                 os.remove(os.path.join(self.status_path, file_to_delete))
+
+    def get_status_file_settings(self, transcription_id: str) -> dict:
+        """Returns the settings from the status file."""
+        try:
+            file_name = f"{transcription_id}.json"
+            file_path = os.path.join(self.status_path, file_name)
+            data = self.file_handler.read_json(file_path)
+            if data and "settings" in data:
+                return data.get("settings")
+        # need to catch all exceptions here to not break the loop in runner.py
+        # pylint: disable=W0703
+        except Exception as e:
+            self.log.print_error(
+                f"Error getting settings from status file: {str(e)}" + e
+            )
+        return None

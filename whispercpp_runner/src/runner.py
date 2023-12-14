@@ -8,11 +8,12 @@ from runner_config import (
     WHISPER_CPP_PATH,
     WHISPER_MODELS,
     FALLBACK_MODEL,
+    TRANSCRIPT_PATH,
 )
-from binding.transcribe_to_json import transcribe_to_json
 from src.data_handler import DataHandler
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Logger, Color
+from src.transcriber import Transcriber
 
 
 class Runner:
@@ -22,7 +23,7 @@ class Runner:
 
     def __init__(self, model: str):
         """Constructor of the Runner class."""
-        self.log = Logger("Runner", Color.OKCYAN)
+        self.log = Logger("Runner", True, Color.OKCYAN)
         self.data_handler = DataHandler()
         self.file_handler = FileHandler()
 
@@ -67,21 +68,23 @@ class Runner:
 
         audio_file_name = f"{transcription_id}{AUDIO_FILE_FORMAT}"
 
+        settings = self.data_handler.get_status_file_settings(transcription_id)
+        if settings is None:
+            settings = {"language": "auto"}
+
         self.log.print_log("Running whisper on file: " + audio_file_name)
         start_time = time.time()
-        transcribe_to_json(
-            main_path=WHISPER_CPP_PATH,
-            model_path=MODEL_PATH_FROM_ROOT + f"ggml-{self.model}.bin",
-            audio_file_path=AUDIO_FILE_PATH + audio_file_name,
-            output_file="/data/transcripts/" + audio_file_name,
-            debug=False,
-            language="auto",
-        )
+        Transcriber(
+            WHISPER_CPP_PATH,
+            MODEL_PATH_FROM_ROOT + f"ggml-{self.model}.bin",
+            AUDIO_FILE_PATH + audio_file_name,
+            TRANSCRIPT_PATH + audio_file_name,
+            settings,
+            False,
+        ).transcribe()
         end_time = time.time()  # Get the current time after execution
         self.log.print_log(
             f"Time taken by transcribe_to_json: {end_time - start_time} seconds"
         )
         self.file_handler.delete(os.getcwd() + AUDIO_FILE_PATH + audio_file_name)
-        self.log.print_log(f"File deleted: {audio_file_name}")
         self.data_handler.merge_transcript_to_status(transcription_id)
-        self.log.print_log(f"Transcript merged: {audio_file_name}")

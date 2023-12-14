@@ -39,11 +39,13 @@ class Logger:
     def __init__(
         self,
         identifier: str,
+        debug: bool = LOGGER_DEBUG,
         debug_color: Color = Color.BLUE,
         error_color: Color = Color.FAIL,
     ):
         """Constructor of the Logger class."""
-        self.debug = LOGGER_DEBUG
+        if (LOGGER_DEBUG):
+            self.debug = debug
         self.identifier = identifier
         self.debug_color = debug_color
         self.error_color = error_color

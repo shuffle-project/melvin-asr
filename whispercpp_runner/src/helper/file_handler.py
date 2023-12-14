@@ -12,7 +12,7 @@ class FileHandler:
     """This class handles the reading and writing of JSON files."""
 
     def __init__(self):
-        self.log = Logger("FileHandler", Color.YELLOW)
+        self.log = Logger("FileHandler", False, Color.YELLOW)
 
     def read_json(self, file_path):
         """Reads a JSON file and returns the data."""

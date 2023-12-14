@@ -37,9 +37,7 @@ def create_app():
             return "No selected file"
         if file:
             transcription = Transcription(uuid.uuid4())
-            audio = AudioSegment.from_file(
-                file.stream
-            )
+            audio = AudioSegment.from_file(file.stream)
             result = convert_to_wav(
                 audio, AUDIO_FILE_PATH, transcription.transcription_id
             )
@@ -60,11 +58,13 @@ def create_app():
     def get_transcription_status_route(transcription_id):
         """API endpoint to get the status of a transcription"""
         try:
-            file_path = os.path.join(STATUS_PATH, f"{transcription_id}.json")
+            file_path = os.path.join(os.getcwd()+STATUS_PATH, f"{transcription_id}.json")
+            print("file_path", file_path)
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as file:
                     return jsonify(json.load(file))
             else:
+                print("TranscriptionNotFoundError")
                 raise TranscriptionNotFoundError(transcription_id)
         except TranscriptionNotFoundError as e:
             return jsonify(str(e)), 404
