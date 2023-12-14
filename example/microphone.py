@@ -6,6 +6,8 @@ from pydub import AudioSegment
 import websockets
 import queue
 
+AUDIO_FILE_LENGTH = 4  # seconds
+
 
 class SpeechListener:
     def __init__(self):
@@ -26,22 +28,34 @@ class SpeechListener:
                 await websocket.send(data)
                 print("Sent audio data")
                 response = await websocket.recv()
-                print("\n**************")
-                print("Server response:", response)
-                print("**************\n")
+                print("\033[90m" + response + "\033[0m")
 
     def listen_for_speech(self):
         with sr.Microphone() as source:
             while not self.stop_event.is_set():
                 print("Say something!")
-                audio_data = self.recognizer.listen(source, phrase_time_limit=2)
+                start_time = time.time()
+                audio_data = self.recognizer.record(source, duration=AUDIO_FILE_LENGTH)
 
-                audio_segment = AudioSegment(
-                    data=audio_data.get_wav_data(),
-                    sample_width=audio_data.sample_width,
-                    frame_rate=audio_data.sample_rate,
-                    channels=1,
-                )
+                elapsed_time = time.time() - start_time
+                if elapsed_time < AUDIO_FILE_LENGTH:
+                    # If recording is shorter than AUDIO_FILE_LENGTH seconds, add silence to make it AUDIO_FILE_LENGTH seconds long
+                    silence_duration = AUDIO_FILE_LENGTH - elapsed_time
+                    silence = AudioSegment.silent(duration=silence_duration * 1000)
+                    audio_segment = AudioSegment(
+                        data=audio_data.get_wav_data(),
+                        sample_width=audio_data.sample_width,
+                        frame_rate=audio_data.sample_rate,
+                        channels=1,
+                    )
+                    audio_segment += silence
+                else:
+                    audio_segment = AudioSegment(
+                        data=audio_data.get_wav_data(),
+                        sample_width=audio_data.sample_width,
+                        frame_rate=audio_data.sample_rate,
+                        channels=1,
+                    )
 
                 resampled_audio = audio_segment.set_frame_rate(16000).set_channels(1)
                 resampled_audio_data = resampled_audio.raw_data

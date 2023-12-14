@@ -2,7 +2,6 @@
 import asyncio
 import json
 import os
-import time
 import uuid
 import websockets
 from pydub import AudioSegment
@@ -15,18 +14,18 @@ from src.transcription_request_handling.transcription import (
 
 from websocket.websockets_transcriptions_config import WebsocketsTranscriptionsConfig
 
-OUTPUT_FILE = os.getcwd() + "/output.wav"
-print(OUTPUT_FILE)
+WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
+TRANSCRIPTION_TIMEOUT_SLEEP = 60  # seconds to wait after 3 timeouts
 
 
 class WebSocketServer:
     """Class to handle the WebSocket server"""
 
-    def __init__(self, port=1235, host="localhost", output_file=OUTPUT_FILE):
+    def __init__(self, port=1235, host="localhost"):
         self.host = host
         self.port = port
-        self.output_file = output_file or os.getcwd() + "/output.wav"
         self.config = WebsocketsTranscriptionsConfig()
+        self.timeout_counter = 0
 
     async def start_server(self):
         """Function to start the WebSocket server"""
@@ -36,8 +35,11 @@ class WebSocketServer:
 
     async def echo(self, websocket):
         """Function to handle the WebSocket connection"""
-        print("echo starts")
-        # receive data
+        if self.timeout_counter > 3:
+            await websocket.close()
+            await asyncio.sleep(TRANSCRIPTION_TIMEOUT_SLEEP)
+            self.timeout_counter = 0
+            
         audio_data = bytearray()
         async for message in websocket:
             audio_data.extend(message)
@@ -45,44 +47,42 @@ class WebSocketServer:
         await self.handle_transcription(audio_data, websocket)
 
     async def handle_transcription(self, audio_data, websocket):
-        """Fetches incoming audio_data and returns the transcription via websocket"""
-        try:
-            # Create an AudioSegment from the raw audio data
-            audio_segment = AudioSegment(
-                data=audio_data, sample_width=2, frame_rate=16000, channels=1
-            )
-            transcription_id = self.post_wav_to_runner(audio_segment)
-        except Exception as e:
-            print(f"Error loading audio segment: {e}")
-            await websocket.send(f"Error loading audio segment: {e}")
+        """Initiates the transcription process and waits for the result."""
+        # parse and post audio data to runner
+        transcription_id = self.post_audio_data(audio_data)
+        if transcription_id is None:
+            await websocket.send("Error posting audio data")
+            return
+        
+        # wait for transcription to be ready and send it back to the client
+        response = await self.wait_for_transcription(transcription_id)
+        if response is None:
+            response = "Transcription timed out"
+            self.timeout_counter += 1
+        else:
+            self.timeout_counter = 0
+        await websocket.send(str(response))
 
-        timeout = 100
-        t = 0
-        while t < timeout:
-            t += 1
+    async def wait_for_transcription(self, transcription_id, timeout=WAIT_FOR_TRANSCRIPTION):
+        """Waits for a specific amount of time for the transcription to be ready."""
+        check_interval = 0.1  # Time interval between checks
+        total_wait_time = 0
+
+        while total_wait_time < timeout:
             file_path = os.path.join(
                 os.getcwd() + STATUS_PATH, f"{transcription_id}.json"
             )
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as file:
                     transcription = json.load(file)
-                    print(transcription["status"])
                     if transcription["status"] == "error":
-                        await websocket.send(transcription["error_message"])
-                        return
+                        return "Transcription error: " + transcription["error_message"]
                     if transcription["status"] == "done":
-                        with open(file_path, "r", encoding="utf-8") as file:
-                            text = ""
-                            for transcript in transcription["transcript"]["transcription"]:
-                                text += "\n" + transcript["text"] + "\n"
-                            await websocket.send(text)
-                            return
-                    else:
-                        time.sleep(0.1)
-                time.sleep(0.1)
-            else:
-                await websocket.send("Transcription not found")
-                return
+                        return transcription["transcript"]
+            await asyncio.sleep(check_interval)
+            total_wait_time += check_interval
+
+        return None
 
     def post_wav_to_runner(self, file) -> str:
         """Function to post the WAV file to the runner"""
@@ -94,6 +94,21 @@ class WebSocketServer:
         if result["success"] is not True:
             transcription.status = TranscriptionStatusValue.ERROR
             transcription.error_message = result["message"]
+            print(f"Error post_wav_to_runner: {result['message']}")
 
         transcription.save_to_file()
         return transcription.transcription_id
+    
+    def post_audio_data(self, audio_data):
+        """Function to parse the audio data"""
+        try:
+            audio_segment = AudioSegment(
+                data=audio_data, sample_width=2, frame_rate=16000, channels=1
+            )
+            transcription_id = self.post_wav_to_runner(audio_segment)
+        # need to catch all exceptions here
+        # pylint: disable=W0718
+        except Exception as e:
+            print(f"Error post_audio_data: {e}")
+            transcription_id = None
+        return transcription_id

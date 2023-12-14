@@ -74,9 +74,8 @@ class Runner:
             model_path=MODEL_PATH_FROM_ROOT + f"ggml-{self.model}.bin",
             audio_file_path=AUDIO_FILE_PATH + audio_file_name,
             output_file="/data/transcripts/" + audio_file_name,
-            debug=True,
-            language="en",
-            detect_language=False,
+            debug=False,
+            language="auto",
         )
         end_time = time.time()  # Get the current time after execution
         self.log.print_log(

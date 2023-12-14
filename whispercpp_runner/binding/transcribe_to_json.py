@@ -39,7 +39,7 @@ def transcribe_to_json(
     no_fallback=False,
     no_timestamps=False,
     language=None,
-    detect_language=True,
+    detect_language=False, # do not use, does only detect language but does not transcribe
     prompt=None,
     ov_e_device="CPU",
 ) -> None:
