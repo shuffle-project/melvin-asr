@@ -1,7 +1,8 @@
 """Tests for the parse_json_file function."""
 import unittest
 import os
-from parse_json_file import parse_json_file  # make sure to import your function
+
+from src.helper.parse_json_file import parse_json_file
 
 
 class TestParseJsonFile(unittest.TestCase):

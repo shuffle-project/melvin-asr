@@ -39,6 +39,33 @@ Before you begin, ensure you have installed the following tools:
 5. Access the Websocket-API at http://localhost:8042 using a websocket client. This is build upon python's websockets package.
 6. To stop the API, press Ctrl+C in the terminal where the docker-compose up command is running.
 
+## Local Development
+
+Besides the local Docker Compose stack, there is an option to run both services directory on your local machine.
+
+### Install dependencies
+```bash
+    pip install -r api/requirements.txt
+    pip install -r whispercpp_runner/requirements.txt
+```
+
+### Run API-Service
+Locally for a development environment the websocket and the flask api are started seperatly.
+
+   ```bash
+   python api websocket
+   ``` 
+
+   ```bash
+   python api flask
+   ``` 
+
+### Run Whispercpp_runner-Service
+   ```bash
+   python whispercpp_runner
+   ``` 
+
+
 ## Usage
 
 ### / Endpoint (GET)
@@ -78,7 +105,7 @@ Before you begin, ensure you have installed the following tools:
 For unit testing we are using the pytest library.
 
 ```bash
-pytest
+pytest -s -v --asyncio-mode=auto
 ``` 
 
 ### Pylint

@@ -15,13 +15,15 @@ from src.transcription_request_handling.transcription import (
 from websocket.websockets_transcriptions_config import WebsocketsTranscriptionsConfig
 
 WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
-TRANSCRIPTION_TIMEOUT_SLEEP = 60  # seconds to wait after 3 timeouts
+TRANSCRIPTION_TIMEOUT_SLEEP = 60 # seconds to sleep after timeout
+TIMEOUT_COUNT = 3  # number of timeouts before stopping the server
 
 
 class WebSocketServer:
     """Class to handle the WebSocket server"""
 
     def __init__(self, port=1235, host="localhost"):
+        self.server = None
         self.host = host
         self.port = port
         self.config = WebsocketsTranscriptionsConfig()
@@ -35,11 +37,11 @@ class WebSocketServer:
 
     async def echo(self, websocket):
         """Function to handle the WebSocket connection"""
-        if self.timeout_counter > 3:
+        if self.timeout_counter > TIMEOUT_COUNT:
             await websocket.close()
             await asyncio.sleep(TRANSCRIPTION_TIMEOUT_SLEEP)
             self.timeout_counter = 0
-            
+
         audio_data = bytearray()
         async for message in websocket:
             audio_data.extend(message)
@@ -53,7 +55,7 @@ class WebSocketServer:
         if transcription_id is None:
             await websocket.send("Error posting audio data")
             return
-        
+
         # wait for transcription to be ready and send it back to the client
         response = await self.wait_for_transcription(transcription_id)
         if response is None:
@@ -63,7 +65,9 @@ class WebSocketServer:
             self.timeout_counter = 0
         await websocket.send(str(response))
 
-    async def wait_for_transcription(self, transcription_id, timeout=WAIT_FOR_TRANSCRIPTION):
+    async def wait_for_transcription(
+        self, transcription_id, timeout=WAIT_FOR_TRANSCRIPTION
+    ):
         """Waits for a specific amount of time for the transcription to be ready."""
         check_interval = 0.1  # Time interval between checks
         total_wait_time = 0
@@ -84,6 +88,20 @@ class WebSocketServer:
 
         return None
 
+    def post_audio_data(self, audio_data):
+        """Function to parse the audio data"""
+        try:
+            audio_segment = AudioSegment(
+                data=audio_data, sample_width=2, frame_rate=16000, channels=1
+            )
+            transcription_id = self.post_wav_to_runner(audio_segment)
+        # need to catch all exceptions here
+        # pylint: disable=W0718
+        except Exception as e:
+            print(f"Error post_audio_data: {e}")
+            transcription_id = None
+        return transcription_id
+
     def post_wav_to_runner(self, file) -> str:
         """Function to post the WAV file to the runner"""
         transcription = Transcription(uuid.uuid4())
@@ -98,17 +116,3 @@ class WebSocketServer:
 
         transcription.save_to_file()
         return transcription.transcription_id
-    
-    def post_audio_data(self, audio_data):
-        """Function to parse the audio data"""
-        try:
-            audio_segment = AudioSegment(
-                data=audio_data, sample_width=2, frame_rate=16000, channels=1
-            )
-            transcription_id = self.post_wav_to_runner(audio_segment)
-        # need to catch all exceptions here
-        # pylint: disable=W0718
-        except Exception as e:
-            print(f"Error post_audio_data: {e}")
-            transcription_id = None
-        return transcription_id
