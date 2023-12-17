@@ -3,6 +3,8 @@ import json
 import os
 import time
 import uuid
+from dotenv import load_dotenv
+from functools import wraps
 from pydub import AudioSegment
 from flask import Flask, jsonify, request
 from config import AUDIO_FILE_PATH, STATUS_PATH
@@ -20,6 +22,23 @@ def create_app():
     """Function to create the Flask app"""
 
     app = Flask(__name__)
+    load_dotenv() # Load environment variables from .env file
+
+    expected_api_key = os.getenv('API_KEY')
+
+    def require_api_key(func):
+        """Decorator function to require an API key for a route"""
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            api_key = request.headers.get('key')
+
+            if api_key and api_key == expected_api_key:
+                return func(*args, **kwargs)
+            else:
+                return jsonify({'error': 'Unauthorized. Please provide a valid API key'}), 401
+
+        return wrapper
 
     @app.route("/")
     def welcome():
@@ -27,6 +46,7 @@ def create_app():
         return welcome_message()
 
     @app.route("/transcriptions", methods=["POST"])
+    @require_api_key
     def transcribe_audio():
         """API endpoint to transcribe an audio file"""
         print("request.files", request.files)
@@ -55,6 +75,7 @@ def create_app():
         return "Something went wrong"
 
     @app.route("/transcriptions/<transcription_id>", methods=["GET"])
+    @require_api_key
     def get_transcription_status_route(transcription_id):
         """API endpoint to get the status of a transcription"""
         try:
