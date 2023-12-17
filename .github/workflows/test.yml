@@ -46,4 +46,5 @@ jobs:
         run: sudo apt-get install ffmpeg
 
       - name: Run Pytest
-        run: pytest
+        run: pytest -s -v --asyncio-mode=auto
+

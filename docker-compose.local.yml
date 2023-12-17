@@ -14,7 +14,9 @@ services:
       -   transcripts:/data/transcripts
       -   status:/data/status
     ports:
-      - "8041:8041"
+      - "8393:8393"
+      - "8394:8394"
+      
   whispercpp_runner:
     build: ./whispercpp_runner
     container_name: asr-api-whispercpp_runner

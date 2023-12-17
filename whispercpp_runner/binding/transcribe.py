@@ -86,12 +86,13 @@ def transcribe(
         str(entropy_thold),
         "-lpt",
         str(logprob_thold),
-        "-l",
-        str(language),
         "-oved",
         str(ov_e_device),
     ]
 
+    if language:
+        command.append("-l")
+        command.append(language)
     if split_on_word:
         command.append("-sow")
     if debug_mode:

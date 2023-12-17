@@ -1,12 +1,10 @@
 """ gets in file as parameter, formats it to wav 16khz and saves it to a path"""
 import os
-from pydub import AudioSegment
-from pydub.exceptions import CouldntDecodeError
-from werkzeug.datastructures import FileStorage
 
 
+# audio is a pydub AudioSegment
 def convert_to_wav(
-    file: FileStorage, output_directory: str, output_filename: str
+    audio, output_directory: str, output_filename: str
 ) -> {"success": bool, "message": str}:
     """
     Converts an uploaded audio file to a 16kHz mono WAV file.
@@ -30,11 +28,6 @@ def convert_to_wav(
     output_file_path = os.path.join(output_directory, output_filename + ".wav")
 
     try:
-        # Read the uploaded file into pydub
-        audio = AudioSegment.from_file(
-            file.stream
-        )  # Use file.stream to read the uploaded file
-
         # Convert to 16kHz mono WAV
         audio = audio.set_frame_rate(16000).set_channels(1)
 
@@ -43,15 +36,10 @@ def convert_to_wav(
 
         return {"success": True, "message": "Data converted successfully"}
 
-    except CouldntDecodeError:
-        return {
-            "success": False,
-            "message": "Error: The file could not be decoded, does not exists or any other error",
-        }
     # Need to catch all Exceptions
     # pylint: disable=W0718
     except Exception as e:
-        return {"success": False, "message": f"An error occurred: {str(e)}"}
+        return {"success": False, "message": f"An unknown Exception occurred: {str(e)}"}
 
 
 # Example usage within Flask route:

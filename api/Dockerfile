@@ -11,4 +11,7 @@ RUN pip install -r ./requirements.txt
 
 WORKDIR /
 
+EXPOSE 8394
+EXPOSE 8393
+
 CMD ["python", "api"]
