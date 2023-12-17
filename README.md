@@ -68,6 +68,14 @@ Locally for a development environment the websocket and the flask api are starte
 
 ## Usage
 
+> :warning: Some of the following endpoints require authentication using a API key:
+> - `/transcriptions`
+> - `/transcriptions/<transcription_id>`
+> 
+> To authenticate, add the following header to your request:
+> key: shuffle2024
+> :warning: TBD: Update key and remove from .env once API goes public
+
 ### / Endpoint (GET)
 - **Description:** Retrieve basic information.
 - **Method:** GET
