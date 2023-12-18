@@ -95,6 +95,7 @@ Locally for a development environment the websocket and the flask api are starte
 - **Description:** Get the transcription status for a given transcription ID.
 - **Method:** GET
 - **URL:** `/transcriptions/<transcription_id>`
+
 - **Parameters:**
   - `transcription_id`: ID received upon submitting a transcription request.
 - **Response:** Transcription status file for the given ID.
@@ -175,7 +176,9 @@ To ensure our code is tested and deployed as we want, we setup 2 branches to han
 For deploying the both services to production, we have a docker-compose solution setup. The deployment is handled by GitHub Actions, see the `.github/workflows/deploy-publish.yml` for more information. 
 Steps in Deployment:
 1. **Build Docker images**: We are building both services in a container using the Dockerfile in the corresponding directory.
+
 2. **Publish Docker images**: After the build process, both images are published to the GitHub packages registry of the [Shuffle-project](https://github.com/orgs/shuffle-project/).
+
 3. **Deployment**: Once both services are packed in container and published to the registry, the `docker-compose.yml` and the `scripts/startup.sh` script are copied and run on the Shuffle server. This spins up both services to production.
 
 ## License
@@ -188,4 +191,3 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 - FFmpeg: https://ffmpeg.org/
 - Waitress: https://flask.palletsprojects.com/en/3.0.x/deploying/waitress/
 - whisper.cpp: https://github.com/ggerganov/whisper.cpp
- 
