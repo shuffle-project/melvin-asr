@@ -3,8 +3,8 @@ import json
 import os
 import time
 import uuid
-from dotenv import load_dotenv
 from functools import wraps
+from dotenv import load_dotenv
 from pydub import AudioSegment
 from flask import Flask, jsonify, request
 from config import AUDIO_FILE_PATH, STATUS_PATH
@@ -35,8 +35,7 @@ def create_app():
 
             if api_key and api_key == expected_api_key:
                 return func(*args, **kwargs)
-            else:
-                return jsonify({'error': 'Unauthorized. Please provide a valid API key'}), 401
+            return jsonify({'error': 'Unauthorized. Please provide a valid API key'}), 401
 
         return wrapper
 
