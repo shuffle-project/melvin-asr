@@ -68,19 +68,26 @@ Locally for a development environment the websocket and the flask api are starte
 
 ## Usage
 
-> :warning: Some of the following endpoints require authentication using a API key:
+> :warning: Some of the following endpoints require authentication using an API key:
 > - `/transcriptions`
 > - `/transcriptions/<transcription_id>`
 > 
 > To authenticate, add the following header to your request:
-> key: shuffle2024
-> :warning: TBD: Update key and remove from .env once API goes public
+> 
+> **key: shuffle2024**
+> 
+> TBD: Update key and remove from .env once API goes public
 
 ### / Endpoint (GET)
 - **Description:** Retrieve basic information.
 - **Method:** GET
 - **URL:** `/`
 - **Response:** JSON object containing basic information about the API.
+
+Example:
+```
+GET /transcriptions
+```
 
 ### /transcriptions Endpoint (POST)
 - **Description:** Submit an audio file for transcription.
@@ -91,6 +98,13 @@ Locally for a development environment the websocket and the flask api are starte
   - `settings`: Any value (see chapter down below for settings options)
 - **Response:** Confirmation of transcription request submission.
 
+Example:
+```
+Header: key: shuffle2024
+Body: settings: {"test": "test"}, file: "test.wav"
+POST /transcriptions
+```
+
 ### /transcriptions/<transcription_id> Endpoint (GET)
 - **Description:** Get the transcription status for a given transcription ID.
 - **Method:** GET
@@ -100,11 +114,22 @@ Locally for a development environment the websocket and the flask api are starte
   - `transcription_id`: ID received upon submitting a transcription request.
 - **Response:** Transcription status file for the given ID.
 
+Example:
+```
+Header: key: shuffle2024
+GET /transcriptions/9a35a78e-9c65-4ff0-9a19-d2bb2adb11db
+```
+
 ### /health Endpoint (GET)
 - **Description:** Check the status of the API.
 - **Method:** GET
 - **URL:** `/health`
 - **Response:** Status of the API (online/reachable).
+- 
+Example:
+```
+GET /health
+```
 
 ## Transcription Settings
 Software Configuration Options
