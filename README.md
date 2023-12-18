@@ -35,8 +35,8 @@ Before you begin, ensure you have installed the following tools:
    ```bash
    docker-compose -f docker-compose.local.yml up
    ``` 
-5. Access the REST-API in your web browser at http://localhost:8041 or using an HTTP client like curl or Postman.
-5. Access the Websocket-API at http://localhost:8042 using a websocket client. This is build upon python's websockets package.
+5. Access the REST-API in your web browser at http://localhost:8393 or using an HTTP client like curl or Postman.
+5. Access the Websocket-API at http://localhost:8394 using a websocket client. This is build upon python's websockets package.
 6. To stop the API, press Ctrl+C in the terminal where the docker-compose up command is running.
 
 ## Local Development
