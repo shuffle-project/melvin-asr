@@ -45,7 +45,7 @@ class Transcription:
         """
         Saves the transcription to a file.
         """
-        status_dir = STATUS_PATH
+        status_dir = os.getcwd() + STATUS_PATH
         if not os.path.exists(status_dir):
             os.makedirs(status_dir)
 
@@ -70,7 +70,7 @@ class Transcription:
         """
         Returns the status file of the transcription.
         """
-        file_path = os.path.join(STATUS_PATH, f"{self.transcription_id}.json")
+        file_path = os.path.join(os.getcwd() + STATUS_PATH, f"{self.transcription_id}.json")
 
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding="utf-8") as file:
