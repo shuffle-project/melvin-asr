@@ -63,7 +63,10 @@ def create_app():
 
             time.sleep(1)
 
-            transcription.settings = json.loads(request.form["settings"])
+            try:
+                transcription.settings = json.loads(request.form["settings"])
+            except KeyError:
+                transcription.settings = None
 
             if result["success"] is not True:
                 transcription.status = TranscriptionStatusValue.ERROR
