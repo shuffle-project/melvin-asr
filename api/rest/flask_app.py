@@ -51,7 +51,7 @@ def create_app():
         status_files = list(os.listdir(STATUS_PATH))
         transcriptions = []
         for file_name in status_files:
-            with open(os.path.join(STATUS_PATH, file_name), 'r') as file:
+            with open(os.path.join(STATUS_PATH, file_name), 'r', encoding='utf-8') as file:
                 data = json.load(file)
                 transcription_id = data.get("transcription_id")
                 status = data.get("status")
