@@ -30,20 +30,20 @@ class SpeechListener:
             except queue.Empty:
                 continue
 
-            async with websockets.connect("ws://localhost:8394") as websocket:
+            async with websockets.connect("ws://localhost:1338") as websocket:
                 await websocket.send(data)
                 print("Sent audio data")
                 response = await websocket.recv()
                 print("\033[90m" + response + "\033[0m")
                 try:
-                    data = json.loads(response.replace("'", '"'))
+                    data = json.loads(response)
                     if "transcription" in data:
                         text = ""
                         for transcription in data["transcription"]:
                             text += transcription["text"]
                     print("\033[96m" + text + "\033[0m")
                 except json.JSONDecodeError as e:
-                    print("\033[96m" + str(e) + "\033[0m")
+                    print("\033[93m" + str(e) + "\033[0m")
 
     def listen_for_speech(self):
         """Listens to the microphone and puts the audio data into the queue."""
@@ -100,13 +100,11 @@ class SpeechListener:
 if __name__ == "__main__":
     listener = SpeechListener()
     listener.start_listening()
-    print("Listening stopped.")
 
     try:
         while True:
             time.sleep(2)  # Sleep briefly to avoid busy waiting
     except KeyboardInterrupt:
-        pass
+        listener.stop_listening()
 
-    listener.stop_listening()
     print("Program ended.")
