@@ -9,6 +9,7 @@ from config import AUDIO_FILE_PATH, STATUS_PATH
 from src.helper.convert_save_received_audio_files import convert_to_wav
 from src.transcription_request_handling.transcription import (
     Transcription,
+    TranscriptionRunnerType,
     TranscriptionStatusValue,
 )
 
@@ -112,7 +113,7 @@ class WebSocketServer:
 
     def post_wav_to_runner(self, file) -> str:
         """Function to post the WAV file to the runner"""
-        transcription = Transcription(uuid.uuid4())
+        transcription = Transcription(uuid.uuid4(), TranscriptionRunnerType.STREAM)
         result = convert_to_wav(file, AUDIO_FILE_PATH, transcription.transcription_id)
 
         transcription.settings = self.config.get_settings()

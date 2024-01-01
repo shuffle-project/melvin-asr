@@ -10,6 +10,7 @@ from runner_config import (
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Color, Logger
 
+
 # Need this many instance attributes to fulfill business requirements
 # pylint: disable=R0902
 class DataHandler:
@@ -75,29 +76,39 @@ class DataHandler:
                 "error", transcription_id, "Transcript file not found."
             )
 
-    def get_oldest_status_file_in_query(self) -> str:
+    def get_oldest_status_file_in_query(self, runner_type: str) -> str:
         """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id: str = None
 
         for filename in os.listdir(self.status_path):
-            if filename.endswith(".json"):
-                data = self.file_handler.read_json(
-                    os.path.join(self.status_path, filename)
+            try:
+                if filename.endswith(".json"):
+                    data = self.file_handler.read_json(
+                        os.path.join(self.status_path, filename)
+                    )
+                    current_status = data.get("status")
+                    current_datetime = datetime.fromisoformat(
+                        data.get("start_time").replace("Z", "+00:00")
+                    )
+                    current_runner_type = data.get("runner_type")
+                    if current_runner_type != runner_type:
+                        continue
+                    if current_status != "in_query":
+                        continue
+                    if (
+                        oldest_start_time is None
+                        or current_datetime < oldest_start_time
+                    ):
+                        oldest_start_time = current_datetime
+                        oldest_transcription_id = data.get("transcription_id")
+            # need to catch all exceptions here to not break the loop in runner.py
+            # pylint: disable=W0718
+            except Exception as e:
+                self.log.print_error(
+                    f"Caught Error getting oldest status file: {str(e)}"
                 )
-                current_status = data.get("status")
-                if current_status == "in_query":
-                    current_start_time = data.get("start_time")
-                    if current_start_time:
-                        current_datetime = datetime.fromisoformat(
-                            current_start_time.replace("Z", "+00:00")
-                        )
-                        if (
-                            oldest_start_time is None
-                            or current_datetime < oldest_start_time
-                        ):
-                            oldest_start_time = current_datetime
-                            oldest_transcription_id = data.get("transcription_id")
+                continue
 
         if oldest_transcription_id:
             return oldest_transcription_id

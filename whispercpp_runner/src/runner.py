@@ -21,11 +21,12 @@ class Runner:
     This class handles the transcription process by running whisper continuously.
     """
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, runner_type: str):
         """Constructor of the Runner class."""
         self.log = Logger("Runner", True, Color.OKCYAN)
         self.data_handler = DataHandler()
         self.file_handler = FileHandler()
+        self.runner_type = runner_type
 
         if model in WHISPER_MODELS:
             self.log.print_log("Model is valid, running " + model + ".")
@@ -42,7 +43,7 @@ class Runner:
         c = 0
         while True:
             c += 1
-            transcription_id = self.data_handler.get_oldest_status_file_in_query()
+            transcription_id = self.data_handler.get_oldest_status_file_in_query(self.runner_type)
             if transcription_id == "None":
                 time.sleep(0.1)
                 if c > 1000:
