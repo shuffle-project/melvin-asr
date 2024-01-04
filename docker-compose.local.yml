@@ -10,9 +10,12 @@ services:
     build: ./api
     container_name: asr-api-api
     volumes:
-      -   audio_files:/data/audio_files
-      -   transcripts:/data/transcripts
-      -   status:/data/status
+      # Directory where the shared files are stored
+      - ./infrastructure/shared:/infrastructure/shared
+      # Directories for the transcription process
+      - audio_files:/data/audio_files
+      - transcripts:/data/transcripts
+      - status:/data/status
     ports:
       - "8393:8393"
       - "8394:8394"
@@ -21,8 +24,16 @@ services:
     build: ./whispercpp_runner
     container_name: asr-api-whispercpp_runner
     volumes:
-      -   audio_files:/data/audio_files
-      -   transcripts:/data/transcripts
-      -   status:/data/status
+      # Directory where the shared files are stored
+      - ./infrastructure/shared:/infrastructure/shared
+      # Whisper.cpp directory
+      - ./infrastructure/whisper.cpp:./infrastructure/whisper.cpp
+      # Directories for the transcription process
+      - audio_files:/data/audio_files
+      - transcripts:/data/transcripts
+      - status:/data/status
+    environment:
+      - MODEL=tiny
+      - RUNNER_TYPE=stream
     depends_on:
       - api

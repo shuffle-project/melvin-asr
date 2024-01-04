@@ -50,8 +50,6 @@ class Runner:
                     self.data_handler.delete_oldest_done_status_files()
                     self.log.print_log("Deleted old done files.")
                     c = 0
-                if c % 5000 == 0:
-                    self.log.print_log("Waiting...")
                 continue
 
             self.log.print_log("Processing file: " + transcription_id)

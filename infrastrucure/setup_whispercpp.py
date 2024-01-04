@@ -2,19 +2,20 @@
 
 import os
 import sys
+import json
 import inspect
 import subprocess
+
+# load whisper models from shared-config.json
+with open("shared/config.json", encoding="utf-8") as json_data:
+    data = json.load(json_data)
+WHISPER_MODELS = data["models"]
 
 # Set the current and parent directory paths
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-# Need to explicitly import runner_config from parent directory
-# pylint: disable=C0413
-from runner_config import WHISPER_MODELS
-
-# Print the WHISPER_MODELS to confirm it's a list
 print("WHISPER_MODELS:", WHISPER_MODELS)
 if not isinstance(WHISPER_MODELS, list):
     raise ValueError("WHISPER_MODELS must be a list")
