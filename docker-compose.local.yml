@@ -21,8 +21,8 @@ services:
     volumes:
       # Directory where the shared files are stored
       - ./infrastructure/shared:/infrastructure/shared
-      # Whisper.cpp directory
-      - ./infrastructure/whisper.cpp:/infrastructure/whisper.cpp
+      # Whisper.cpp models directory
+      - ./infrastructure/models:/infrastructure/models
       # Directories for the transcription process
       - ./data/audio_files:/data/audio_files
       - ./data/transcripts:/data/transcripts

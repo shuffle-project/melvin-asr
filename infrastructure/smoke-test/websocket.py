@@ -1,3 +1,4 @@
+"""Sends audio data from a file to the websocket server."""
 import asyncio
 import websockets
 from pydub import AudioSegment

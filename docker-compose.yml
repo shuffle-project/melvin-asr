@@ -1,14 +1,8 @@
 version: '3'
 
-volumes:
-  audio_files:
-  transcripts:
-  status:
-
-
 services:
   api:
-    image: ghcr.io/shuffle-project/asr-api-api:deploy
+    image: ghcr.io/shuffle-project/asr-api-api:main
     container_name: asr-api-api
     volumes:
       # Directory where the shared files are stored
@@ -22,16 +16,19 @@ services:
       - "8394:8394"
       
   whispercpp_runner:
-    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:deploy
+    image: ghcr.io/shuffle-project/asr-api-whispercpp_runner:main
     container_name: asr-api-whispercpp_runner
     volumes:
       # Directory where the shared files are stored
       - ./infrastructure/shared:/infrastructure/shared
-      # Whisper.cpp directory
-      - ./infrastructure/whisper.cpp:/infrastructure/whisper.cpp
+      # Whisper.cpp models directory
+      - ./infrastructure/models:/infrastructure/models
       # Directories for the transcription process
       - ./data/audio_files:/data/audio_files
       - ./data/transcripts:/data/transcripts
       - ./data/status:/data/status
+    environment:
+      - MODEL=tiny
+      - RUNNER_TYPE=stream
     depends_on:
       - api

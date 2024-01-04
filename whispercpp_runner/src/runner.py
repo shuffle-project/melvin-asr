@@ -4,6 +4,7 @@ import time
 from runner_config import (
     AUDIO_FILE_PATH,
     AUDIO_FILE_FORMAT,
+    LOGGER_DEBUG,
     MODEL_PATH_FROM_ROOT,
     WHISPER_CPP_PATH,
     WHISPER_MODELS,
@@ -46,10 +47,12 @@ class Runner:
             transcription_id = self.data_handler.get_oldest_status_file_in_query(self.runner_type)
             if transcription_id == "None":
                 time.sleep(0.1)
-                if c > 100000:
+                if c > 60000:
                     self.data_handler.delete_oldest_done_status_files()
                     self.log.print_log("Deleted old done files.")
                     c = 0
+                if c % 600 == 0:
+                    self.log.print_log("Waiting...")
                 continue
 
             self.log.print_log("Processing file: " + transcription_id)
@@ -79,7 +82,7 @@ class Runner:
             AUDIO_FILE_PATH + audio_file_name,
             TRANSCRIPT_PATH + audio_file_name,
             settings,
-            False,
+            LOGGER_DEBUG,
         ).transcribe()
         end_time = time.time()  # Get the current time after execution
         self.log.print_log(

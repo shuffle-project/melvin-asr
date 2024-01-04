@@ -12,7 +12,7 @@ with open(sharedConfigPath, encoding="utf-8") as json_data:
 WHISPER_MODELS = data["models"]
 
 """Log level"""
-LOGGER_DEBUG = True
+LOGGER_DEBUG = False
 
 """dir we store audio files in"""
 AUDIO_FILE_PATH = "/data/audio_files/"
@@ -21,7 +21,7 @@ AUDIO_FILE_PATH = "/data/audio_files/"
 TRANSCRIPT_PATH = "/data/transcripts/"
 
 """dir we store status information in"""
-STATUS_PATH = "/data/status"
+STATUS_PATH = "/data/status/"
 
 """format of audio files"""
 AUDIO_FILE_FORMAT = ".wav"
@@ -30,10 +30,10 @@ AUDIO_FILE_FORMAT = ".wav"
 FALLBACK_MODEL = "small"
 
 """path to the whisper.cpp models"""
-MODEL_PATH_FROM_ROOT = "/infrastructure/whisper.cpp/models/"
+MODEL_PATH_FROM_ROOT = "/infrastructure/models/"
 
 """path to the whisper.cpp executable"""
-WHISPER_CPP_PATH = "/infrastructure/whisper.cpp/main"
+WHISPER_CPP_PATH = "/whispercpp_runner/whisper.cpp/main"
 
 """max number of done status files to keep"""
 MAX_DONE_FILES = 1
