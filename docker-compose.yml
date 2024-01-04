@@ -14,9 +14,9 @@ services:
       # Directory where the shared files are stored
       - ./infrastructure/shared:/infrastructure/shared
       # Directories for the transcription process
-      - audio_files:/data/audio_files
-      - transcripts:/data/transcripts
-      - status:/data/status
+      - ./data/audio_files:/data/audio_files
+      - ./data/transcripts:/data/transcripts
+      - ./data/status:/data/status
     ports:
       - "8393:8393"
       - "8394:8394"
@@ -28,10 +28,10 @@ services:
       # Directory where the shared files are stored
       - ./infrastructure/shared:/infrastructure/shared
       # Whisper.cpp directory
-      - ./infrastructure/whisper.cpp:./infrastructure/whisper.cpp
+      - ./infrastructure/whisper.cpp:/infrastructure/whisper.cpp
       # Directories for the transcription process
-      - audio_files:/data/audio_files
-      - transcripts:/data/transcripts
-      - status:/data/status
+      - ./data/audio_files:/data/audio_files
+      - ./data/transcripts:/data/transcripts
+      - ./data/status:/data/status
     depends_on:
       - api

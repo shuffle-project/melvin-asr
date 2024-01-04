@@ -6,7 +6,7 @@ import json
 import os
 
 # load shared config.json
-sharedConfigPath = os.getcwd() + "/infrastrucure/shared/config.json"
+sharedConfigPath = os.getcwd() + "/infrastructure/shared/config.json"
 with open(sharedConfigPath, encoding="utf-8") as json_data:
     data = json.load(json_data)
 WHISPER_MODELS = data["models"]
