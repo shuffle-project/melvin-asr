@@ -12,7 +12,7 @@ with open(sharedConfigPath, encoding="utf-8") as json_data:
 WHISPER_MODELS = data["models"]
 
 """Log level"""
-LOGGER_DEBUG = False
+LOGGER_DEBUG = True
 
 """dir we store audio files in"""
 AUDIO_FILE_PATH = "/data/audio_files/"
