@@ -46,11 +46,11 @@ class Runner:
             transcription_id = self.data_handler.get_oldest_status_file_in_query(self.runner_type)
             if transcription_id == "None":
                 time.sleep(0.1)
-                if c > 1000:
+                if c > 100000:
                     self.data_handler.delete_oldest_done_status_files()
                     self.log.print_log("Deleted old done files.")
                     c = 0
-                if c % 50 == 0:
+                if c % 5000 == 0:
                     self.log.print_log("Waiting...")
                 continue
 
