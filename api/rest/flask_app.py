@@ -14,6 +14,7 @@ from src.helper.welcome_message import welcome_message
 from src.transcription_request_handling.transcription import (
     Transcription,
     TranscriptionNotFoundError,
+    TranscriptionRunnerType,
     TranscriptionStatusValue,
 )
 
@@ -70,7 +71,7 @@ def create_app():
         if file.filename == "":
             return "No selected file"
         if file:
-            transcription = Transcription(uuid.uuid4())
+            transcription = Transcription(uuid.uuid4(), TranscriptionRunnerType.REST)
             audio = AudioSegment.from_file(file.stream)
             result = convert_to_wav(
                 audio, AUDIO_FILE_PATH, transcription.transcription_id

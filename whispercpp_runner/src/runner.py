@@ -4,6 +4,7 @@ import time
 from runner_config import (
     AUDIO_FILE_PATH,
     AUDIO_FILE_FORMAT,
+    LOGGER_DEBUG,
     MODEL_PATH_FROM_ROOT,
     WHISPER_CPP_PATH,
     WHISPER_MODELS,
@@ -21,11 +22,12 @@ class Runner:
     This class handles the transcription process by running whisper continuously.
     """
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, runner_type: str):
         """Constructor of the Runner class."""
         self.log = Logger("Runner", True, Color.OKCYAN)
         self.data_handler = DataHandler()
         self.file_handler = FileHandler()
+        self.runner_type = runner_type
 
         if model in WHISPER_MODELS:
             self.log.print_log("Model is valid, running " + model + ".")
@@ -42,14 +44,14 @@ class Runner:
         c = 0
         while True:
             c += 1
-            transcription_id = self.data_handler.get_oldest_status_file_in_query()
+            transcription_id = self.data_handler.get_oldest_status_file_in_query(self.runner_type)
             if transcription_id == "None":
                 time.sleep(0.1)
-                if c > 1000:
+                if c > 60000:
                     self.data_handler.delete_oldest_done_status_files()
                     self.log.print_log("Deleted old done files.")
                     c = 0
-                if c % 50 == 0:
+                if c % 600 == 0:
                     self.log.print_log("Waiting...")
                 continue
 
@@ -80,7 +82,7 @@ class Runner:
             AUDIO_FILE_PATH + audio_file_name,
             TRANSCRIPT_PATH + audio_file_name,
             settings,
-            False,
+            LOGGER_DEBUG,
         ).transcribe()
         end_time = time.time()  # Get the current time after execution
         self.log.print_log(

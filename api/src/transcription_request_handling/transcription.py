@@ -8,6 +8,13 @@ from enum import Enum
 from config import STATUS_PATH
 
 
+class TranscriptionRunnerType(Enum):
+    """runner types of a transcription"""
+
+    STREAM = "stream"
+    REST = "rest"
+
+
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
 
@@ -30,13 +37,17 @@ class Transcription:
     """
     Class representing a transcription.
     """
-    def __init__(self, transcription_id: uuid.UUID):
+
+    def __init__(
+        self, transcription_id: uuid.UUID, runner_type: TranscriptionRunnerType
+    ):
         """
         Constructor of the Transcription class.
         :param transcription_id: The id of the transcription.
         """
         self.transcription_id: str = str(transcription_id)
         self.status: TranscriptionStatusValue = TranscriptionStatusValue.IN_QUERY
+        self.runner_type = runner_type
         self.start_time: str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self.error_message = None
         self.settings = None
@@ -54,7 +65,8 @@ class Transcription:
         data = {
             "transcription_id": self.transcription_id,
             "status": self.status.value,
-            "start_time": self.start_time
+            "start_time": self.start_time,
+            "runner_type": self.runner_type.value
         }
 
         if self.settings is not None:
@@ -63,17 +75,19 @@ class Transcription:
         if self.error_message is not None:
             data["error_message"] = self.error_message
 
-        with open(file_path, 'w', encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(data, file)
 
     def get_status(self):
         """
         Returns the status file of the transcription.
         """
-        file_path = os.path.join(os.getcwd() + STATUS_PATH, f"{self.transcription_id}.json")
+        file_path = os.path.join(
+            os.getcwd() + STATUS_PATH, f"{self.transcription_id}.json"
+        )
 
         if os.path.exists(file_path):
-            with open(file_path, 'r', encoding="utf-8") as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
         else:
             return None

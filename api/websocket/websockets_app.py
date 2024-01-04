@@ -9,6 +9,7 @@ from config import AUDIO_FILE_PATH, STATUS_PATH
 from src.helper.convert_save_received_audio_files import convert_to_wav
 from src.transcription_request_handling.transcription import (
     Transcription,
+    TranscriptionRunnerType,
     TranscriptionStatusValue,
 )
 
@@ -77,19 +78,23 @@ class WebSocketServer:
         total_wait_time = 0
 
         while total_wait_time < timeout:
-            file_path = os.path.join(
-                os.getcwd() + STATUS_PATH, f"{transcription_id}.json"
-            )
-            if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as file:
-                    transcription = json.load(file)
-                    if transcription["status"] == "error":
-                        return "Transcription error: " + transcription["error_message"]
-                    if transcription["status"] == "done":
-                        return transcription["transcript"]
-            await asyncio.sleep(check_interval)
-            total_wait_time += check_interval
-
+            try:
+                file_path = os.path.join(
+                    os.getcwd() + STATUS_PATH, f"{transcription_id}.json"
+                )
+                if os.path.exists(file_path):
+                    with open(file_path, "r", encoding="utf-8") as file:
+                        transcription = json.load(file)
+                        if transcription["status"] == "error":
+                            return "Transcription error: " + transcription["error_message"]
+                        if transcription["status"] == "done":
+                            return transcription["transcript"]
+                await asyncio.sleep(check_interval)
+                total_wait_time += check_interval
+            # need to catch all exceptions here
+            # pylint: disable=W0718
+            except Exception as e:
+                print(f"Error wait_for_transcription: {e}")
         return None
 
     def post_audio_data(self, audio_data):
@@ -108,7 +113,7 @@ class WebSocketServer:
 
     def post_wav_to_runner(self, file) -> str:
         """Function to post the WAV file to the runner"""
-        transcription = Transcription(uuid.uuid4())
+        transcription = Transcription(uuid.uuid4(), TranscriptionRunnerType.STREAM)
         result = convert_to_wav(file, AUDIO_FILE_PATH, transcription.transcription_id)
 
         transcription.settings = self.config.get_settings()

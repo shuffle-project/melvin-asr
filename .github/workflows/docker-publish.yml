@@ -4,7 +4,7 @@ name: Publish API Docker image
 # Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
   push:
-    branches: ['deploy']
+    branches: ['main']
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
@@ -101,12 +101,15 @@ jobs:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
       run: |
+        scp -i ~/.ssh/id_rsa -r ./infrastructure $USER@$HOST:/home/shuffle/asr-api-prod/
         scp -i ~/.ssh/id_rsa ./docker-compose.yml $USER@$HOST:/home/shuffle/asr-api-prod/
-        scp -i ~/.ssh/id_rsa ./scripts/startup.sh $USER@$HOST:/home/shuffle/asr-api-prod/
 
-    - name: Run Startup Script
-      env:
-        HOST: ${{ secrets.HOST }}
-        USER: ${{ secrets.USER }}
-      run: |
-        ssh -i ~/.ssh/id_rsa $USER@$HOST "chmod +x /home/shuffle/asr-api-prod/startup.sh && /home/shuffle/asr-api-prod/startup.sh"      
+    - name: Run setup_whispercpp.py script
+      run: python /home/shuffle/asr-api-prod/infrastructure/setup_whispercpp.py
+
+    # - name: Run Startup Script
+    #   env:
+    #     HOST: ${{ secrets.HOST }}
+    #     USER: ${{ secrets.USER }}
+    #   run: |
+    #     ssh -i ~/.ssh/id_rsa $USER@$HOST "chmod +x /home/shuffle/asr-api-prod/startup.sh && /home/shuffle/asr-api-prod/startup.sh"      
