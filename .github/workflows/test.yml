@@ -43,7 +43,9 @@ jobs:
         run: pylint $(git ls-files '*.py')
 
       - name: Install Test Dependencies
-        run: sudo apt-get install ffmpeg
+        run: |
+          sudo apt-get update 
+          sudo apt-get install ffmpeg
 
       - name: Run Pytest
         run: pytest -s -v --asyncio-mode=auto
