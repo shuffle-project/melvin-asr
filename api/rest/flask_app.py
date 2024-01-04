@@ -44,6 +44,21 @@ def create_app():
         """Function that returns basic information about the API usage."""
         return welcome_message()
 
+    # API endpoint to get all transcriptions and their status in a list
+    @app.route("/transcriptions", methods=["GET"])
+    @require_api_key
+    def get_transcriptions():
+        status_files = list(os.listdir(STATUS_PATH))
+        transcriptions = []
+        for file_name in status_files:
+            with open(os.path.join(STATUS_PATH, file_name), 'r', encoding='utf-8') as file:
+                data = json.load(file)
+                transcription_id = data.get("transcription_id")
+                status = data.get("status")
+                transcriptions.append({"transcription_id": transcription_id, "status": status})
+
+        return jsonify(transcriptions)
+
     @app.route("/transcriptions", methods=["POST"])
     @require_api_key
     def transcribe_audio():

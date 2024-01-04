@@ -83,6 +83,12 @@ Locally for a development environment the websocket and the flask api are starte
 - **Method:** GET
 - **URL:** `/`
 - **Response:** JSON object containing basic information about the API.
+- 
+### /transcriptions Endpoint (GET)
+- **Description:** Retrieve a list of all transcription id's and their current status.
+- **Method:** GET
+- **URL:** `/transcriptions`
+- **Response:** JSON object containing a list of all transcription id's and their current status.
 
 Example:
 ```
