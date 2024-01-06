@@ -1,18 +1,17 @@
-FROM python:3.12
+FROM python:3.10
 
-WORKDIR /api
+EXPOSE 8394
+EXPOSE 8393
 
-COPY . .
-COPY ./.env.prod ./.env
+WORKDIR /asr-api
+
+COPY ./src ./src
+COPY ./app.py ./app.py
+COPY ./requirements.txt ./requirements.txt
 
 RUN apt-get update && apt-get install -y ffmpeg
 
 RUN pip install -r ./requirements.txt
 
-WORKDIR /
-
-EXPOSE 8394
-EXPOSE 8393
-
 # using unbuffered output "-u" to stdout, so that we can see the output in docker logs in real time
-CMD ["python", "-u", "api"]
+CMD ["python", "-u", "app.py"]

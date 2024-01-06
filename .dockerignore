@@ -1,1 +1,13 @@
 .env
+Dockerfile
+docker-compose.yml
+docker-compose.local.yml
+LICENSE
+README.md
+.pylintrc
+.gitignore
+/infrastructure
+/example
+/data
+/.github
+

@@ -1,16 +1,12 @@
 # ASR-API
 
-ASR-API is a simple toolkit of two services providing REST and Websocket endpoints for the transcription of audio files. 
-
-1. **API**: A Flask API handling audio files and returning the transcriptions as JSON objecets.(`./api`)
-
-2. **WhisperCPP_runner**: A handler of WhisperCPP that works with the API to transcribe the incoming audio files. (`./whispercpp_runner`)
+ASR-API is an application serving REST and Websocket endpoints for the transcription of audio files. 
 
 ## Prerequisites
 
 Before you begin, ensure you have installed the following tools:
 
-- Python 3.12
+- Python 3.10
 - Docker
 - Docker Compose
 - Visual Studio Code
@@ -23,15 +19,7 @@ Before you begin, ensure you have installed the following tools:
    ```bash
    git clone https://github.com/shuffle-project/asr-api.git
    ```
-2. Navigate to the `whispercpp_runner` directory:   
-   ```bash
-   cd asr-api/whispercpp_runner
-   ```
-3. Clone the whisper.cpp repository:
-   ```bash
-   https://github.com/ggerganov/whisper.cpp.git
-   ```
-4. Build and run the app using Docker Compose from the root directory:
+2. Build and run the app using Docker Compose from the root directory:
    ```bash
    docker-compose -f docker-compose.local.yml up
    ``` 
@@ -45,26 +33,15 @@ Besides the local Docker Compose stack, there is an option to run both services 
 
 ### Install dependencies
 ```bash
-    pip install -r api/requirements.txt
-    pip install -r whispercpp_runner/requirements.txt
+    pip install -r ./requirements.txt
 ```
 
-### Run API-Service
+### Run the app
 Locally for a development environment the websocket and the flask api are started seperatly.
 
    ```bash
-   python api websocket
+   python ./app.py
    ``` 
-
-   ```bash
-   python api flask
-   ``` 
-
-### Run Whispercpp_runner-Service
-   ```bash
-   python whispercpp_runner
-   ``` 
-
 
 ## Usage
 
@@ -74,9 +51,9 @@ Locally for a development environment the websocket and the flask api are starte
 > 
 > To authenticate, add the following header to your request:
 > 
-> **key: shuffle2024**
+> **default key: shuffle2024**
 > 
-> TBD: Update key and remove from .env once API goes public
+> Set the key in your `.env` file if you want to change it 
 
 ### / Endpoint (GET)
 - **Description:** Retrieve basic information.

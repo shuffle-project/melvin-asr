@@ -13,7 +13,7 @@ class Runner:
     def __init__(self, identifier: int = 0):
         """Constructor of the Runner class."""
         self.identifier = identifier
-        self.log = Logger(f"Runner{identifier}", True, Color.OKCYAN)
+        self.log = Logger(f"Runner{identifier}", True, Color.BRIGHT_CYAN)
         self.data_handler = DataHandler()
         self.transcriber = Transcriber()
 
@@ -31,8 +31,6 @@ class Runner:
                     self.data_handler.delete_oldest_done_status_files()
                     self.log.print_log("Deleted old done files.")
                     c = 0
-                if c % 600 == 0:
-                    self.log.print_log("Waiting...")
                 continue
 
             self.log.print_log("Processing file: " + transcription_id)

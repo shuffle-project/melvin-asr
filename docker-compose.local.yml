@@ -1,34 +1,25 @@
 version: '3'
 
 services:
-  api:
-    build: ./api
-    container_name: asr-api-api
+  asr-api:
+    build: .
+    container_name: asr-api
     volumes:
-      # Directory where the shared files are stored
-      - ./infrastructure/shared:/infrastructure/shared
-      # Directories for the transcription process
-      - ./data/audio_files:/data/audio_files
-      - ./data/transcripts:/data/transcripts
-      - ./data/status:/data/status
+      - ./models:/asr-api/models
+      - ./data/audio_files:/asr-api/data/audio_files
+      - ./data/status:/asr-api/data/status
+    environment:
+      - ENVIRONMENT=production
+      - PORT=8393
+      - WEBSOCKET_PORT=8394
+      - HOST=0.0.0.0
+      - API_KEY=shuffle2024
+      - DEBUG=True
+      - MODEL=tiny
+      - WHISPER_MODELS=["tiny", "medium", "large"]
+      - AUDIO_FILE_PATH=/data/audio_files
+      - STATUS_PATH=/data/status
+      - AUDIO_FILE_FORMAT=.wav
     ports:
       - "8393:8393"
       - "8394:8394"
-      
-  whispercpp_runner:
-    build: ./whispercpp_runner
-    container_name: asr-api-whispercpp_runner
-    volumes:
-      # Directory where the shared files are stored
-      - ./infrastructure/shared:/infrastructure/shared
-      # Whisper.cpp models directory
-      - ./infrastructure/models:/infrastructure/models
-      # Directories for the transcription process
-      - ./data/audio_files:/data/audio_files
-      - ./data/transcripts:/data/transcripts
-      - ./data/status:/data/status
-    environment:
-      - MODEL=tiny
-      - RUNNER_TYPE=stream
-    depends_on:
-      - api

@@ -1,15 +1,35 @@
 """ Module to handle the transcription process """
+import time
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import TranscriptionInfo
 import numpy as np
 from src.helper.logger import Logger, Color
 
+LOGGER = Logger("Transcriber", True, Color.MAGENTA)
+
+def time_it(func):
+    """
+    Decorator function to measure and print the execution time of a function.
+    """
+
+    def wrapper(*args, **kwargs):
+        log = LOGGER
+        start_time = time.time()  # Record the start time
+        result = func(*args, **kwargs)  # Execute the function
+        end_time = time.time()  # Record the end time
+        elapsed_time = end_time - start_time  # Calculate elapsed time
+        log.print_log(
+            f"Function {func.__name__} took {elapsed_time:.4f} seconds to execute."
+        )
+        return result
+
+    return wrapper
 
 class Transcriber:
     """Class to handle the transcription process"""
 
     def __init__(self, model_path: str = "./models/tiny"):
-        self.log = Logger("Transcriber", True, Color.MAGENTA)
+        self.log = LOGGER
         self.model = WhisperModel(model_path, device="cpu", compute_type="int8")
 
     def parse_transcription_info_to_dict(self, info: TranscriptionInfo) -> dict:
@@ -47,17 +67,22 @@ class Transcriber:
         }
         return combined_dict
 
+    @time_it
     def transcribe_audio_audio_segment(self, audio_segment) -> dict:
         """Function to run the transcription process"""
         try:
-            self.log.print_log("Transcribing audio segment: " + str(audio_segment))
+            self.log.print_log("Transcribing audio segment")
             # Faster Whisper Call
-            audio_data_bytes = np.frombuffer(audio_segment.raw_data, np.int16).flatten().astype(np.float32) / 32768.0
+            audio_data_bytes = (
+                np.frombuffer(audio_segment.raw_data, np.int16)
+                .flatten()
+                .astype(np.float32)
+                / 32768.0
+            )
             segments, info = self.model.transcribe(
                 audio_data_bytes, beam_size=5, word_timestamps=True
             )
             data_dict = self.make_segments_and_info_to_dict(segments, info)
-            self.log.print_log("Transcription complete.")
             return data_dict
         # need to catch all exceptions here because the whisper call is not
         # pylint: disable=W0718
@@ -65,7 +90,7 @@ class Transcriber:
             self.log.print_error("Error during transcription: " + str(e))
             return None
 
-
+    @time_it    
     def transcribe_audio_file(self, audio_file_path: str) -> dict:
         """Function to run the transcription process"""
         try:
@@ -75,10 +100,10 @@ class Transcriber:
                 audio_file_path, beam_size=5, word_timestamps=True
             )
             data_dict = self.make_segments_and_info_to_dict(segments, info)
-            self.log.print_log("Transcription complete.")
             return data_dict
             # need to catch all exceptions here because the whisper call is not
             # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
             return None
+

@@ -19,7 +19,6 @@ class DataHandler:
 
         # get config settings
         self.status_path = self.root_path + CONFIG["STATUS_PATH"]
-        self.transcript_path = self.root_path + CONFIG["TRANSCRIPT_PATH"]
         self.audio_file_path = self.root_path + CONFIG["AUDIO_FILE_PATH"]
         self.audio_file_format = CONFIG["AUDIO_FILE_FORMAT"]
         self.max_done_files = 1
@@ -37,21 +36,6 @@ class DataHandler:
         """Writes the status file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
         file_path = os.path.join(self.status_path + file_name)
-        self.file_handler.write_json(file_path, data)
-
-    def get_transcript_file_by_id(self, transcription_id: str) -> dict:
-        """Returns the transcript file by the given transcription_id."""
-        file_name = f"{transcription_id}{self.audio_file_format}.json"
-        file_path = os.path.join(self.transcript_path + file_name)
-        data = self.file_handler.read_json(file_path)
-        if data:
-            return data
-        return None
-    
-    def write_transcript_file(self, transcription_id: str, data: dict) -> None:
-        """Writes the transcript file by the given transcription_id."""
-        file_name = f"{transcription_id}{self.audio_file_format}.json"
-        file_path = os.path.join(self.transcript_path + file_name)
         self.file_handler.write_json(file_path, data)
 
     def get_audio_file_path_by_id(self, transcription_id: str) -> str:

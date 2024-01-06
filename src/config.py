@@ -2,7 +2,6 @@
 import os
 from dotenv import dotenv_values
 
-
 def read_config() -> dict:
     """Read the config from .env or environment variables, returns dict with config"""
     dotenv_config = dotenv_values()
@@ -28,7 +27,6 @@ def read_config() -> dict:
         "DEBUG": get_config("DEBUG", default=False),
         "WHISPER_MODELS": get_config("WHISPER_MODELS", required=True),
         "AUDIO_FILE_PATH": get_config("AUDIO_FILE_PATH", required=True),
-        "TRANSCRIPT_PATH": get_config("TRANSCRIPT_PATH", required=True),
         "STATUS_PATH": get_config("STATUS_PATH", required=True),
         "AUDIO_FILE_FORMAT": get_config("AUDIO_FILE_FORMAT", required=True),
     }
