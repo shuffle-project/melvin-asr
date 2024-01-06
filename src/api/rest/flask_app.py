@@ -4,39 +4,39 @@ import os
 import time
 import uuid
 from functools import wraps
-from dotenv import load_dotenv
 from pydub import AudioSegment
 from flask import Flask, jsonify, request
-from config import AUDIO_FILE_PATH, STATUS_PATH
+from src.config import CONFIG
 from src.helper.convert_save_received_audio_files import convert_to_wav
-
-from src.helper.welcome_message import welcome_message
-from src.transcription_request_handling.transcription import (
+from src.helper.transcription_request_handling.transcription import (
     Transcription,
     TranscriptionNotFoundError,
     TranscriptionRunnerType,
     TranscriptionStatusValue,
 )
+from src.helper.welcome_message import welcome_message
 
 
 def create_app():
     """Function to create the Flask app"""
 
     app = Flask(__name__)
-    load_dotenv() # Load environment variables from .env file
-
-    expected_api_key = os.getenv('API_KEY')
 
     def require_api_key(func):
         """Decorator function to require an API key for a route"""
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            api_key = request.headers.get('key')
+            api_key = request.headers.get("key")
 
-            if api_key and api_key == expected_api_key:
+            if api_key and api_key == CONFIG["API_KEY"]:
                 return func(*args, **kwargs)
-            return jsonify({'error': 'Unauthorized. Please provide a valid API key'}), 401
+            print(api_key)
+            print(request.headers)
+            return (
+                jsonify({"error": "Unauthorized. Please provide a valid API key"}),
+                401,
+            )
 
         return wrapper
 
@@ -49,14 +49,18 @@ def create_app():
     @app.route("/transcriptions", methods=["GET"])
     @require_api_key
     def get_transcriptions():
-        status_files = list(os.listdir(STATUS_PATH))
+        status_files = list(os.listdir(CONFIG["STATUS_PATH"]))
         transcriptions = []
         for file_name in status_files:
-            with open(os.path.join(STATUS_PATH, file_name), 'r', encoding='utf-8') as file:
+            with open(
+                os.path.join(CONFIG["STATUS_PATH"], file_name), "r", encoding="utf-8"
+            ) as file:
                 data = json.load(file)
                 transcription_id = data.get("transcription_id")
                 status = data.get("status")
-                transcriptions.append({"transcription_id": transcription_id, "status": status})
+                transcriptions.append(
+                    {"transcription_id": transcription_id, "status": status}
+                )
 
         return jsonify(transcriptions)
 
@@ -74,7 +78,7 @@ def create_app():
             transcription = Transcription(uuid.uuid4(), TranscriptionRunnerType.REST)
             audio = AudioSegment.from_file(file.stream)
             result = convert_to_wav(
-                audio, AUDIO_FILE_PATH, transcription.transcription_id
+                audio, CONFIG["AUDIO_FILE_PATH"], transcription.transcription_id
             )
 
             time.sleep(1)
@@ -97,7 +101,9 @@ def create_app():
     def get_transcription_status_route(transcription_id):
         """API endpoint to get the status of a transcription"""
         try:
-            file_path = os.path.join(os.getcwd()+STATUS_PATH, f"{transcription_id}.json")
+            file_path = os.path.join(
+                os.getcwd() + CONFIG["STATUS_PATH"], f"{transcription_id}.json"
+            )
             print("file_path", file_path)
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as file:

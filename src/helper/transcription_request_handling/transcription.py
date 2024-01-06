@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from config import STATUS_PATH
+from src.config import CONFIG
 
 
 class TranscriptionRunnerType(Enum):
@@ -56,7 +56,7 @@ class Transcription:
         """
         Saves the transcription to a file.
         """
-        status_dir = os.getcwd() + STATUS_PATH
+        status_dir = os.getcwd() + CONFIG["STATUS_PATH"]
         if not os.path.exists(status_dir):
             os.makedirs(status_dir)
 
@@ -83,7 +83,7 @@ class Transcription:
         Returns the status file of the transcription.
         """
         file_path = os.path.join(
-            os.getcwd() + STATUS_PATH, f"{self.transcription_id}.json"
+            os.getcwd() + CONFIG["STATUS_PATH"], f"{self.transcription_id}.json"
         )
 
         if os.path.exists(file_path):

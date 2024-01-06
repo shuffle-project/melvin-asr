@@ -1,7 +1,7 @@
 """ simple Logger to keep track of the program's progress """
 
 from datetime import datetime
-from runner_config import LOGGER_DEBUG
+from src.config import CONFIG
 
 
 # pylint: disable=R0903
@@ -41,7 +41,7 @@ class Logger:
     def __init__(
         self,
         identifier: str,
-        debug: bool = LOGGER_DEBUG,
+        debug: bool = CONFIG["DEBUG"],
         debug_color: Color = Color.BLUE,
         error_color: Color = Color.FAIL,
     ):
@@ -50,8 +50,6 @@ class Logger:
         self.identifier = identifier
         self.debug_color = debug_color
         self.error_color = error_color
-        if LOGGER_DEBUG is False:
-            self.debug = False
 
     def print_log(self, message: str) -> None:
         """Prints a log message."""

@@ -1,12 +1,7 @@
-"""This module contains the DataHandler class to access the data folder easily."""
+"""This module works as Interface for the access to the data folder."""
 import os
 from datetime import datetime
-from runner_config import (
-    MAX_DONE_FILES,
-    AUDIO_FILE_FORMAT,
-    STATUS_PATH,
-    TRANSCRIPT_PATH,
-)
+from src.config import CONFIG
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Color, Logger
 
@@ -23,10 +18,50 @@ class DataHandler:
         self.file_handler = FileHandler()
 
         # get config settings
-        self.status_path = self.root_path + STATUS_PATH
-        self.transcript_path = self.root_path + TRANSCRIPT_PATH
-        self.audio_file_format = AUDIO_FILE_FORMAT
-        self.max_done_files = MAX_DONE_FILES
+        self.status_path = self.root_path + CONFIG["STATUS_PATH"]
+        self.transcript_path = self.root_path + CONFIG["TRANSCRIPT_PATH"]
+        self.audio_file_path = self.root_path + CONFIG["AUDIO_FILE_PATH"]
+        self.audio_file_format = CONFIG["AUDIO_FILE_FORMAT"]
+        self.max_done_files = 1
+
+    def get_status_file_by_id(self, transcription_id: str) -> dict:
+        """Returns the status file by the given transcription_id."""
+        file_name = f"{transcription_id}.json"
+        file_path = os.path.join(self.status_path + file_name)
+        data = self.file_handler.read_json(file_path)
+        if data:
+            return data
+        return None
+    
+    def write_status_file(self, transcription_id: str, data: dict) -> None:
+        """Writes the status file by the given transcription_id."""
+        file_name = f"{transcription_id}.json"
+        file_path = os.path.join(self.status_path + file_name)
+        self.file_handler.write_json(file_path, data)
+
+    def get_transcript_file_by_id(self, transcription_id: str) -> dict:
+        """Returns the transcript file by the given transcription_id."""
+        file_name = f"{transcription_id}{self.audio_file_format}.json"
+        file_path = os.path.join(self.transcript_path + file_name)
+        data = self.file_handler.read_json(file_path)
+        if data:
+            return data
+        return None
+    
+    def write_transcript_file(self, transcription_id: str, data: dict) -> None:
+        """Writes the transcript file by the given transcription_id."""
+        file_name = f"{transcription_id}{self.audio_file_format}.json"
+        file_path = os.path.join(self.transcript_path + file_name)
+        self.file_handler.write_json(file_path, data)
+
+    def get_audio_file_path_by_id(self, transcription_id: str) -> str:
+        """Returns the audio file path by the given transcription_id."""
+        file_name = f"{transcription_id}{self.audio_file_format}"
+        print(self.audio_file_path + file_name)
+        file_path = os.path.join(self.audio_file_path + file_name)
+        if os.path.isfile(file_path):
+            return file_path
+        return None
 
     def update_status_file(
         self, status: str, transcription_id: str, error_message: str = None
@@ -48,25 +83,15 @@ class DataHandler:
                 f"File for transcription ID {transcription_id} not found, PATH: {self.status_path}"
             )
 
-    def merge_transcript_to_status(self, transcription_id: str):
+    def merge_transcript_to_status(
+        self, transcription_id: str, transcript_data: dict
+    ) -> None:
         """Merges the transcript file to the status file."""
-        transcript_file_name = f"{transcription_id}{AUDIO_FILE_FORMAT}.json"
-        status_file_name = f"{transcription_id}.json"
-
-        transcript_file_path = os.path.join(self.transcript_path, transcript_file_name)
-        status_file_path = os.path.join(self.status_path, status_file_name)
-
-        transcript_data = self.file_handler.read_json(transcript_file_path)
-        status_data = self.file_handler.read_json(status_file_path)
-
+        status_data = self.get_status_file_by_id(transcription_id)
         if transcript_data and status_data:
             status_data["transcript"] = transcript_data
-            self.file_handler.write_json(status_file_path, status_data)
-            self.log.print_log(f"Transcript merged into {status_file_name}")
-
-            self.file_handler.delete(transcript_file_path)
-            self.log.print_log(f"{transcript_file_name} deleted.")
-
+            self.write_status_file(transcription_id, status_data)
+            self.log.print_log(f"Transcript added for {transcription_id}")
             self.update_status_file("done", transcription_id)
         else:
             self.log.print_error(
@@ -76,7 +101,7 @@ class DataHandler:
                 "error", transcription_id, "Transcript file not found."
             )
 
-    def get_oldest_status_file_in_query(self, runner_type: str) -> str:
+    def get_oldest_status_file_in_query(self) -> str:
         """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id: str = None
@@ -91,9 +116,6 @@ class DataHandler:
                     current_datetime = datetime.fromisoformat(
                         data.get("start_time").replace("Z", "+00:00")
                     )
-                    current_runner_type = data.get("runner_type")
-                    if current_runner_type != runner_type:
-                        continue
                     if current_status != "in_query":
                         continue
                     if (
@@ -150,3 +172,13 @@ class DataHandler:
                 f"Error getting settings from status file: {str(e)}" + e
             )
         return None
+
+    def delete_audio_file(self, transcription_id: str) -> None:
+        """Deletes the audio file by the given transcription_id."""
+        file_name = f"{transcription_id}{self.audio_file_format}"
+        file_path = os.path.join(self.audio_file_path, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            self.log.print_log(f"Audio file {file_name} deleted.")
+        else:
+            self.log.print_error(f"Audio file {file_name} not found.")

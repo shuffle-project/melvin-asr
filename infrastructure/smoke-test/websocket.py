@@ -15,7 +15,7 @@ class FileAudioSender:
         resampled_audio = audio_segment.set_frame_rate(16000).set_channels(1)
         audio_data = resampled_audio.raw_data
 
-        async with websockets.connect("ws://localhost:8394") as websocket:
+        async with websockets.connect("ws://localhost:1338") as websocket:
             await websocket.send(audio_data)
             print("Sent audio data")
             response = await websocket.recv()
