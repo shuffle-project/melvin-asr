@@ -17,8 +17,8 @@ services:
       - DEBUG=True
       - MODEL=tiny
       - WHISPER_MODELS=["tiny", "medium", "large"]
-      - AUDIO_FILE_PATH=/data/audio_files
-      - STATUS_PATH=/data/status
+      - AUDIO_FILE_PATH=/data/audio_files/
+      - STATUS_PATH=/data/status/
       - AUDIO_FILE_FORMAT=.wav
     ports:
       - "8393:8393"
