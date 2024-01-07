@@ -110,7 +110,9 @@ class Transcriber:
         return combined_dict
 
     @time_it
-    def transcribe_audio_audio_segment(self, audio_segment, model_name, settings: dict = None) -> dict:
+    def transcribe_audio_audio_segment(
+        self, audio_segment, model_name, settings: dict = None
+    ) -> dict:
         """Function to run the transcription process"""
         model = self.get_model(model_name)
         if model is None:
@@ -132,7 +134,9 @@ class Transcriber:
             return None
 
     @time_it
-    def transcribe_audio_file(self, audio_file_path: str, model_name: str, settings: dict = None) -> dict:
+    def transcribe_audio_file(
+        self, audio_file_path: str, model_name: str, settings: dict = None
+    ) -> dict:
         """Function to run the transcription process"""
         model = self.get_model(model_name)
         if model is None:

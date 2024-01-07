@@ -46,6 +46,7 @@
 #     parameters and default values in the class VadOptions).
 
 
+# pylint: disable=too-few-public-methods
 class TranscriptionSettings:
     """Settings for the transcription module."""
 
