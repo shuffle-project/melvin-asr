@@ -31,7 +31,7 @@ class DataHandler:
         if data:
             return data
         return None
-    
+
     def write_status_file(self, transcription_id: str, data: dict) -> None:
         """Writes the status file by the given transcription_id."""
         file_name = f"{transcription_id}.json"

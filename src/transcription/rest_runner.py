@@ -19,7 +19,6 @@ class Runner:
         self.data_handler = DataHandler()
         self.transcriber = Transcriber(json.loads(CONFIG["AVAILABLE_MODELS"]))
 
-    # pylint: disable=W0718
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
         self.log.print_log("started")
@@ -37,19 +36,26 @@ class Runner:
 
             self.log.print_log("Processing file: " + transcription_id)
             try:
-                audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
-                setting = self.data_handler.get_status_file_settings(transcription_id)
-                if setting is None or setting.get("model") is None:
-                    self.log.print_log("No model selected, using small as default.")
-                    model = CONFIG["DEFAULT_REST_MODEL"]
-                else:
-                    model = setting["model"]
-                transcript_data = self.transcriber.transcribe_audio_file(audio_file_path, model)
-                self.data_handler.merge_transcript_to_status(transcription_id, transcript_data)
-                self.data_handler.delete_audio_file(transcription_id)
-                self.data_handler.update_status_file("done", transcription_id)
+                self.transcribe(transcription_id)
 
             except RuntimeError as e:
                 self.log.print_error("Error running whisper: " + str(e))
                 self.data_handler.update_status_file("error", transcription_id, str(e))
                 continue
+
+    def transcribe(self, transcription_id) -> None:
+        """Transcribes the audio file with the given transcription_id."""
+        # get data
+        audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
+        setting = self.data_handler.get_status_file_settings(transcription_id)
+        if setting is None or setting.get("model") is None:
+            self.log.print_log("No model selected, using small as default.")
+            model = CONFIG["DEFAULT_REST_MODEL"]
+        else:
+            model = setting["model"]
+
+        # transcribe and update data
+        transcript_data = self.transcriber.transcribe_audio_file(audio_file_path, model)
+        self.data_handler.merge_transcript_to_status(transcription_id, transcript_data)
+        self.data_handler.delete_audio_file(transcription_id)
+        self.data_handler.update_status_file("done", transcription_id)

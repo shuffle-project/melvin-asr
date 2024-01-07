@@ -47,6 +47,4 @@ class ModelHandler:
         model_path = self.get_model_path(model_name)
         if os.path.exists(model_path):
             return model_path
-        else:
-            return None
-
+        return None

@@ -46,12 +46,18 @@ class Transcriber:
     ) -> [{"name": str, "model": WhisperModel}]:
         """Function to load the models"""
         loaded_models: [{"name": str, "model": WhisperModel}] = []
-        self.log.print_log(f"RAM usage before loading models: {self.system_monitor.return_ram_usage()}")
+        self.log.print_log(
+            f"RAM usage before loading models: {self.system_monitor.return_ram_usage()}"
+        )
         for model_name in models_to_load:
             model_path = self.get_model_path(model_name)
-            model = WhisperModel(model_path, local_files_only=True, device="cpu", compute_type="int8")
+            model = WhisperModel(
+                model_path, local_files_only=True, device="cpu", compute_type="int8"
+            )
             loaded_models.append({"name": model_name, "model": model})
-        self.log.print_log(f"RAM usage after loading models: {self.system_monitor.return_ram_usage()}")
+        self.log.print_log(
+            f"RAM usage after loading models: {self.system_monitor.return_ram_usage()}"
+        )
         return loaded_models
 
     def get_model_path(self, model_name: str) -> str:

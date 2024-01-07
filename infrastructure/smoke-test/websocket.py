@@ -32,5 +32,5 @@ class FileAudioSender:
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 1338
-    FileAudioSender(port=port).start_sending()
+    arg_port = int(sys.argv[1]) if len(sys.argv) > 1 else 1338
+    FileAudioSender(port=arg_port).start_sending()

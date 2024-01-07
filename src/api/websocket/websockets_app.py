@@ -4,12 +4,15 @@ import json
 import websockets
 from pydub import AudioSegment
 from src.config import CONFIG
-from src.api.websocket.websockets_transcriptions_config import WebsocketsTranscriptionsConfig
+from src.api.websocket.websockets_transcriptions_config import (
+    WebsocketsTranscriptionsConfig,
+)
 from src.transcription.transcriber import Transcriber
 
 WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
 TRANSCRIPTION_TIMEOUT_SLEEP = 60  # seconds to sleep after timeout
 TIMEOUT_COUNT = 3  # number of timeouts before stopping the server
+
 
 class WebSocketServer:
     """Class to handle the WebSocket server"""
@@ -21,7 +24,9 @@ class WebSocketServer:
         self.config = WebsocketsTranscriptionsConfig()
         self.transcriber = Transcriber([CONFIG["STREAM_MODEL"]])
         self.timeout_counter = 0
-        self.is_busy = False  # Flag to indicate if the server is currently handling a client
+        self.is_busy = (
+            False  # Flag to indicate if the server is currently handling a client
+        )
 
     async def start_server(self):
         """Function to start the WebSocket server"""
@@ -57,7 +62,9 @@ class WebSocketServer:
         audio_segment = AudioSegment(
             data=audio_data, sample_width=2, frame_rate=16000, channels=1
         )
-        response = self.transcriber.transcribe_audio_audio_segment(audio_segment, CONFIG["STREAM_MODEL"])
+        response = self.transcriber.transcribe_audio_audio_segment(
+            audio_segment, CONFIG["STREAM_MODEL"]
+        )
 
         if response is None:
             response = "Transcription timed out"
