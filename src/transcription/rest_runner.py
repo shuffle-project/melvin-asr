@@ -1,5 +1,7 @@
 """ This module contains the handler for the transcription process. """
+import json
 import time
+from src.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Logger, Color
 from src.transcription.transcriber import Transcriber
@@ -15,7 +17,7 @@ class Runner:
         self.identifier = identifier
         self.log = Logger(f"Runner{identifier}", True, Color.BRIGHT_CYAN)
         self.data_handler = DataHandler()
-        self.transcriber = Transcriber()
+        self.transcriber = Transcriber(json.loads(CONFIG["AVAILABLE_MODELS"]))
 
     # pylint: disable=W0718
     def run(self) -> None:
@@ -36,7 +38,13 @@ class Runner:
             self.log.print_log("Processing file: " + transcription_id)
             try:
                 audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
-                transcript_data = self.transcriber.transcribe_audio_file(audio_file_path)
+                setting = self.data_handler.get_status_file_settings(transcription_id)
+                if setting is None or setting.get("model") is None:
+                    self.log.print_log("No model selected, using small as default.")
+                    model = CONFIG["DEFAULT_REST_MODEL"]
+                else:
+                    model = setting["model"]
+                transcript_data = self.transcriber.transcribe_audio_file(audio_file_path, model)
                 self.data_handler.merge_transcript_to_status(transcription_id, transcript_data)
                 self.data_handler.delete_audio_file(transcription_id)
                 self.data_handler.update_status_file("done", transcription_id)

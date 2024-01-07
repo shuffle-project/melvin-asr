@@ -7,14 +7,6 @@ from enum import Enum
 
 from src.config import CONFIG
 
-
-class TranscriptionRunnerType(Enum):
-    """runner types of a transcription"""
-
-    STREAM = "stream"
-    REST = "rest"
-
-
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
 
@@ -39,7 +31,7 @@ class Transcription:
     """
 
     def __init__(
-        self, transcription_id: uuid.UUID, runner_type: TranscriptionRunnerType
+        self, transcription_id: uuid.UUID
     ):
         """
         Constructor of the Transcription class.
@@ -47,7 +39,6 @@ class Transcription:
         """
         self.transcription_id: str = str(transcription_id)
         self.status: TranscriptionStatusValue = TranscriptionStatusValue.IN_QUERY
-        self.runner_type = runner_type
         self.start_time: str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self.error_message = None
         self.settings = None
@@ -66,11 +57,8 @@ class Transcription:
             "transcription_id": self.transcription_id,
             "status": self.status.value,
             "start_time": self.start_time,
-            "runner_type": self.runner_type.value
+            "settings": self.settings,
         }
-
-        if self.settings is not None:
-            data["settings"] = self.settings
 
         if self.error_message is not None:
             data["error_message"] = self.error_message

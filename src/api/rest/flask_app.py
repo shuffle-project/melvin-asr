@@ -11,7 +11,6 @@ from src.helper.convert_save_received_audio_files import convert_to_wav
 from src.helper.transcription_request_handling.transcription import (
     Transcription,
     TranscriptionNotFoundError,
-    TranscriptionRunnerType,
     TranscriptionStatusValue,
 )
 from src.helper.welcome_message import welcome_message
@@ -68,14 +67,13 @@ def create_app():
     @require_api_key
     def transcribe_audio():
         """API endpoint to transcribe an audio file"""
-        print("request.files", request.files)
         if "file" not in request.files:
             return "No file part"
         file = request.files["file"]
         if file.filename == "":
             return "No selected file"
         if file:
-            transcription = Transcription(uuid.uuid4(), TranscriptionRunnerType.REST)
+            transcription = Transcription(uuid.uuid4())
             audio = AudioSegment.from_file(file.stream)
             result = convert_to_wav(
                 audio, CONFIG["AUDIO_FILE_PATH"], transcription.transcription_id
@@ -104,7 +102,6 @@ def create_app():
             file_path = os.path.join(
                 os.getcwd() + CONFIG["STATUS_PATH"], f"{transcription_id}.json"
             )
-            print("file_path", file_path)
             if os.path.exists(file_path):
                 with open(file_path, "r", encoding="utf-8") as file:
                     return jsonify(json.load(file))

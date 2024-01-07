@@ -3,6 +3,7 @@ import asyncio
 import json
 import websockets
 from pydub import AudioSegment
+from src.config import CONFIG
 from src.api.websocket.websockets_transcriptions_config import WebsocketsTranscriptionsConfig
 from src.transcription.transcriber import Transcriber
 
@@ -18,14 +19,13 @@ class WebSocketServer:
         self.host = host
         self.port = port
         self.config = WebsocketsTranscriptionsConfig()
-        self.transcriber = Transcriber("./models/tiny")
+        self.transcriber = Transcriber([CONFIG["STREAM_MODEL"]])
         self.timeout_counter = 0
         self.is_busy = False  # Flag to indicate if the server is currently handling a client
 
     async def start_server(self):
         """Function to start the WebSocket server"""
         async with websockets.serve(self.echo, self.host, self.port):
-            print(f"Starting WebSocket server on {self.host}:{self.port}...")
             await asyncio.Future()
 
     async def echo(self, websocket):
@@ -57,7 +57,7 @@ class WebSocketServer:
         audio_segment = AudioSegment(
             data=audio_data, sample_width=2, frame_rate=16000, channels=1
         )
-        response = self.transcriber.transcribe_audio_audio_segment(audio_segment)
+        response = self.transcriber.transcribe_audio_audio_segment(audio_segment, CONFIG["STREAM_MODEL"])
 
         if response is None:
             response = "Transcription timed out"

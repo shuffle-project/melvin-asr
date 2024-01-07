@@ -1,5 +1,7 @@
 """ Entry point for the API """
+import json
 import multiprocessing
+from src.helper.model_handler import ModelHandler
 from src.helper.logger import Color, Logger
 from src.api.rest.run import run_flask_app_prod
 from src.api.websocket.run import run_websocket_app
@@ -40,4 +42,5 @@ def run(port, websocket_port, environment, host):
 
 if __name__ == "__main__":
     LOGGER.print_log(CONFIG)
+    ModelHandler().setup_models(json.loads(CONFIG["AVAILABLE_MODELS"]))
     run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["ENVIRONMENT"], CONFIG["HOST"])
