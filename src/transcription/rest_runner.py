@@ -47,15 +47,15 @@ class Runner:
         """Transcribes the audio file with the given transcription_id."""
         # get data
         audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
-        setting = self.data_handler.get_status_file_settings(transcription_id)
-        if setting is None or setting.get("model") is None:
+        settings = self.data_handler.get_status_file_settings(transcription_id)
+        if settings is None or settings.get("model") is None:
             self.log.print_log("No model selected, using small as default.")
             model = CONFIG["DEFAULT_REST_MODEL"]
         else:
-            model = setting["model"]
+            model = settings["model"]
 
         # transcribe and update data
-        transcript_data = self.transcriber.transcribe_audio_file(audio_file_path, model)
+        transcript_data = self.transcriber.transcribe_audio_file(audio_file_path, model, settings)
         self.data_handler.merge_transcript_to_status(transcription_id, transcript_data)
         self.data_handler.delete_audio_file(transcription_id)
         self.data_handler.update_status_file("done", transcription_id)

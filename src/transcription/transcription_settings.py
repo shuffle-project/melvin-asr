@@ -1,4 +1,8 @@
-#   - audio: Path to the input file (or a file-like object), or the audio waveform.
+""" Settings for the transcription module. """
+
+
+# pylint: disable=C0301
+
 #   - language: The language spoken in the audio. It should be a language code such
 #     as "en" or "fr". If not set, the language will be detected in the first 30 seconds of audio.
 #   - task: Task to execute (transcribe or translate).
@@ -41,28 +45,48 @@
 #   - vad_parameters: Dictionary of Silero VAD parameters or VadOptions class (see available
 #     parameters and default values in the class VadOptions).
 
-# language: str | None = None,
-#     task: str = "transcribe",
-#     beam_size: int = 5,
-#     best_of: int = 5,
-#     patience: float = 1,
-#     length_penalty: float = 1,
-#     repetition_penalty: float = 1,
-#     no_repeat_ngram_size: int = 0,
-#     temperature: float | List[float] | Tuple[float, ...] = [0, 0.2, 0.4, 0.6, 0.8, 1],
-#     compression_ratio_threshold: float | None = 2.4,
-#     log_prob_threshold: float | None = -1,
-#     no_speech_threshold: float | None = 0.6,
-#     condition_on_previous_text: bool = True,
-#     prompt_reset_on_temperature: float = 0.5,
-#     initial_prompt: str | Iterable[int] | None = None,
-#     prefix: str | None = None,
-#     suppress_blank: bool = True,
-#     suppress_tokens: List[int] | None = [-1],
-#     without_timestamps: bool = False,
-#     max_initial_timestamp: float = 1,
-#     word_timestamps: bool = False,
-#     prepend_punctuations: str = "\"'“¿([{-",
-#     append_punctuations: str = "\"'.。,，!！?？:：”)]}、",
-#     vad_filter: bool = False,
-#     vad_parameters: dict | VadOptions | None = None
+
+class TranscriptionSettings:
+    """Settings for the transcription module."""
+
+    def __init__(self):
+        self.default_settings: dict = {
+            "language": None,
+            "task": "transcribe",
+            "beam_size": 5,
+            "best_of": 5,
+            "patience": 1.0,
+            "length_penalty": 1.0,
+            "repetition_penalty": 1.0,
+            "no_repeat_ngram_size": 0,
+            "temperature": [0, 0.2, 0.4, 0.6, 0.8, 1],
+            "compression_ratio_threshold": 2.4,
+            "log_prob_threshold": -1,
+            "no_speech_threshold": 0.6,
+            "condition_on_previous_text": True,
+            "prompt_reset_on_temperature": 0.5,
+            "initial_prompt": None,
+            "prefix": None,
+            "suppress_blank": True,
+            "suppress_tokens": [-1],
+            "without_timestamps": False,
+            "max_initial_timestamp": 1,
+            "word_timestamps": False,
+            "prepend_punctuations": "\"'“¿([{-",
+            "append_punctuations": "\"'.。,，!！?？:：”)]}、",
+            "vad_filter": False,
+            "vad_parameters": None,
+        }
+
+    def get_and_update_settings(self, settings: dict = None) -> dict:
+        """Returns the updated configuration."""
+
+        if settings is None:
+            return self.default_settings
+
+        updated_config = self.default_settings.copy()
+        for key, value in settings.items():
+            if key in updated_config:
+                updated_config[key] = value
+
+        return updated_config

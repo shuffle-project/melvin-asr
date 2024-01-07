@@ -4,8 +4,8 @@ import json
 import websockets
 from pydub import AudioSegment
 from src.config import CONFIG
-from src.api.websocket.websockets_transcriptions_config import (
-    WebsocketsTranscriptionsConfig,
+from src.api.websocket.websockets_settings import (
+    default_websocket_settings,
 )
 from src.transcription.transcriber import Transcriber
 
@@ -21,7 +21,7 @@ class WebSocketServer:
         self.server = None
         self.host = host
         self.port = port
-        self.config = WebsocketsTranscriptionsConfig()
+        self.settings = default_websocket_settings()
         self.transcriber = Transcriber([CONFIG["STREAM_MODEL"]])
         self.timeout_counter = 0
         self.is_busy = (
@@ -63,7 +63,7 @@ class WebSocketServer:
             data=audio_data, sample_width=2, frame_rate=16000, channels=1
         )
         response = self.transcriber.transcribe_audio_audio_segment(
-            audio_segment, CONFIG["STREAM_MODEL"]
+            audio_segment, CONFIG["STREAM_MODEL"], self.settings
         )
 
         if response is None:
