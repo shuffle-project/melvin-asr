@@ -15,8 +15,10 @@ services:
       - HOST=0.0.0.0
       - API_KEY=shuffle2024
       - DEBUG=True
-      - MODEL=tiny
-      - WHISPER_MODELS=["tiny", "medium", "large"]
+      - AVAILABLE_MODELS=["tiny", "medium", "small"]
+      - MODEL_PATH=/models/
+      - DEFAULT_REST_MODEL=medium
+      - STREAM_MODEL=tiny
       - AUDIO_FILE_PATH=/data/audio_files/
       - STATUS_PATH=/data/status/
       - AUDIO_FILE_FORMAT=.wav
