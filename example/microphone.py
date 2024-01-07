@@ -37,12 +37,11 @@ class SpeechListener:
                 print("\033[90m" + response + "\033[0m")
                 try:
                     data = json.loads(response)
-                    if "transcription" in data:
-                        text = ""
-                        for transcription in data["transcription"]:
-                            text += transcription["text"]
-                    print("\033[96m" + text + "\033[0m")
-                except json.JSONDecodeError as e:
+                    if "segments" in data:
+                        for segment in data["segments"]:
+                            print("\033[96m" + segment[4] + "\033[0m")
+                # pylint: disable=broad-except
+                except Exception as e:
                     print("\033[93m" + str(e) + "\033[0m")
 
     def listen_for_speech(self):

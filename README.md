@@ -1,16 +1,12 @@
 # ASR-API
 
-ASR-API is a simple toolkit of two services providing REST and Websocket endpoints for the transcription of audio files. 
-
-1. **API**: A Flask API handling audio files and returning the transcriptions as JSON objecets.(`./api`)
-
-2. **WhisperCPP_runner**: A handler of WhisperCPP that works with the API to transcribe the incoming audio files. (`./whispercpp_runner`)
+ASR-API is an application serving REST and Websocket endpoints for the transcription of audio files. 
 
 ## Prerequisites
 
 Before you begin, ensure you have installed the following tools:
 
-- Python 3.12
+- Python 3.10
 - Docker
 - Docker Compose
 - Visual Studio Code
@@ -23,15 +19,7 @@ Before you begin, ensure you have installed the following tools:
    ```bash
    git clone https://github.com/shuffle-project/asr-api.git
    ```
-2. Navigate to the `whispercpp_runner` directory:   
-   ```bash
-   cd asr-api/whispercpp_runner
-   ```
-3. Clone the whisper.cpp repository:
-   ```bash
-   https://github.com/ggerganov/whisper.cpp.git
-   ```
-4. Build and run the app using Docker Compose from the root directory:
+2. Build and run the app using Docker Compose from the root directory:
    ```bash
    docker-compose -f docker-compose.local.yml up
    ``` 
@@ -45,26 +33,15 @@ Besides the local Docker Compose stack, there is an option to run both services 
 
 ### Install dependencies
 ```bash
-    pip install -r api/requirements.txt
-    pip install -r whispercpp_runner/requirements.txt
+    pip install -r ./requirements.txt
 ```
 
-### Run API-Service
+### Run the app
 Locally for a development environment the websocket and the flask api are started seperatly.
 
    ```bash
-   python api websocket
+   python ./app.py
    ``` 
-
-   ```bash
-   python api flask
-   ``` 
-
-### Run Whispercpp_runner-Service
-   ```bash
-   python whispercpp_runner
-   ``` 
-
 
 ## Usage
 
@@ -74,9 +51,9 @@ Locally for a development environment the websocket and the flask api are starte
 > 
 > To authenticate, add the following header to your request:
 > 
-> **key: shuffle2024**
+> **default key: shuffle2024**
 > 
-> TBD: Update key and remove from .env once API goes public
+> Set the key in your `.env` file if you want to change it 
 
 ### / Endpoint (GET)
 - **Description:** Retrieve basic information.
@@ -140,47 +117,93 @@ GET /health
 ## Transcription Settings
 Software Configuration Options
 This documentation provides an overview of specific configuration options available in the software, along with their default values and purposes.
-Please send these options as on object to the ```/transcriptions Endpoint (POST)```, e.g. ```{"language": "auto"}```
 
-### Audio Processing Options
-- offset_t: Time offset in milliseconds for audio processing. Default value is 0.
-- offset_n: Segment index offset. Default value is 0.
-- duration: Duration of the audio to process, specified in milliseconds. Default value is 0.
-### Context and Length Settings
-- max_context: Maximum number of text context tokens to store. Default is -1, indicating no limit.
-- max_len: Maximum length for a text segment, measured in characters. Default value is 0.
-### Text Segmentation
-- split_on_word: Determines whether to split text based on words. Default is False, indicating splitting on tokens.
-### Decoding and Search Settings
-- best_of: Number of best candidates to keep during processing. Default value is 2.
-- beam_size: Size of the beam for beam search algorithms. Default is -1, which implies a standard setting.
-- word_thold: Threshold for word timestamp probability. Default value is 0.01.
-- entropy_thold: Entropy threshold for the decoder to identify fail conditions. Default value is 2.40.
-- logprob_thold: Log probability threshold for decoder failure conditions. Default value is -1.00.
-### Debugging and Modes
-- debug_mode: Toggles debug mode. Default is False.
-- translate: Enables translation from the source language to English. Default is False.
-- diarize: Enables stereo audio diarization. Default is False.
-- tinydiarize: Activates a smaller, possibly less resource-intensive diarization model. Default is False.
-- no_fallback: Disables the use of temperature fallback while decoding. Default is False.
-- no_timestamps: Opts out of printing timestamps in outputs. Default is False.
-### Language and Input Settings
-- language: Specifies the language of the input. Default is None, which may imply automatic detection or a standard language setting.
-- prompt: Initial prompt for the system. Default is None, indicating no initial prompt.
-- Hardware and Execution Settings
-- ov_e_device: Specifies the OpenVINO device used for encode inference. Default setting is "CPU".
+### Configuration Parameters
+- **language**: `str | None` (Default: `None`)  
+  The language code (e.g., "en", "fr") of the spoken language in the audio. If not provided, the language is detected in the first 30 seconds of the audio.
 
-! Not all of these Settings have been tested for our setup, please refer to https://github.com/ggerganov/whisper.cpp for more information
+- **task**: `str` (Default: `"transcribe"`)  
+  The task to execute, options are "transcribe" or "translate".
+
+- **beam_size**: `int` (Default: `5`)  
+  Beam size used for decoding.
+
+- **best_of**: `int` (Default: `5`)  
+  Number of candidates considered when sampling with non-zero temperature.
+
+- **patience**: `float` (Default: `1.0`)  
+  Beam search patience factor.
+
+- **length_penalty**: `float` (Default: `1.0`)  
+  Exponential length penalty constant.
+
+- **repetition_penalty**: `float` (Default: `1.0`)  
+  Penalty applied to the score of previously generated tokens.
+
+- **no_repeat_ngram_size**: `int` (Default: `0`)  
+  Size of ngrams to prevent repetition (set 0 to disable).
+
+- **temperature**: `float | List[float] | Tuple[float, ...]` (Default: `[0, 0.2, 0.4, 0.6, 0.8, 1]`)  
+  Temperature for sampling. A tuple of temperatures is used successively upon failures.
+
+- **compression_ratio_threshold**: `float | None` (Default: `2.4`)  
+  Threshold for treating a sample as failed based on gzip compression ratio.
+
+- **log_prob_threshold**: `float | None` (Default: `-1`)  
+  Threshold for treating a sample as failed based on average log probability over sampled tokens.
+
+- **no_speech_threshold**: `float | None` (Default: `0.6`)  
+  Threshold for considering a segment silent based on no_speech probability and log_prob_threshold.
+
+- **condition_on_previous_text**: `bool` (Default: `True`)  
+  Determines whether the previous output is used as a prompt for the next window.
+
+- **prompt_reset_on_temperature**: `float` (Default: `0.5`)  
+  Resets prompt if temperature is above this value.
+
+- **initial_prompt**: `str | Iterable[int] | None` (Default: `None`)  
+  Optional initial text or token ids for the first window.
+
+- **prefix**: `str | None` (Default: `None`)  
+  Optional text prefix for the first window.
+
+- **suppress_blank**: `bool` (Default: `True`)  
+  Suppress blank outputs at the beginning of the sampling.
+
+- **suppress_tokens**: `List[int] | None` (Default: `[-1]`)  
+  List of token IDs to suppress.
+
+- **without_timestamps**: `bool` (Default: `False`)  
+  Option to sample only text tokens, excluding timestamps.
+
+- **max_initial_timestamp**: `float` (Default: `1`)  
+  Maximum initial timestamp allowed.
+
+- **word_timestamps**: `bool` (Default: `False`)  
+  Extract word-level timestamps using cross-attention pattern and dynamic time warping.
+
+- **prepend_punctuations**: `str` (Default: `"'“¿([{-"`)  
+  Punctuations to merge with the next word when `word_timestamps` is enabled.
+
+- **append_punctuations**: `str` (Default: `"'”.。,，!！?？:：”)]}、"`)  
+  Punctuations to merge with the previous word when `word_timestamps` is enabled.
+
+- **vad_filter**: `bool` (Default: `False`)  
+  Enable voice activity detection to filter non-speech parts using the Silero VAD model.
+
+- **vad_parameters**: `dict | VadOptions | None` (Default: `None`)  
+  Parameters for the Silero VAD model.
+
+
+! Not all of these Settings have been tested for our setup, please refer to https://github.com/SYSTRAN/faster-whisper for more information
+
+### Rest API
+Please send these options as on JSON object named "settings" in the body to the ```/transcriptions Endpoint (POST)```, e.g. ```{"language": "auto"}```.
+
+### Websocket API
+The Websocket API does not allow setting input by the client. All settings are fixed in the `src/api/websocket/websockets_settings.py` file.
 
 ## Testing
-
-### Pytest
-
-For unit testing we are using the pytest library.
-
-```bash
-pytest -s -v --asyncio-mode=auto
-``` 
 
 ### Pylint
 
@@ -192,8 +215,19 @@ pylint $(git ls-files '*.py')
 
 ### Integration Tests
 
-To imporove our code quality, we are testing and linting each Pull Request adding new code to main.
-See `.github/workflows/test.yml`
+To imporove our code quality, we are linting each Pull Request adding new code to main.
+See `.github/workflows/lint.yml`.
+
+### Smoke Tests
+
+To make sure that new code is working, there are 2 smoke tests, one for the rest endpoint and one for the websockets endpoint.
+See `/infrastrcture/smoke-test`.
+
+**rest.py**
+Call `python rest.py {port} {auth_key}` to test the REST endpoints.
+
+**websocket.py**
+Call `python websocket.py {port}` to test the Websockets endpoints.
 
 ## Deployment
 

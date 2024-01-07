@@ -4,7 +4,7 @@ import os
 import wave
 import websockets
 
-print("Starting WebSocket server...")
+print("Starting Web Socket server...")
 
 OUTPUT_FILE = os.getcwd() + "/output.wav"
 print(OUTPUT_FILE)
