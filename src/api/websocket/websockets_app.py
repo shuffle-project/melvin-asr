@@ -63,7 +63,7 @@ class WebSocketServer:
             data=audio_data, sample_width=2, frame_rate=16000, channels=1
         )
         response = self.transcriber.transcribe_audio_audio_segment(
-            audio_segment, CONFIG["STREAM_MODEL"], self.settings
+            audio_segment, self.settings
         )
 
         if response is None:

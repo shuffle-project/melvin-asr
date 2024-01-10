@@ -14,7 +14,7 @@ def read_config() -> dict:
         if required and value is None:
             raise ValueError(
                 f"Configuration error: '{key}' is not set in .env" +
-                "as an environment variable or as a default value"
+                " as an environment variable or as a default value"
             )
         return value
 
@@ -24,9 +24,9 @@ def read_config() -> dict:
         "WEBSOCKET_PORT": int(get_config("WEBSOCKET_PORT", default="1235")),
         "ENVIRONMENT": get_config("ENVIRONMENT", default="development"),
         "HOST": get_config("HOST", default="localhost"),
-        "AVAILABLE_MODELS": get_config("AVAILABLE_MODELS", required=True),
         "MODEL_PATH": get_config("MODEL_PATH", required=True),
-        "DEFAULT_REST_MODEL": get_config("DEFAULT_REST_MODEL", required=True),
+        "REST_MODEL": get_config("REST_MODEL", required=True),
+        "UNLAOD_REST_MODEL_SCHEDULE": get_config("UNLAOD_REST_MODEL_SCHEDULE", required=True),
         "STREAM_MODEL": get_config("STREAM_MODEL", required=True),
         "API_KEY": get_config("API_KEY", required=True),
         "DEBUG": get_config("DEBUG", default=False),

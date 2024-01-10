@@ -1,5 +1,4 @@
 """ Entry point for the API """
-import json
 import multiprocessing
 from src.helper.model_handler import ModelHandler
 from src.helper.logger import Color, Logger
@@ -42,5 +41,5 @@ def run(port, websocket_port, environment, host):
 
 if __name__ == "__main__":
     LOGGER.print_log(CONFIG)
-    ModelHandler().setup_models(json.loads(CONFIG["AVAILABLE_MODELS"]))
+    ModelHandler().setup_models([CONFIG["REST_MODEL"], CONFIG["STREAM_MODEL"]])
     run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["ENVIRONMENT"], CONFIG["HOST"])

@@ -34,45 +34,52 @@ def time_it(func):
 class Transcriber:
     """Class to handle the transcription process"""
 
-    def __init__(self, models_to_load: [str]):
+    def __init__(self, model_name):
         self.log = LOGGER
+        self.model_name = model_name
 
         self.system_monitor = SystemMonitor()
-        self.models: [{"name": str, "model": WhisperModel}] = self.load_models(
-            models_to_load
-        )
-        self.log.print_log(f"Models ready for Transcriber: {self.models}")
+        self.model: WhisperModel = None
 
-    def load_models(
-        self, models_to_load: [str]
-    ) -> [{"name": str, "model": WhisperModel}]:
-        """Function to load the models"""
-        loaded_models: [{"name": str, "model": WhisperModel}] = []
+    def load_model(self) -> bool:
+        """loads the model if not loaded"""
+        if self.model is not None:
+            return True
         self.log.print_log(
             f"RAM usage before loading models: {self.system_monitor.return_ram_usage()}"
         )
-        for model_name in models_to_load:
-            model_path = self.get_model_path(model_name)
-            model = WhisperModel(
+        model_path = self.get_model_path(self.model_name)
+        try:
+            self.model = WhisperModel(
                 model_path, local_files_only=True, device="cpu", compute_type="int8"
             )
-            loaded_models.append({"name": model_name, "model": model})
-        self.log.print_log(
-            f"RAM usage after loading models: {self.system_monitor.return_ram_usage()}"
-        )
-        return loaded_models
+            self.log.print_log(
+                f"RAM usage after loading models: {self.system_monitor.return_ram_usage()}"
+            )
+            return True
+        # need to catch all exceptions here
+        # pylint: disable=W0718
+        except Exception as e:
+            self.log.print_error("Error loading model: " + str(e))
+            return False
+    
+    def unload_model(self) -> bool:
+        """unloads the model if loaded"""
+        if self.model is not None:
+            self.log.print_log(
+                f"RAM usage before unloading models: {self.system_monitor.return_ram_usage()}"
+            )
+            self.model = None
+            self.log.print_log(
+                f"RAM usage after unloading models: {self.system_monitor.return_ram_usage()}"
+            )
+        return True
+
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
         model_path = os.getcwd() + CONFIG["MODEL_PATH"] + model_name
         return model_path
-
-    def get_model(self, model_name: str) -> WhisperModel:
-        """Function to get a model"""
-        for model in self.models:
-            if model["name"] == model_name:
-                return model["model"]
-        return None
 
     def parse_transcription_info_to_dict(self, info: TranscriptionInfo) -> dict:
         """Function to convert the transcription info to a dictionary"""
@@ -111,13 +118,10 @@ class Transcriber:
 
     @time_it
     def transcribe_audio_audio_segment(
-        self, audio_segment, model_name, settings: dict = None
+        self, audio_segment, settings: dict = None
     ) -> dict:
         """Function to run the transcription process"""
-        model = self.get_model(model_name)
-        if model is None:
-            self.log.print_error("Model not found")
-            return None
+        self.load_model()
         try:
             self.log.print_log("Transcribing audio segment")
             audio_data_bytes = (
@@ -126,7 +130,7 @@ class Transcriber:
                 .astype(np.float32)
                 / 32768.0
             )
-            return self.transcribe_with_settings(audio_data_bytes, model, settings)
+            return self.transcribe_with_settings(audio_data_bytes, self.model, settings)
         # need to catch all exceptions here because the whisper call is not
         # pylint: disable=W0718
         except Exception as e:
@@ -135,16 +139,13 @@ class Transcriber:
 
     @time_it
     def transcribe_audio_file(
-        self, audio_file_path: str, model_name: str, settings: dict = None
+        self, audio_file_path: str, settings: dict = None
     ) -> dict:
         """Function to run the transcription process"""
-        model = self.get_model(model_name)
-        if model is None:
-            self.log.print_error("Model not found")
-            return None
+        self.load_model()
         try:
             self.log.print_log("Transcribing file: " + str(audio_file_path))
-            return self.transcribe_with_settings(audio_file_path, model, settings)
+            return self.transcribe_with_settings(audio_file_path, self.model, settings)
 
             # need to catch all exceptions here because the whisper call is not
             # pylint: disable=W0718
