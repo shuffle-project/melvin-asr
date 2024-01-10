@@ -33,6 +33,8 @@ def read_config() -> dict:
         "AUDIO_FILE_PATH": get_config("AUDIO_FILE_PATH", required=True),
         "STATUS_PATH": get_config("STATUS_PATH", required=True),
         "AUDIO_FILE_FORMAT": get_config("AUDIO_FILE_FORMAT", required=True),
+        "MAX_OLD_STATUS_FILES": get_config("MAX_OLD_STATUS_FILES", required=True),
+        "CLEAN_UP_SCHEDULE": get_config("CLEAN_UP_SCHEDULE", required=True),
     }
 
 

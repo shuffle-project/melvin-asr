@@ -36,7 +36,7 @@ class ModelHandler:
     def download_model(self, model_name: str) -> None:
         """Function to download a model"""
         try:
-            print(download_model(model_name, self.get_model_path(model_name)))
+            self.log.print_log(download_model(model_name, self.get_model_path(model_name)))
         except ValueError as e:
             self.log.print_error(
                 f"tried to download_model for an INVALID MODEL NAME: {e}"

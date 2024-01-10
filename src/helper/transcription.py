@@ -38,7 +38,7 @@ class Transcription:
         :param transcription_id: The id of the transcription.
         """
         self.transcription_id: str = str(transcription_id)
-        self.status: TranscriptionStatusValue = TranscriptionStatusValue.IN_QUERY
+        self.status: str = TranscriptionStatusValue.IN_QUERY.value
         self.start_time: str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self.error_message = None
         self.settings = None
@@ -55,7 +55,7 @@ class Transcription:
 
         data = {
             "transcription_id": self.transcription_id,
-            "status": self.status.value,
+            "status": self.status,
             "start_time": self.start_time,
             "settings": self.settings,
         }
