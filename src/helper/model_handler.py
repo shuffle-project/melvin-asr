@@ -11,22 +11,16 @@ class ModelHandler:
     def __init__(self):
         self.log = Logger("ModelHandler", True)
 
-    def setup_models(self, models_to_load: [str]) -> None:
+    def setup_model(self, model_to_load: str) -> None:
         """Function to setup the models"""
-        self.log.print_log(f"Setting up models.. {models_to_load}")
+        self.log.print_log(f"Setting up model.. {model_to_load}")
 
-        for model_name in models_to_load:
-            model = self.get_model(model_name)
-            if model is None:
-                self.log.print_log(f"Model {model_name} not found, downloading..")
-                self.download_model(model_name)
-
-        # print the models in the model path
-        self.log.print_log(f"Models available in {CONFIG['MODEL_PATH']}:")
-        for model in os.listdir(os.getcwd() + CONFIG["MODEL_PATH"]):
-            if model.endswith(".gitignore"):
-                continue
-            self.log.print_log(f" - {model}")
+        model = self.get_model(model_to_load)
+        if model is None:
+            self.log.print_log(f"Model {model_to_load} not found, downloading..")
+            self.download_model(model_to_load)
+        else:
+            self.log.print_log(f"Model {model_to_load} found, skipping download..")
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
@@ -36,7 +30,7 @@ class ModelHandler:
     def download_model(self, model_name: str) -> None:
         """Function to download a model"""
         try:
-            print(download_model(model_name, self.get_model_path(model_name)))
+            self.log.print_log(download_model(model_name, self.get_model_path(model_name)))
         except ValueError as e:
             self.log.print_error(
                 f"tried to download_model for an INVALID MODEL NAME: {e}"

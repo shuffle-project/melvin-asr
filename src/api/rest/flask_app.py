@@ -10,7 +10,7 @@ from pydub import AudioSegment
 
 from src.config import CONFIG
 from src.helper.convert_save_received_audio_files import convert_to_wav
-from src.helper.transcription_request_handling.transcription import (
+from src.helper.transcription import (
     Transcription,
     TranscriptionNotFoundError,
     TranscriptionStatusValue,

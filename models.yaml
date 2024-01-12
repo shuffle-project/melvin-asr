@@ -1,0 +1,13 @@
+# This file contains defined the rest_runner models
+# The max. count of rest_runner is 10
+# example
+# identifier:
+#   device: "cpu" or "cuda"
+#   model: model_name
+#   compute_type: "int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
+
+rest_runner:
+  tiny:
+    device: cpu
+    model: tiny
+    compute_type: int8
