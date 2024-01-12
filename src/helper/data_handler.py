@@ -97,6 +97,11 @@ class DataHandler:
         oldest_transcription_id: str = None
 
         # wait to avoid race conditions between runners
+
+        files = os.listdir(self.status_path)
+        if len(files) == 0:
+            return "None"
+
         time.sleep(random.randint(0, 5000) / 1000.0)
 
         for filename in os.listdir(self.status_path):
