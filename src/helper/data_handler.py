@@ -1,6 +1,5 @@
 """This module works as Interface for the access to the data folder."""
 import os
-import json
 from datetime import datetime
 from src.config import CONFIG
 from src.helper.file_handler import FileHandler
@@ -41,7 +40,10 @@ class DataHandler:
                 data = self.file_handler.read_json(os.path.join(self.status_path, filename))
                 if data:
                     transcriptions.append(
-                        {"transcription_id": data.get("transcription_id"), "status": data.get("status")}
+                        {
+                          "transcription_id": data.get("transcription_id"),
+                          "status": data.get("status")
+                        }
                     )
                 else:
                     self.log.print_error(
