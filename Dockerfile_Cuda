@@ -1,4 +1,5 @@
-FROM python:3.10
+# Make sure to install the NVIDIA Container Toolkit: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
 EXPOSE 8394
 EXPOSE 8393
@@ -10,7 +11,8 @@ COPY ./app.py ./app.py
 COPY ./models.yaml ./models.yaml
 COPY ./requirements.txt ./requirements.txt
 
-RUN apt-get update && apt-get install -y ffmpeg
+# Install Python and pip
+RUN apt-get update && apt-get install -y python3.10 python3-pip ffmpeg
 
 RUN pip install -r ./requirements.txt
 
