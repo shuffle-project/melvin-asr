@@ -96,19 +96,20 @@ class DataHandler:
         oldest_start_time = None
         oldest_transcription_id: str = None
 
+        # wait to avoid race conditions between runners
+        time.sleep(random.randint(0, 5000) / 1000.0)
+
         for filename in os.listdir(self.status_path):
             try:
                 if filename.endswith(".json"):
                     data = self.file_handler.read_json(
                         os.path.join(self.status_path, filename)
                     )
-                    # wait to avoid race conditions between runners
-                    self.random_wait_ms()
                     current_status = data.get("status")
                     current_datetime = datetime.fromisoformat(
                         data.get("start_time").replace("Z", "+00:00")
                     )
-                    if current_status != "in_query":
+                    if current_status != TranscriptionStatusValue.IN_QUERY.value:
                         continue
                     if (
                         oldest_start_time is None
@@ -188,10 +189,3 @@ class DataHandler:
             self.log.print_log(f"Audio file {file_name} deleted.")
         else:
             self.log.print_error(f"Audio file {file_name} not found.")
-
-    def random_wait_ms(self) -> None:
-        """Function to wait for a random time between 0 and 5000 milliseconds."""
-        wait_time_ms = random.randint(0, 5000)
-        print(f"Waiting for {wait_time_ms} milliseconds.")
-        print(wait_time_ms)
-        time.sleep(wait_time_ms / 1000.0)

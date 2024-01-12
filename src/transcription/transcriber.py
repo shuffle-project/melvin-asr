@@ -47,9 +47,6 @@ class Transcriber:
         """loads the model if not loaded"""
         if self.model is not None:
             return True
-        self.log.print_log(
-            f"RAM usage before loading models: {self.system_monitor.return_ram_usage()}"
-        )
         model_path = self.get_model_path(self.model_name)
         try:
             # compute_type for CPU is only int8, for CUDA ist float16 or int8_float16
@@ -70,7 +67,7 @@ class Transcriber:
                 )
 
             self.log.print_log(
-                f"RAM usage after loading models: {self.system_monitor.return_ram_usage()}"
+                f"Model loaded, RAM usage now: {self.system_monitor.return_ram_usage()}"
             )
             return True
         # need to catch all exceptions here
@@ -82,12 +79,9 @@ class Transcriber:
     def unload_model(self) -> bool:
         """unloads the model if loaded"""
         if self.model is not None:
-            self.log.print_log(
-                f"RAM usage before unloading models: {self.system_monitor.return_ram_usage()}"
-            )
             self.model = None
             self.log.print_log(
-                f"RAM usage after unloading models: {self.system_monitor.return_ram_usage()}"
+                f"Model unloaded, RAM usage now: {self.system_monitor.return_ram_usage()}"
             )
         return True
 
