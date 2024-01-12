@@ -24,7 +24,11 @@ class WebSocketServer:
         self.port = port
         self.settings = default_websocket_settings()
         ModelHandler().setup_model(CONFIG["STREAM_MODEL"])
-        self.transcriber = Transcriber(CONFIG["STREAM_MODEL"], CONFIG["STREAM_MODEL_DEVICE"], CONFIG["STREAM_MODEL_COMPUTE_TYPE"])
+        self.transcriber = Transcriber(
+            CONFIG["STREAM_MODEL"],
+            CONFIG["STREAM_MODEL_DEVICE"],
+            CONFIG["STREAM_MODEL_COMPUTE_TYPE"],
+        )
         self.timeout_counter = 0
         self.is_busy = (
             False  # Flag to indicate if the server is currently handling a client

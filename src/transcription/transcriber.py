@@ -50,20 +50,25 @@ class Transcriber:
         model_path = self.get_model_path(self.model_name)
         try:
             # compute_type for CPU is only int8, for CUDA ist float16 or int8_float16
+            # pylint: disable=R0916
             if (
                 (self.device == "cpu" and self.compute_type == "int8")
                 or (self.device == "cuda" and self.compute_type == "float16")
                 or (self.device == "cuda" and self.compute_type == "int8_float16")
             ):
                 self.model = WhisperModel(
-                    model_path, local_files_only=True, device=self.device, compute_type=self.compute_type
-                )
-            else:
-                self.log.print_error(f"Invalid or Unmatching device or compute_type: {self.device} {self.compute_type}, Fallback to CPU int8")
-                self.model = WhisperModel(
                     model_path,
                     local_files_only=True,
-                    device="cpu", compute_type="int8"
+                    device=self.device,
+                    compute_type=self.compute_type,
+                )
+            else:
+                self.log.print_error(
+                    "Invalid or Unmatching device or compute_type: "
+                    + f"{self.device} {self.compute_type}, Fallback to CPU int8"
+                )
+                self.model = WhisperModel(
+                    model_path, local_files_only=True, device="cpu", compute_type="int8"
                 )
 
             self.log.print_log(

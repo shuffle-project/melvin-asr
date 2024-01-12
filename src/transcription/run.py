@@ -21,17 +21,26 @@ def run_file_transcriber() -> dict:
         LOGGER.print_log(f"Starting file transcription runners..\nConfig: {config}")
 
         ## make sure to allow 10 runners max
-        if (len(config["rest_runner"].items()) > 10):
-            LOGGER.print_log("Too many runners in rest_runner config file, please use 10 or less.")
+        if len(config["rest_runner"].items()) > 10:
+            LOGGER.print_log(
+                "Too many runners in rest_runner config file, please use 10 or less."
+            )
             return
 
         ## Add new Runner to Multiprocessing
         new_runner = []
         for runner_name, runner in config["rest_runner"].items():
-            new_runner.append(multiprocessing.Process(
-                target=start_runner,
-                args=(runner["model"], runner_name, runner["device"], runner["compute_type"]),
-            ))
+            new_runner.append(
+                multiprocessing.Process(
+                    target=start_runner,
+                    args=(
+                        runner["model"],
+                        runner_name,
+                        runner["device"],
+                        runner["compute_type"],
+                    ),
+                )
+            )
         for runner in new_runner:
             runner.start()
         for runner in new_runner:
