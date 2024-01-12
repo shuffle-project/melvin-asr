@@ -3,6 +3,7 @@ import asyncio
 import json
 import websockets
 from pydub import AudioSegment
+from src.helper.model_handler import ModelHandler
 from src.config import CONFIG
 from src.api.websocket.websockets_settings import (
     default_websocket_settings,
@@ -22,7 +23,8 @@ class WebSocketServer:
         self.host = host
         self.port = port
         self.settings = default_websocket_settings()
-        self.transcriber = Transcriber([CONFIG["STREAM_MODEL"]])
+        ModelHandler().setup_model(CONFIG["STREAM_MODEL"])
+        self.transcriber = Transcriber(CONFIG["STREAM_MODEL"], CONFIG["STREAM_MODEL_DEVICE"], CONFIG["STREAM_MODEL_COMPUTE_TYPE"])
         self.timeout_counter = 0
         self.is_busy = (
             False  # Flag to indicate if the server is currently handling a client

@@ -12,12 +12,15 @@ class Runner:
     This class handles the transcription process by running whisper continuously.
     """
 
-    def __init__(self, model_name: str, identifier: int):
+    def __init__(
+        self, model_name: str, identifier: str, device: str, compute_type: str
+    ):
         """Constructor of the Runner class."""
         self.identifier = identifier
+        self.transcriber = Transcriber(model_name, device, compute_type)
+
         self.log = Logger(f"Runner{identifier}", True, Color.BRIGHT_CYAN)
         self.data_handler = DataHandler()
-        self.transcriber = Transcriber(model_name)
 
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
@@ -34,7 +37,7 @@ class Runner:
             if transcription_id == "None":
                 time.sleep(0.1)
                 # unload model if not used for a while
-                schedule = int(CONFIG["UNLAOD_REST_MODEL_SCHEDULE"]) * 10  # in seconds
+                schedule = int(CONFIG["UNLAOD_REST_MODELS_SCHEDULE"]) * 10  # in seconds
                 if cu > schedule:
                     self.transcriber.unload_model()
                     cu = 0
@@ -53,6 +56,9 @@ class Runner:
             # if transcription is available, process it
             self.log.print_log("Processing file: " + transcription_id)
             try:
+                self.data_handler.update_status_file(
+                    TranscriptionStatusValue.IN_PROGRESS.value, transcription_id
+                )
                 self.transcribe(transcription_id)
                 cu = 0
 

@@ -15,9 +15,8 @@ services:
       - HOST=0.0.0.0
       - API_KEY=shuffle2024
       - DEBUG=True
-      - AVAILABLE_MODELS=["tiny", "medium", "small"]
+      - UNLAOD_REST_MODELS_SCHEDULE=10
       - MODEL_PATH=/models/
-      - DEFAULT_REST_MODEL=medium
       - STREAM_MODEL=tiny
       - AUDIO_FILE_PATH=/data/audio_files/
       - STATUS_PATH=/data/status/

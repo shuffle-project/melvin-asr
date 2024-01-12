@@ -1,6 +1,7 @@
 """ Entry point for the API """
 import multiprocessing
-from src.helper.model_handler import ModelHandler
+import os
+import signal
 from src.helper.logger import Color, Logger
 from src.api.rest.run import run_flask_app_prod
 from src.api.websocket.run import run_websocket_app
@@ -8,6 +9,7 @@ from src.config import CONFIG
 from src.transcription.run import run_file_transcriber
 
 LOGGER = Logger("app.py", True, Color.GREEN)
+
 
 def run(port, websocket_port, environment, host):
     """start flask & websockets apps for development and production based on environment"""
@@ -39,7 +41,12 @@ def run(port, websocket_port, environment, host):
         websocket_server.join()
         flask_server.join()
 
+
 if __name__ == "__main__":
     LOGGER.print_log(CONFIG)
-    ModelHandler().setup_models([CONFIG["REST_MODEL"], CONFIG["STREAM_MODEL"]])
-    run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["ENVIRONMENT"], CONFIG["HOST"])
+    try:
+        run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["ENVIRONMENT"], CONFIG["HOST"])
+    except KeyboardInterrupt as e:
+        current_pid = os.getpid()
+        print(f"Terminating all processes for PID {current_pid}")
+        os.killpg(current_pid, signal.SIGTERM)

@@ -1,0 +1,32 @@
+# This file contains defined the rest_runner models
+# example
+# identifier:
+#   device: "cpu" or "cuda"
+#   model: model_name
+#   compute_type: "int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
+
+
+rest_runner:
+  large:
+    device: cpu
+    model: large-v3
+    compute_type: int8
+  small:
+    device: cpu
+    model: small
+    compute_type: int8
+  tiny:
+    device: cpu
+    model: tiny
+    compute_type: int8
+
+
+
+
+
+
+
+
+
+
+

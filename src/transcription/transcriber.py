@@ -34,9 +34,11 @@ def time_it(func):
 class Transcriber:
     """Class to handle the transcription process"""
 
-    def __init__(self, model_name):
+    def __init__(self, model_name, device, compute_type):
         self.log = LOGGER
         self.model_name = model_name
+        self.device = device
+        self.compute_type = compute_type
 
         self.system_monitor = SystemMonitor()
         self.model: WhisperModel = None
@@ -50,9 +52,23 @@ class Transcriber:
         )
         model_path = self.get_model_path(self.model_name)
         try:
-            self.model = WhisperModel(
-                model_path, local_files_only=True, device="cpu", compute_type="int8"
-            )
+            # compute_type for CPU is only int8, for CUDA ist float16 or int8_float16
+            if (
+                (self.device == "cpu" and self.compute_type == "int8")
+                or (self.device == "cuda" and self.compute_type == "float16")
+                or (self.device == "cuda" and self.compute_type == "int8_float16")
+            ):
+                self.model = WhisperModel(
+                    model_path, local_files_only=True, device=self.device, compute_type=self.compute_type
+                )
+            else:
+                self.log.print_error(f"Invalid or Unmatching device or compute_type: {self.device} {self.compute_type}, Fallback to CPU int8")
+                self.model = WhisperModel(
+                    model_path,
+                    local_files_only=True,
+                    device="cpu", compute_type="int8"
+                )
+
             self.log.print_log(
                 f"RAM usage after loading models: {self.system_monitor.return_ram_usage()}"
             )
@@ -62,7 +78,7 @@ class Transcriber:
         except Exception as e:
             self.log.print_error("Error loading model: " + str(e))
             return False
-    
+
     def unload_model(self) -> bool:
         """unloads the model if loaded"""
         if self.model is not None:
@@ -74,7 +90,6 @@ class Transcriber:
                 f"RAM usage after unloading models: {self.system_monitor.return_ram_usage()}"
             )
         return True
-
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""

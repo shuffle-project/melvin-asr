@@ -2,6 +2,8 @@
 from json import JSONDecodeError
 import os
 from datetime import datetime
+import random
+import time
 from src.helper.transcription import TranscriptionStatusValue
 from src.config import CONFIG
 from src.helper.file_handler import FileHandler
@@ -100,6 +102,8 @@ class DataHandler:
                     data = self.file_handler.read_json(
                         os.path.join(self.status_path, filename)
                     )
+                    # wait to avoid race conditions between runners
+                    self.random_wait_ms()
                     current_status = data.get("status")
                     current_datetime = datetime.fromisoformat(
                         data.get("start_time").replace("Z", "+00:00")
@@ -184,3 +188,10 @@ class DataHandler:
             self.log.print_log(f"Audio file {file_name} deleted.")
         else:
             self.log.print_error(f"Audio file {file_name} not found.")
+
+    def random_wait_ms(self) -> None:
+        """Function to wait for a random time between 0 and 5000 milliseconds."""
+        wait_time_ms = random.randint(0, 5000)
+        print(f"Waiting for {wait_time_ms} milliseconds.")
+        print(wait_time_ms)
+        time.sleep(wait_time_ms / 1000.0)
