@@ -35,15 +35,19 @@ class DataHandler:
 
     def get_all_status_files(self) -> list:
         """Returns all status files."""
-        status_files = []
+        transcriptions = []
         for filename in os.listdir(self.status_path):
-            # read "status" field from json file and append to list
-            if filename.endswith(".json"):
-                data = self.file_handler.read_json(
-                    os.path.join(self.status_path, filename)
-                )
-                status_files.append(data)
-            return status_files
+            if filename.strip().endswith(".json"):
+                data = self.file_handler.read_json(os.path.join(self.status_path, filename))
+                if data:
+                    transcriptions.append(
+                        {"transcription_id": data.get("transcription_id"), "status": data.get("status")}
+                    )
+                else:
+                    self.log.print_error(
+                        f"File {filename} could not be read."
+                    )
+        return transcriptions
 
     def write_status_file(self, transcription_id: str, data: dict) -> None:
         """Writes the status file by the given transcription_id."""
