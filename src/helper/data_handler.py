@@ -1,5 +1,6 @@
 """This module works as Interface for the access to the data folder."""
 import os
+import json
 from datetime import datetime
 from src.config import CONFIG
 from src.helper.file_handler import FileHandler
@@ -32,6 +33,18 @@ class DataHandler:
             return data
         return None
 
+    def get_all_status_files(self) -> list:
+        """Returns all status files."""
+        status_files = []
+        for filename in os.listdir(self.status_path):
+            # read "status" field from json file and append to list
+            if filename.endswith(".json"):
+                data = self.file_handler.read_json(
+                    os.path.join(self.status_path, filename)
+                )
+                status_files.append(data)
+            return status_files
+
     def write_status_file(self, transcription_id: str, data: dict) -> None:
         """Writes the status file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
@@ -48,7 +61,7 @@ class DataHandler:
         return None
 
     def update_status_file(
-        self, status: str, transcription_id: str, error_message: str = None
+            self, status: str, transcription_id: str, error_message: str = None
     ):
         """Updates the status file with the given status."""
         file_name = f"{transcription_id}.json"
@@ -68,7 +81,7 @@ class DataHandler:
             )
 
     def merge_transcript_to_status(
-        self, transcription_id: str, transcript_data: dict
+            self, transcription_id: str, transcript_data: dict
     ) -> None:
         """Merges the transcript file to the status file."""
         status_data = self.get_status_file_by_id(transcription_id)
@@ -103,8 +116,8 @@ class DataHandler:
                     if current_status != "in_query":
                         continue
                     if (
-                        oldest_start_time is None
-                        or current_datetime < oldest_start_time
+                            oldest_start_time is None
+                            or current_datetime < oldest_start_time
                     ):
                         oldest_start_time = current_datetime
                         oldest_transcription_id = data.get("transcription_id")

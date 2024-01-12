@@ -4,8 +4,10 @@ import os
 import time
 import uuid
 from functools import wraps
-from pydub import AudioSegment
+
 from flask import Flask, jsonify, request
+from pydub import AudioSegment
+
 from src.config import CONFIG
 from src.helper.convert_save_received_audio_files import convert_to_wav
 from src.helper.transcription_request_handling.transcription import (
@@ -14,6 +16,7 @@ from src.helper.transcription_request_handling.transcription import (
     TranscriptionStatusValue,
 )
 from src.helper.welcome_message import welcome_message
+from src.helper.data_handler import DataHandler
 
 
 def create_app():
@@ -48,20 +51,8 @@ def create_app():
     @app.route("/transcriptions", methods=["GET"])
     @require_api_key
     def get_transcriptions():
-        status_files = list(os.listdir(CONFIG["STATUS_PATH"]))
-        transcriptions = []
-        for file_name in status_files:
-            with open(
-                os.path.join(CONFIG["STATUS_PATH"], file_name), "r", encoding="utf-8"
-            ) as file:
-                data = json.load(file)
-                transcription_id = data.get("transcription_id")
-                status = data.get("status")
-                transcriptions.append(
-                    {"transcription_id": transcription_id, "status": status}
-                )
-
-        return jsonify(transcriptions)
+        """API endpoint to get all transcriptions and their status in a list"""
+        return jsonify(DataHandler().get_all_status_files())
 
     @app.route("/transcriptions", methods=["POST"])
     @require_api_key
