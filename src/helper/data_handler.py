@@ -31,6 +31,14 @@ class DataHandler:
         if data:
             return data
         return None
+    
+    def get_all_status_filenames(self) -> list[str]:
+        """Returns all status files."""
+        status_files = []
+        for filename in os.listdir(self.status_path):
+            if filename.endswith(".json"):
+                status_files.append(filename)
+        return status_files
 
     def write_status_file(self, transcription_id: str, data: dict) -> None:
         """Writes the status file by the given transcription_id."""

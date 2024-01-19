@@ -1,19 +1,21 @@
 """Flask app to handle the REST API requests"""
 import json
-import os
 import time
 import uuid
 from functools import wraps
 from pydub import AudioSegment
 from flask import Flask, jsonify, request
+from src.helper.logger import Color, Logger
 from src.config import CONFIG
 from src.helper.convert_save_received_audio_files import convert_to_wav
 from src.helper.transcription_request_handling.transcription import (
     Transcription,
-    TranscriptionNotFoundError,
     TranscriptionStatusValue,
 )
-from src.helper.welcome_message import welcome_message
+from src.api.rest.endpoints.welcome import welcome_message
+from src.helper.data_handler import get_all_status_filenames, get_status_file_by_id
+
+LOGGER = Logger("FlaskApp", False, Color.GREEN)
 
 
 def create_app():
@@ -30,9 +32,11 @@ def create_app():
 
             if api_key and api_key == CONFIG["API_KEY"]:
                 return func(*args, **kwargs)
-            print(api_key)
-            print(request.headers)
             return (
+                LOGGER.print_error(
+                    "Unauthorized REST API request. "
+                    + f"api_key: {api_key}, config_key: {CONFIG['API_KEY']}"
+                ),
                 jsonify({"error": "Unauthorized. Please provide a valid API key"}),
                 401,
             )
@@ -44,24 +48,34 @@ def create_app():
         """Function that returns basic information about the API usage."""
         return welcome_message()
 
-    # API endpoint to get all transcriptions and their status in a list
+    @app.route("/health", methods=["GET"])
+    def health_check():
+        """return health status"""
+        return "OK"
+
     @app.route("/transcriptions", methods=["GET"])
     @require_api_key
     def get_transcriptions():
-        status_files = list(os.listdir(CONFIG["STATUS_PATH"]))
+        """API endpoint to get all transcriptions and their status in a list"""
         transcriptions = []
-        for file_name in status_files:
-            with open(
-                os.path.join(CONFIG["STATUS_PATH"], file_name), "r", encoding="utf-8"
-            ) as file:
-                data = json.load(file)
-                transcription_id = data.get("transcription_id")
-                status = data.get("status")
-                transcriptions.append(
-                    {"transcription_id": transcription_id, "status": status}
-                )
-
+        for file_name in get_all_status_filenames():
+            data = get_status_file_by_id(file_name)
+            transcriptions.append(
+                {
+                    "transcription_id": data.get("transcription_id"),
+                    "status": data.get("status"),
+                }
+            )
         return jsonify(transcriptions)
+
+    @app.route("/transcriptions/<transcription_id>", methods=["GET"])
+    @require_api_key
+    def get_transcriptions_id(transcription_id):
+        """API endpoint to get the status of a transcription"""
+        file = get_status_file_by_id(transcription_id)
+        if file:
+            return jsonify(file)
+        return "Transcription not found", 404
 
     @app.route("/transcriptions", methods=["POST"])
     @require_api_key
@@ -93,28 +107,5 @@ def create_app():
             transcription.save_to_file()
             return jsonify(transcription.get_status())
         return "Something went wrong"
-
-    @app.route("/transcriptions/<transcription_id>", methods=["GET"])
-    @require_api_key
-    def get_transcription_status_route(transcription_id):
-        """API endpoint to get the status of a transcription"""
-        try:
-            file_path = os.path.join(
-                os.getcwd() + CONFIG["STATUS_PATH"], f"{transcription_id}.json"
-            )
-            if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as file:
-                    return jsonify(json.load(file))
-            else:
-                print("TranscriptionNotFoundError")
-                raise TranscriptionNotFoundError(transcription_id)
-        except TranscriptionNotFoundError as e:
-            return jsonify(str(e)), 404
-
-    @app.route("/health", methods=["GET"])
-    def health_check():
-        """return health status"""
-        print("health check")
-        return "OK"
 
     return app

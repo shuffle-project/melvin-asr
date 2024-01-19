@@ -15,16 +15,6 @@ class TranscriptionStatusValue(Enum):
     FINISHED = "finished"
     ERROR = "error"
 
-
-class TranscriptionNotFoundError(Exception):
-    """
-    Exception raised when a transcription is not found.
-    """
-
-    def __str__(self):
-        return f"Transcription not found: {super().__str__()}"
-
-
 class Transcription:
     """
     Class representing a transcription.

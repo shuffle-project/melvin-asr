@@ -34,6 +34,16 @@ class FileHandler:
             self.log.print_error("Error writing JSON file: " + str(e))
             return False
 
+    def create(self, file_path, data) -> bool:
+        """Creates a JSON file."""
+        try:
+            with open(file_path, "x", encoding="utf-8") as file:
+                json.dump(data, file)
+            return True
+        except Exception as e:
+            self.log.print_error("Error creating JSON file: " + str(e))
+            return False
+
     def delete(self, file_path) -> bool:
         """Deletes a file."""
         try:
