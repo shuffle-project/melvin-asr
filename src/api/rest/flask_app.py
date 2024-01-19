@@ -32,12 +32,14 @@ def create_app():
 
             if api_key and api_key == CONFIG["API_KEY"]:
                 return func(*args, **kwargs)
+
+            LOGGER.print_error(
+                "Unauthorized REST API request. "
+                + f"api_key: {api_key}, config_key: {CONFIG['API_KEY']}"
+            )
+
             return (
-                LOGGER.print_error(
-                    "Unauthorized REST API request. "
-                    + f"api_key: {api_key}, config_key: {CONFIG['API_KEY']}"
-                ),
-                jsonify({"error": "Unauthorized. Please provide a valid API key"}),
+                jsonify("Unauthorized"),
                 401,
             )
 
@@ -59,13 +61,19 @@ def create_app():
         """API endpoint to get all transcriptions and their status in a list"""
         transcriptions = []
         for file_name in DATA_HANDLER.get_all_status_filenames():
-            data = DATA_HANDLER.get_status_file_by_id(file_name)
-            transcriptions.append(
-                {
-                    "transcription_id": data.get("transcription_id"),
-                    "status": data.get("status"),
-                }
-            )
+            try:
+                file_name = file_name[:-5]  # remove .json
+                data = DATA_HANDLER.get_status_file_by_id(file_name)
+                transcriptions.append(
+                    {
+                        "transcription_id": data["transcription_id"],
+                        "status": data["status"],
+                    }
+                )
+            # pylint: disable=broad-except
+            except Exception as e:
+                LOGGER.print_error(f"Error while reading status file {file_name}: {e}")
+                DATA_HANDLER.delete_status_file(file_name)
         return jsonify(transcriptions)
 
     @app.route("/transcriptions/<transcription_id>", methods=["GET"])
@@ -74,7 +82,7 @@ def create_app():
         """API endpoint to get the status of a transcription"""
         file = DATA_HANDLER.get_status_file_by_id(transcription_id)
         if file:
-            return jsonify(file)
+            return jsonify(file), 200
         return "Transcription not found", 404
 
     @app.route("/transcriptions", methods=["POST"])
