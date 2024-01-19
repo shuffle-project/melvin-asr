@@ -1,38 +1,23 @@
 """This File contains tests for the Runner class."""
-import os
-import pytest
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-argument
+# pylint: disable=unused-import
+from src.test_base.cleanup_data_fixture import cleanup_data
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.transcription.rest_runner import Runner
 
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-
-EXAMPLE_STATUS_FILE_PATH = "/src/transcription/test/files/data/status/"
-EXAMPLE_AUDIO_FILE_PATH = "/src/transcription/test/files/data/audio_files/"
-
 RUNNER = Runner("tiny", "1", "cpu", "int8")
-DATA_HANDLER = DataHandler(EXAMPLE_STATUS_FILE_PATH, EXAMPLE_AUDIO_FILE_PATH)
+DATA_HANDLER = DataHandler()
 
 
-@pytest.fixture
-def setup_code():
-    """Fixture to setup the test environment."""
-    yield
-    for filename in os.listdir(os.getcwd() + EXAMPLE_STATUS_FILE_PATH):
-        # remove .json from all names, if theay are .json
-        if filename.endswith(".json"):
-            filename = filename[:-5]
-            DATA_HANDLER.delete_status_file(filename)
-
-
-def test_get_oldest_status_file_in_query_fail(setup_code):
+def test_get_oldest_status_file_in_query_fail():
     """Tests getting the oldest status file in query returns None if no status file is available."""
     # by default there is no status file in the test folder having a start_time which is required
     assert RUNNER.get_oldest_status_file_in_query(1, DATA_HANDLER) == "None"
 
 
-def test_get_oldest_status_file_in_query_success(setup_code):
+def test_get_oldest_status_file_in_query_success(cleanup_data):
     """Tests getting the oldest status file in query returns the transcription_id."""
     # prepare write.json file
     data = {
@@ -45,7 +30,7 @@ def test_get_oldest_status_file_in_query_success(setup_code):
     assert RUNNER.get_oldest_status_file_in_query(1, DATA_HANDLER) == "write"
 
 
-def test_get_oldest_status_file_in_query_oldest_first(setup_code):
+def test_get_oldest_status_file_in_query_oldest_first(cleanup_data):
     """Tests getting the oldest status file in query when 2 are available."""
     # prepare write.json file
     data = {

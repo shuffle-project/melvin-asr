@@ -1,21 +1,24 @@
 """This File contains tests for the DataHandler class."""
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-argument
+# pylint: disable=unused-import
 import datetime
 import os
 import shutil
 from pydub import AudioSegment
+from src.test_base.cleanup_data_fixture import cleanup_data
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
 
-EXAMPLE_STATUS_FILE_PATH = "/src/helper/test/files/data/status/"
-EXAMPLE_AUDIO_FILE_PATH = "/src/helper/test/files/data/audio_files/"
-
 EXAMPLE_TRANSCRIPTION_ID = "example"
+EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/test_base/example.wav"
 
-DATA_HANDLER = DataHandler(EXAMPLE_STATUS_FILE_PATH, EXAMPLE_AUDIO_FILE_PATH)
+DATA_HANDLER = DataHandler()
 
 
-def test_get_status_file_by_id_success():
+def test_get_status_file_by_id_success(cleanup_data):
     """Tests getting a existing status file by id."""
+    DATA_HANDLER.write_status_file("example", {"test": "test"})
     data = DATA_HANDLER.get_status_file_by_id("example")
     assert data == {"test": "test"}
 
@@ -26,15 +29,17 @@ def test_get_status_file_by_id_fail():
     assert data is None
 
 
-def test_get_all_status_filenames():
+def test_get_all_status_filenames(cleanup_data):
     """Tests getting all status filenames."""
+    DATA_HANDLER.write_status_file("example1", {"test": "test"})
+    DATA_HANDLER.write_status_file("example2", {"test": "test"})
     filenames = DATA_HANDLER.get_all_status_filenames()
     # check if filenames are correct
-    assert ("example.json" in filenames) is True
-    assert ("write.json" in filenames) is True
+    assert ("example1.json" in filenames) is True
+    assert ("example2.json" in filenames) is True
 
 
-def test_write_status_file():
+def test_write_status_file(cleanup_data):
     """Tests writing a status file."""
     time = datetime.datetime.now()
     data = {"time": str(time)}
@@ -42,7 +47,7 @@ def test_write_status_file():
     assert DATA_HANDLER.get_status_file_by_id("write") == data
 
 
-def test_write_status_file_does_not_exist():
+def test_write_status_file_does_not_exist(cleanup_data):
     """Tests writing a status file."""
     time = datetime.datetime.now()
     data = {"time": str(time)}
@@ -51,8 +56,9 @@ def test_write_status_file_does_not_exist():
     DATA_HANDLER.delete_status_file("write1")
 
 
-def test_delete_status_file_success():
+def test_delete_status_file_success(cleanup_data):
     """Tests deleting a status file."""
+    DATA_HANDLER.write_status_file("write", {})
     res = DATA_HANDLER.delete_status_file("write")
     assert res is True
     assert DATA_HANDLER.get_status_file_by_id("write") is None
@@ -64,10 +70,15 @@ def test_delete_status_file_fail():
     assert res is False
 
 
-def test_get_audio_file_path_by_id():
+def test_get_audio_file_path_by_id(cleanup_data):
     """Tests getting a audio file path by id."""
+    # copy example.wav to example-save.wav
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
+    # save example-save.wav
+    res = DATA_HANDLER.save_audio_file(example_audio_data, "example")
+    assert res == {"success": True, "message": "Conversion successful."}
     path = DATA_HANDLER.get_audio_file_path_by_id("example")
-    assert ("/src/helper/test/files/data/audio_files/example.wav" in path) is True
+    assert (DATA_HANDLER.audio_file_path in path) is True
 
 
 def test_get_audio_file_path_by_id_fail():
@@ -76,7 +87,7 @@ def test_get_audio_file_path_by_id_fail():
     assert path is None
 
 
-def test_update_status_file_success():
+def test_update_status_file_success(cleanup_data):
     """Tests updating a status file."""
     # prepare write.json file
     data = {"status": TranscriptionStatus.IN_PROGRESS.value}
@@ -98,7 +109,7 @@ def test_update_status_file_fail():
     assert DATA_HANDLER.get_status_file_by_id("non_existing") is None
 
 
-def test_update_status_file_with_error_message():
+def test_update_status_file_with_error_message(cleanup_data):
     """Tests updating a status file with an error message."""
     # prepare write.json file
     data = {"status": TranscriptionStatus.IN_PROGRESS.value}
@@ -113,7 +124,7 @@ def test_update_status_file_with_error_message():
     assert DATA_HANDLER.get_status_file_by_id("write") == check_data
 
 
-def test_merge_transcript_to_status_success():
+def test_merge_transcript_to_status_success(cleanup_data):
     """Tests merging a transcript to a status file."""
     # prepare write.json file
     data = {"status": TranscriptionStatus.IN_PROGRESS.value}
@@ -136,11 +147,10 @@ def test_merge_transcript_to_status_fail():
     assert DATA_HANDLER.merge_transcript_to_status("non_existing", {}) is False
 
 
-def test_save_audio_file_success():
+def test_save_audio_file_success(cleanup_data):
     """Tests saving an audio file."""
     # copy example.wav to example-save.wav
-    example_audio_path = os.getcwd() + EXAMPLE_AUDIO_FILE_PATH + "example.wav"
-    example_audio_data = AudioSegment.from_wav(example_audio_path)
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
     # save example-save.wav
     res = DATA_HANDLER.save_audio_file(example_audio_data, "example-save")
     assert res == {"success": True, "message": "Conversion successful."}
@@ -159,15 +169,13 @@ def test_save_audio_file_fail():
 
 def test_delete_audio_file_success():
     """Tests deleting an audio file."""
-    # copy example.wav to example_delete.wav
-    source_path = os.getcwd() + EXAMPLE_AUDIO_FILE_PATH + "example.wav"
-    destination_path = os.getcwd() + EXAMPLE_AUDIO_FILE_PATH + "example-delete.wav"
-    shutil.copy(source_path, destination_path)
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
+    res = DATA_HANDLER.save_audio_file(example_audio_data, "example-delete")
 
     # delete example-delete.wav
     res = DATA_HANDLER.delete_audio_file("example-delete")
     assert res is True
-    assert os.path.isfile(destination_path) is False
+    assert os.path.isfile(DATA_HANDLER.audio_file_path+"example-delete.wav") is False
 
 
 def test_delete_audio_file_fail():
