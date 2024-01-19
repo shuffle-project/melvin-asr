@@ -1,10 +1,7 @@
 """This module works as Interface for the access to the data folder."""
-from json import JSONDecodeError
 import os
 from datetime import datetime
-import random
-import time
-from src.helper.transcription import TranscriptionStatusValue
+from src.helper.types.transcription_status import TranscriptionStatus
 from src.config import CONFIG
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Color, Logger
@@ -51,8 +48,20 @@ class DataHandler:
     def write_status_file(self, transcription_id: str, data: dict) -> None:
         """Writes the status file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
-        file_path = os.path.join(self.status_path + file_name)
+        file_path = os.path.join(self.status_path, file_name)
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         self.file_handler.write_json(file_path, data)
+
+    def delete_status_file(self, transcription_id: str) -> bool:
+        """Deletes the status file by the given transcription_id."""
+        file_name = f"{transcription_id}.json"
+        file_path = os.path.join(self.status_path, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            return True
+        self.log.print_error(f"Status file {file_name} not found.")
+        return False
 
     def get_audio_file_path_by_id(self, transcription_id: str) -> str:
         """Returns the audio file path by the given transcription_id."""
@@ -71,7 +80,7 @@ class DataHandler:
         data = self.file_handler.read_json(file_path)
         if data:
             data["status"] = status
-            if status == TranscriptionStatusValue.FINISHED.value:
+            if status == TranscriptionStatus.FINISHED.value:
                 data["end_time"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
             if error_message is not None:
                 data["error_message"] = error_message
@@ -92,7 +101,7 @@ class DataHandler:
             self.write_status_file(transcription_id, status_data)
             self.log.print_log(f"Transcript added for {transcription_id}")
             self.update_status_file(
-                TranscriptionStatusValue.FINISHED.value, transcription_id
+                TranscriptionStatus.FINISHED.value, transcription_id
             )
             return True
         self.log.print_error(
@@ -100,70 +109,9 @@ class DataHandler:
         )
         return False
 
-    def get_oldest_status_file_in_query(
-        self, race_condition_sleep_ms: int = 5000
-    ) -> str:
-        """Gets the oldest transcription in query."""
-        oldest_start_time = None
-        oldest_transcription_id: str = None
-
-        # wait to avoid race conditions between runners
-
-        files = os.listdir(self.status_path)
-        if len(files) == 0:
-            return "None"
-
-        time.sleep(random.randint(0, race_condition_sleep_ms) / 1000.0)
-
-        for filename in os.listdir(self.status_path):
-            try:
-                if filename.endswith(".json"):
-                    data = self.file_handler.read_json(
-                        os.path.join(self.status_path, filename)
-                    )
-                    current_status = data.get("status")
-                    start_time = data.get("start_time")
-
-                    if start_time is None or current_status is None:
-                        continue
-
-                    if current_status != TranscriptionStatusValue.IN_QUERY.value:
-                        continue
-
-                    current_datetime = datetime.fromisoformat(
-                        start_time.replace("Z", "+00:00")
-                    )
-                    if (
-                        oldest_start_time is None
-                        or current_datetime < oldest_start_time
-                    ):
-                        oldest_start_time = current_datetime
-                        oldest_transcription_id = data.get("transcription_id")
-
-            # Catch unreadable JSON files and delete them
-            except JSONDecodeError as jde:
-                self.log.print_error(
-                    f"Caught JSONDecodeError getting oldest status file: {str(jde)}"
-                )
-                self.file_handler.delete(os.path.join(self.status_path, filename))
-                continue
-
-            # need to catch all exceptions here to not break the loop in runner.py
-            # pylint: disable=W0718
-            except Exception as e:
-                self.log.print_error(
-                    f"Caught Exception of type {type(e).__name__}"
-                    + f"while getting oldest status file: {str(e)}"
-                )
-                continue
-
-        if oldest_transcription_id:
-            return oldest_transcription_id
-        return "None"
-
     def clean_up_status_files(self, max_old_status_files: int = 100):
         """Deletes the oldest status files with
-        current_status=TranscriptionStatusValue.FINISHED or TranscriptionStatusValue.ERROR
+        current_status=TranscriptionStatus.FINISHED or TranscriptionStatus.ERROR
         if there are more than set in CONFIG MAX_OLD_STATUS_FILES number."""
         cleanup_files = []
         for filename in os.listdir(self.status_path):
@@ -173,8 +121,8 @@ class DataHandler:
                 )
                 current_status = data.get("status")
                 if current_status in (
-                    TranscriptionStatusValue.FINISHED.value,
-                    TranscriptionStatusValue.ERROR.value,
+                    TranscriptionStatus.FINISHED.value,
+                    TranscriptionStatus.ERROR.value,
                 ):
                     cleanup_files.append((filename, data.get("start_time")))
 
@@ -202,12 +150,31 @@ class DataHandler:
             )
         return None
 
-    def delete_audio_file(self, transcription_id: str) -> None:
+    def save_audio_file(self, audio, transcription_id) -> dict:
+        """
+        Convert an audio file to 16kHz mono WAV format and save it to a directory.
+        """
+        try:
+            os.makedirs(self.audio_file_path, exist_ok=True)
+            audio.set_frame_rate(16000).set_channels(1).export(
+                os.path.join(
+                    self.audio_file_path, f"{transcription_id}{self.audio_file_format}"
+                )
+            )
+            return {"success": True, "message": "Conversion successful."}
+        # need to catch all exceptions here to not break the loop in runner.py
+        # pylint: disable=W0703
+        except Exception as e:
+            error_message = f"Audio File creation failed for: {str(e)}"
+            self.log.print_error(error_message)
+            return {"success": False, "message": error_message}
+
+    def delete_audio_file(self, transcription_id: str) -> bool:
         """Deletes the audio file by the given transcription_id."""
         file_name = f"{transcription_id}{self.audio_file_format}"
         file_path = os.path.join(self.audio_file_path, file_name)
         if os.path.isfile(file_path):
             os.remove(file_path)
-            self.log.print_log(f"Audio file {file_name} deleted.")
-        else:
-            self.log.print_error(f"Audio file {file_name} not found.")
+            return True
+        self.log.print_error(f"Audio file {file_name} not found.")
+        return False

@@ -55,6 +55,7 @@ def test_create_delete_file():
     # check if the file still exists
     assert FILE_HANDLER.read_json(EXAMPLE_CREATE_TO_DELETE_FILE_PATH) is None
 
+
 # this needs to be the last step, because the write file needs to be resetet
 def test_reset():
     """restores the write.json file to its original state."""

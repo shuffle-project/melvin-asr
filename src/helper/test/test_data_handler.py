@@ -2,8 +2,9 @@
 import datetime
 import os
 import shutil
+from pydub import AudioSegment
 from src.helper.data_handler import DataHandler
-from src.helper.transcription import TranscriptionStatusValue
+from src.helper.types.transcription_status import TranscriptionStatus
 
 EXAMPLE_STATUS_FILE_PATH = "/src/helper/test/files/data/status/"
 EXAMPLE_AUDIO_FILE_PATH = "/src/helper/test/files/data/audio_files/"
@@ -41,6 +42,28 @@ def test_write_status_file():
     assert DATA_HANDLER.get_status_file_by_id("write") == data
 
 
+def test_write_status_file_does_not_exist():
+    """Tests writing a status file."""
+    time = datetime.datetime.now()
+    data = {"time": str(time)}
+    DATA_HANDLER.write_status_file("write1", data)
+    assert DATA_HANDLER.get_status_file_by_id("write1") == data
+    DATA_HANDLER.delete_status_file("write1")
+
+
+def test_delete_status_file_success():
+    """Tests deleting a status file."""
+    res = DATA_HANDLER.delete_status_file("write")
+    assert res is True
+    assert DATA_HANDLER.get_status_file_by_id("write") is None
+
+
+def test_delete_status_file_fail():
+    """Tests deleting a non existing status file."""
+    res = DATA_HANDLER.delete_status_file("non_existing")
+    assert res is False
+
+
 def test_get_audio_file_path_by_id():
     """Tests getting a audio file path by id."""
     path = DATA_HANDLER.get_audio_file_path_by_id("example")
@@ -56,14 +79,14 @@ def test_get_audio_file_path_by_id_fail():
 def test_update_status_file_success():
     """Tests updating a status file."""
     # prepare write.json file
-    data = {"status": TranscriptionStatusValue.IN_PROGRESS.value}
+    data = {"status": TranscriptionStatus.IN_PROGRESS.value}
     DATA_HANDLER.write_status_file("write", data)
     # update status file
-    DATA_HANDLER.update_status_file(TranscriptionStatusValue.FINISHED.value, "write")
+    DATA_HANDLER.update_status_file(TranscriptionStatus.FINISHED.value, "write")
     # check status file
     end_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     check_data = {
-        "status": TranscriptionStatusValue.FINISHED.value,
+        "status": TranscriptionStatus.FINISHED.value,
         "end_time": end_time,
     }
     assert DATA_HANDLER.get_status_file_by_id("write") == check_data
@@ -71,24 +94,20 @@ def test_update_status_file_success():
 
 def test_update_status_file_fail():
     """Tests updating a non existing status file."""
-    DATA_HANDLER.update_status_file(
-        TranscriptionStatusValue.FINISHED.value, "non_existing"
-    )
+    DATA_HANDLER.update_status_file(TranscriptionStatus.FINISHED.value, "non_existing")
     assert DATA_HANDLER.get_status_file_by_id("non_existing") is None
 
 
 def test_update_status_file_with_error_message():
     """Tests updating a status file with an error message."""
     # prepare write.json file
-    data = {"status": TranscriptionStatusValue.IN_PROGRESS.value}
+    data = {"status": TranscriptionStatus.IN_PROGRESS.value}
     DATA_HANDLER.write_status_file("write", data)
     # update status file
-    DATA_HANDLER.update_status_file(
-        TranscriptionStatusValue.ERROR.value, "write", "error"
-    )
+    DATA_HANDLER.update_status_file(TranscriptionStatus.ERROR.value, "write", "error")
     # check status file
     check_data = {
-        "status": TranscriptionStatusValue.ERROR.value,
+        "status": TranscriptionStatus.ERROR.value,
         "error_message": "error",
     }
     assert DATA_HANDLER.get_status_file_by_id("write") == check_data
@@ -97,7 +116,7 @@ def test_update_status_file_with_error_message():
 def test_merge_transcript_to_status_success():
     """Tests merging a transcript to a status file."""
     # prepare write.json file
-    data = {"status": TranscriptionStatusValue.IN_PROGRESS.value}
+    data = {"status": TranscriptionStatus.IN_PROGRESS.value}
     DATA_HANDLER.write_status_file("write", data)
     # merge transcript to status file
     transcript_data = {"transcript": "test"}
@@ -105,7 +124,7 @@ def test_merge_transcript_to_status_success():
     # check status file
     end_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     check_data = {
-        "status": TranscriptionStatusValue.FINISHED.value,
+        "status": TranscriptionStatus.FINISHED.value,
         "transcript": {"transcript": "test"},
         "end_time": end_time,
     }
@@ -117,23 +136,25 @@ def test_merge_transcript_to_status_fail():
     assert DATA_HANDLER.merge_transcript_to_status("non_existing", {}) is False
 
 
-def test_get_oldest_status_file_in_query_fail():
-    """Tests getting the oldest status file in query."""
-    # by default there is no status file in the test folder having a start_time which is required
-    assert DATA_HANDLER.get_oldest_status_file_in_query(1) == "None"
+def test_save_audio_file_success():
+    """Tests saving an audio file."""
+    # copy example.wav to example-save.wav
+    example_audio_path = os.getcwd() + EXAMPLE_AUDIO_FILE_PATH + "example.wav"
+    example_audio_data = AudioSegment.from_wav(example_audio_path)
+    # save example-save.wav
+    res = DATA_HANDLER.save_audio_file(example_audio_data, "example-save")
+    assert res == {"success": True, "message": "Conversion successful."}
+    # cleanup
+    DATA_HANDLER.delete_audio_file("example-save")
 
 
-def test_get_oldest_status_file_in_query_success():
-    """Tests getting the oldest status file in query."""
-    # prepare write.json file
-    data = {
-        "transcription_id": "write",
-        "status": TranscriptionStatusValue.IN_QUERY.value,
-        "start_time": "2021-05-01T00:00:00Z",
+def test_save_audio_file_fail():
+    """Tests saving an audio file."""
+    res = DATA_HANDLER.save_audio_file("/non_existing/path", "example-save")
+    assert res == {
+        "success": False,
+        "message": "Audio File creation failed for: 'str' object has no attribute 'set_frame_rate'",
     }
-    DATA_HANDLER.write_status_file("write", data)
-    # check status file
-    assert DATA_HANDLER.get_oldest_status_file_in_query(1) == "write"
 
 
 def test_delete_audio_file_success():
@@ -144,10 +165,12 @@ def test_delete_audio_file_success():
     shutil.copy(source_path, destination_path)
 
     # delete example-delete.wav
-    DATA_HANDLER.delete_audio_file("example-delete")
+    res = DATA_HANDLER.delete_audio_file("example-delete")
+    assert res is True
     assert os.path.isfile(destination_path) is False
+
 
 def test_delete_audio_file_fail():
     """Tests deleting a non existing audio file."""
-    DATA_HANDLER.delete_audio_file("non_existing")
-    assert True
+    res = DATA_HANDLER.delete_audio_file("non_existing")
+    assert res is False

@@ -2,15 +2,14 @@
 import json
 import time
 import uuid
+from datetime import datetime
 from functools import wraps
 from pydub import AudioSegment
 from flask import Flask, jsonify, request
 from src.helper.logger import Color, Logger
 from src.config import CONFIG
-from src.helper.convert_save_received_audio_files import convert_to_wav
-from src.helper.transcription import (
-    Transcription,
-    TranscriptionStatusValue,
+from src.helper.types.transcription_status import (
+    TranscriptionStatus,
 )
 from src.api.rest.endpoints.welcome import welcome_message
 from src.helper.data_handler import DataHandler
@@ -88,25 +87,32 @@ def create_app():
         if file.filename == "":
             return "No selected file"
         if file:
-            transcription = Transcription(uuid.uuid4())
-            audio = AudioSegment.from_file(file.stream)
-            result = convert_to_wav(
-                audio, CONFIG["AUDIO_FILE_PATH"], transcription.transcription_id
+            # store audio file
+            transcription_id = str(uuid.uuid4())
+            result = DATA_HANDLER.save_audio_file(
+                AudioSegment.from_file(file.stream), transcription_id
             )
-
-            time.sleep(1)
-
-            try:
-                transcription.settings = json.loads(request.form["settings"])
-            except KeyError:
-                transcription.settings = None
-
             if result["success"] is not True:
-                transcription.status = TranscriptionStatusValue.ERROR
-                transcription.error_message = result["message"]
+                return jsonify(result["message"])
 
-            transcription.save_to_file()
-            return jsonify(transcription.get_status())
+            # sleep to make sure that the file is saved before the transcription starts
+            time.sleep(0.1)
+
+            # create transcription status file
+            settings = (
+                json.loads(request.form["settings"])
+                if "settings" in request.form
+                else None
+            )
+            data = {
+                "transcription_id": transcription_id,
+                "status": TranscriptionStatus.IN_QUERY.value,
+                "start_time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "settings": settings,
+            }
+
+            DATA_HANDLER.write_status_file(transcription_id, data)
+            return jsonify(data)
         return "Something went wrong"
 
     return app

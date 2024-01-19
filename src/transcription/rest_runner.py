@@ -1,6 +1,9 @@
 """ This module contains the handler for the transcription process. """
+import os
+import random
 import time
-from src.helper.transcription import TranscriptionStatusValue
+from datetime import datetime
+from src.helper.types.transcription_status import TranscriptionStatus
 from src.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Logger, Color
@@ -31,7 +34,7 @@ class Runner:
         while True:
             cu += 1
             cc += 1
-            transcription_id = self.data_handler.get_oldest_status_file_in_query()
+            transcription_id = self.get_oldest_status_file_in_query()
 
             # if no transcription is available, wait
             if transcription_id == "None":
@@ -57,7 +60,7 @@ class Runner:
             self.log.print_log("Processing file: " + transcription_id)
             try:
                 self.data_handler.update_status_file(
-                    TranscriptionStatusValue.IN_PROGRESS.value, transcription_id
+                    TranscriptionStatus.IN_PROGRESS.value, transcription_id
                 )
                 self.transcribe(transcription_id)
                 cu = 0
@@ -69,7 +72,7 @@ class Runner:
                     f"Runner Exception of type {type(e).__name__}: {str(e)}"
                 )
                 self.data_handler.update_status_file(
-                    TranscriptionStatusValue.ERROR.value, transcription_id, str(e)
+                    TranscriptionStatus.ERROR.value, transcription_id, str(e)
                 )
                 continue
 
@@ -83,8 +86,73 @@ class Runner:
         transcript_data = self.transcriber.transcribe_audio_file(
             audio_file_path, settings
         )
+        if (transcript_data is None) or (transcript_data["segments"] is None):
+            self.data_handler.update_status_file(
+                TranscriptionStatus.ERROR.value,
+                transcription_id,
+                "Transcription failed.",
+            )
+            return
         self.data_handler.merge_transcript_to_status(transcription_id, transcript_data)
         self.data_handler.delete_audio_file(transcription_id)
         self.data_handler.update_status_file(
-            TranscriptionStatusValue.FINISHED.value, transcription_id
+            TranscriptionStatus.FINISHED.value, transcription_id
         )
+
+    def get_oldest_status_file_in_query(
+        self,
+        race_condition_sleep_ms: int = 5000,
+        data_handler: DataHandler = DataHandler(),
+    ) -> str:
+        """Gets the oldest transcription in query."""
+        oldest_start_time = None
+        oldest_transcription_id: str = None
+
+        # wait to avoid race conditions between runners
+
+        files = os.listdir(data_handler.status_path)
+        if len(files) == 0:
+            return "None"
+
+        time.sleep(random.randint(0, race_condition_sleep_ms) / 1000.0)
+
+        for filename in os.listdir(data_handler.status_path):
+            try:
+                if filename.endswith(".json"):
+                    data = data_handler.file_handler.read_json(
+                        os.path.join(data_handler.status_path, filename)
+                    )
+                    current_status = data.get("status")
+                    start_time = data.get("start_time")
+
+                    if start_time is None or current_status is None:
+                        continue
+
+                    if current_status != TranscriptionStatus.IN_QUERY.value:
+                        continue
+
+                    current_datetime = datetime.fromisoformat(
+                        start_time.replace("Z", "+00:00")
+                    )
+                    if (
+                        oldest_start_time is None
+                        or current_datetime < oldest_start_time
+                    ):
+                        oldest_start_time = current_datetime
+                        oldest_transcription_id = data.get("transcription_id")
+
+            # need to catch all exceptions here to not break the loop in runner.py
+            # pylint: disable=W0718
+            except Exception as e:
+                self.log.print_error(
+                    f"Caught Exception of type {type(e).__name__}"
+                    + f"while getting oldest status file: {str(e)}"
+                )
+                transcription_id = filename.split(".")[0]
+                data_handler.delete_status_file(transcription_id)
+                data_handler.delete_audio_file(transcription_id)
+                continue
+
+        if oldest_transcription_id:
+            return oldest_transcription_id
+        return "None"
