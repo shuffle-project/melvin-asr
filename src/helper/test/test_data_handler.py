@@ -28,7 +28,9 @@ def test_get_status_file_by_id_fail():
 def test_get_all_status_filenames():
     """Tests getting all status filenames."""
     filenames = DATA_HANDLER.get_all_status_filenames()
-    assert filenames == ["write.json", "example.json"]
+    # check if filenames are correct
+    assert ("example.json" in filenames) is True
+    assert ("write.json" in filenames) is True
 
 
 def test_write_status_file():

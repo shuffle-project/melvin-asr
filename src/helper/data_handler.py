@@ -95,13 +95,14 @@ class DataHandler:
                 TranscriptionStatusValue.FINISHED.value, transcription_id
             )
             return True
-        else:
-            self.log.print_error(
-                f"Transcript or Status file for {transcription_id} not found."
-            )
-            return False
+        self.log.print_error(
+            f"Transcript or Status file for {transcription_id} not found."
+        )
+        return False
 
-    def get_oldest_status_file_in_query(self, race_condition_sleep_ms: int = 5000) -> str:
+    def get_oldest_status_file_in_query(
+        self, race_condition_sleep_ms: int = 5000
+    ) -> str:
         """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id: str = None
