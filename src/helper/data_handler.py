@@ -15,16 +15,21 @@ from src.helper.logger import Color, Logger
 class DataHandler:
     """This class handles the data folder."""
 
-    def __init__(self):
+    def __init__(
+        self,
+        status_path: str = CONFIG["STATUS_PATH"],
+        audio_file_path: str = CONFIG["AUDIO_FILE_PATH"],
+        audio_file_format: str = CONFIG["AUDIO_FILE_FORMAT"],
+    ):
         self.log = Logger("DataHandler", False, Color.GREEN)
         self.root_path = os.getcwd()
         self.data_folder = os.path.join(self.root_path, "data")
         self.file_handler = FileHandler()
 
         # get config settings
-        self.status_path = self.root_path + CONFIG["STATUS_PATH"]
-        self.audio_file_path = self.root_path + CONFIG["AUDIO_FILE_PATH"]
-        self.audio_file_format = CONFIG["AUDIO_FILE_FORMAT"]
+        self.status_path = self.root_path + status_path
+        self.audio_file_path = self.root_path + audio_file_path
+        self.audio_file_format = audio_file_format
 
     def get_status_file_by_id(self, transcription_id: str) -> dict:
         """Returns the status file by the given transcription_id."""
@@ -34,7 +39,7 @@ class DataHandler:
         if data:
             return data
         return None
-    
+
     def get_all_status_filenames(self) -> list[str]:
         """Returns all status files."""
         status_files = []
@@ -59,7 +64,7 @@ class DataHandler:
 
     def update_status_file(
         self, status: str, transcription_id: str, error_message: str = None
-    ):
+    ) -> None:
         """Updates the status file with the given status."""
         file_name = f"{transcription_id}.json"
         file_path = os.path.join(self.status_path, file_name)
@@ -79,7 +84,7 @@ class DataHandler:
 
     def merge_transcript_to_status(
         self, transcription_id: str, transcript_data: dict
-    ) -> None:
+    ) -> bool:
         """Merges the transcript file to the status file."""
         status_data = self.get_status_file_by_id(transcription_id)
         if transcript_data and status_data:
@@ -89,17 +94,14 @@ class DataHandler:
             self.update_status_file(
                 TranscriptionStatusValue.FINISHED.value, transcription_id
             )
+            return True
         else:
             self.log.print_error(
                 f"Transcript or Status file for {transcription_id} not found."
             )
-            self.update_status_file(
-                TranscriptionStatusValue.ERROR.value,
-                transcription_id,
-                "Transcript file not found.",
-            )
+            return False
 
-    def get_oldest_status_file_in_query(self) -> str:
+    def get_oldest_status_file_in_query(self, race_condition_sleep_ms: int = 5000) -> str:
         """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id: str = None
@@ -110,7 +112,7 @@ class DataHandler:
         if len(files) == 0:
             return "None"
 
-        time.sleep(random.randint(0, 5000) / 1000.0)
+        time.sleep(random.randint(0, race_condition_sleep_ms) / 1000.0)
 
         for filename in os.listdir(self.status_path):
             try:
@@ -119,11 +121,17 @@ class DataHandler:
                         os.path.join(self.status_path, filename)
                     )
                     current_status = data.get("status")
-                    current_datetime = datetime.fromisoformat(
-                        data.get("start_time").replace("Z", "+00:00")
-                    )
+                    start_time = data.get("start_time")
+
+                    if start_time is None or current_status is None:
+                        continue
+
                     if current_status != TranscriptionStatusValue.IN_QUERY.value:
                         continue
+
+                    current_datetime = datetime.fromisoformat(
+                        start_time.replace("Z", "+00:00")
+                    )
                     if (
                         oldest_start_time is None
                         or current_datetime < oldest_start_time
@@ -143,8 +151,8 @@ class DataHandler:
             # pylint: disable=W0718
             except Exception as e:
                 self.log.print_error(
-                    f"Caught Exception of type {type(e).__name__}" +
-                    f"while getting oldest status file: {str(e)}"
+                    f"Caught Exception of type {type(e).__name__}"
+                    + f"while getting oldest status file: {str(e)}"
                 )
                 continue
 

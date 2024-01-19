@@ -1,4 +1,4 @@
-""" This File contains tests for the FileHandler class."""
+"""This File contains tests for the FileHandler class."""
 
 import datetime
 import os

@@ -13,9 +13,10 @@ from src.helper.transcription import (
     TranscriptionStatusValue,
 )
 from src.api.rest.endpoints.welcome import welcome_message
-from src.helper.data_handler import get_all_status_filenames, get_status_file_by_id
+from src.helper.data_handler import DataHandler
 
 LOGGER = Logger("FlaskApp", False, Color.GREEN)
+DATA_HANDLER = DataHandler()
 
 
 def create_app():
@@ -58,8 +59,8 @@ def create_app():
     def get_transcriptions():
         """API endpoint to get all transcriptions and their status in a list"""
         transcriptions = []
-        for file_name in get_all_status_filenames():
-            data = get_status_file_by_id(file_name)
+        for file_name in DATA_HANDLER.get_all_status_filenames():
+            data = DATA_HANDLER.get_status_file_by_id(file_name)
             transcriptions.append(
                 {
                     "transcription_id": data.get("transcription_id"),
@@ -72,7 +73,7 @@ def create_app():
     @require_api_key
     def get_transcriptions_id(transcription_id):
         """API endpoint to get the status of a transcription"""
-        file = get_status_file_by_id(transcription_id)
+        file = DATA_HANDLER.get_status_file_by_id(transcription_id)
         if file:
             return jsonify(file)
         return "Transcription not found", 404
