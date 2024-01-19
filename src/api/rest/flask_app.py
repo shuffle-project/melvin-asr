@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request
 from src.helper.logger import Color, Logger
 from src.config import CONFIG
 from src.helper.convert_save_received_audio_files import convert_to_wav
-from src.helper.transcription_request_handling.transcription import (
+from src.helper.transcription import (
     Transcription,
     TranscriptionStatusValue,
 )

@@ -1,6 +1,10 @@
 """This module works as Interface for the access to the data folder."""
+from json import JSONDecodeError
 import os
 from datetime import datetime
+import random
+import time
+from src.helper.transcription import TranscriptionStatusValue
 from src.config import CONFIG
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Color, Logger
@@ -21,7 +25,6 @@ class DataHandler:
         self.status_path = self.root_path + CONFIG["STATUS_PATH"]
         self.audio_file_path = self.root_path + CONFIG["AUDIO_FILE_PATH"]
         self.audio_file_format = CONFIG["AUDIO_FILE_FORMAT"]
-        self.max_done_files = 1
 
     def get_status_file_by_id(self, transcription_id: str) -> dict:
         """Returns the status file by the given transcription_id."""
@@ -49,7 +52,6 @@ class DataHandler:
     def get_audio_file_path_by_id(self, transcription_id: str) -> str:
         """Returns the audio file path by the given transcription_id."""
         file_name = f"{transcription_id}{self.audio_file_format}"
-        print(self.audio_file_path + file_name)
         file_path = os.path.join(self.audio_file_path + file_name)
         if os.path.isfile(file_path):
             return file_path
@@ -64,7 +66,7 @@ class DataHandler:
         data = self.file_handler.read_json(file_path)
         if data:
             data["status"] = status
-            if status == "done":
+            if status == TranscriptionStatusValue.FINISHED.value:
                 data["end_time"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
             if error_message is not None:
                 data["error_message"] = error_message
@@ -84,19 +86,31 @@ class DataHandler:
             status_data["transcript"] = transcript_data
             self.write_status_file(transcription_id, status_data)
             self.log.print_log(f"Transcript added for {transcription_id}")
-            self.update_status_file("done", transcription_id)
+            self.update_status_file(
+                TranscriptionStatusValue.FINISHED.value, transcription_id
+            )
         else:
             self.log.print_error(
                 f"Transcript or Status file for {transcription_id} not found."
             )
             self.update_status_file(
-                "error", transcription_id, "Transcript file not found."
+                TranscriptionStatusValue.ERROR.value,
+                transcription_id,
+                "Transcript file not found.",
             )
 
     def get_oldest_status_file_in_query(self) -> str:
         """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id: str = None
+
+        # wait to avoid race conditions between runners
+
+        files = os.listdir(self.status_path)
+        if len(files) == 0:
+            return "None"
+
+        time.sleep(random.randint(0, 5000) / 1000.0)
 
         for filename in os.listdir(self.status_path):
             try:
@@ -108,7 +122,7 @@ class DataHandler:
                     current_datetime = datetime.fromisoformat(
                         data.get("start_time").replace("Z", "+00:00")
                     )
-                    if current_status != "in_query":
+                    if current_status != TranscriptionStatusValue.IN_QUERY.value:
                         continue
                     if (
                         oldest_start_time is None
@@ -116,11 +130,21 @@ class DataHandler:
                     ):
                         oldest_start_time = current_datetime
                         oldest_transcription_id = data.get("transcription_id")
+
+            # Catch unreadable JSON files and delete them
+            except JSONDecodeError as jde:
+                self.log.print_error(
+                    f"Caught JSONDecodeError getting oldest status file: {str(jde)}"
+                )
+                self.file_handler.delete(os.path.join(self.status_path, filename))
+                continue
+
             # need to catch all exceptions here to not break the loop in runner.py
             # pylint: disable=W0718
             except Exception as e:
                 self.log.print_error(
-                    f"Caught Error getting oldest status file: {str(e)}"
+                    f"Caught Exception of type {type(e).__name__}" +
+                    f"while getting oldest status file: {str(e)}"
                 )
                 continue
 
@@ -128,25 +152,29 @@ class DataHandler:
             return oldest_transcription_id
         return "None"
 
-    def delete_oldest_done_status_files(self):
-        """Deletes the oldest status files with current_status="done"
-        if there are more than set in CONFIG MAX_DONE_FILES number."""
-        done_files = []
+    def clean_up_status_files(self, max_old_status_files: int = 100):
+        """Deletes the oldest status files with
+        current_status=TranscriptionStatusValue.FINISHED or TranscriptionStatusValue.ERROR
+        if there are more than set in CONFIG MAX_OLD_STATUS_FILES number."""
+        cleanup_files = []
         for filename in os.listdir(self.status_path):
             if filename.endswith(".json"):
                 data = self.file_handler.read_json(
                     os.path.join(self.status_path, filename)
                 )
                 current_status = data.get("status")
-                if current_status == "done":
-                    done_files.append((filename, data.get("start_time")))
+                if current_status in (
+                    TranscriptionStatusValue.FINISHED.value,
+                    TranscriptionStatusValue.ERROR.value,
+                ):
+                    cleanup_files.append((filename, data.get("start_time")))
 
-        if len(done_files) > self.max_done_files:
-            done_files.sort(
+        if len(cleanup_files) > max_old_status_files:
+            cleanup_files.sort(
                 key=lambda x: datetime.fromisoformat(x[1].replace("Z", "+00:00"))
             )
-            for i in range(len(done_files) - self.max_done_files):
-                file_to_delete = done_files[i][0]
+            for i in range(len(cleanup_files) - max_old_status_files):
+                file_to_delete = cleanup_files[i][0]
                 os.remove(os.path.join(self.status_path, file_to_delete))
 
     def get_status_file_settings(self, transcription_id: str) -> dict:

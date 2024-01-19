@@ -15,13 +15,17 @@ services:
       - HOST=0.0.0.0
       - API_KEY=shuffle2024
       - DEBUG=True
-      - AVAILABLE_MODELS=["tiny", "medium", "small"]
-      - MODEL_PATH=/models/
-      - DEFAULT_REST_MODEL=medium
+      - UNLAOD_REST_MODELS_SCHEDULE=5
       - STREAM_MODEL=tiny
+      - STREAM_MODEL_DEVICE=cpu
+      - STREAM_MODEL_COMPUTE_TYPE=int8
+      - MODEL_CONFIG_YAML_PATH=/models.yaml
+      - MODEL_PATH=/models/
       - AUDIO_FILE_PATH=/data/audio_files/
       - STATUS_PATH=/data/status/
       - AUDIO_FILE_FORMAT=.wav
+      - MAX_OLD_STATUS_FILES=1000
+      - CLEAN_UP_SCHEDULE=120
     ports:
       - "8393:8393"
       - "8394:8394"
