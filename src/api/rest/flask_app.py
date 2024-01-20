@@ -18,7 +18,9 @@ LOGGER = Logger("FlaskApp", False, Color.GREEN)
 DATA_HANDLER = DataHandler()
 
 
-def create_app(auth_key=CONFIG["API_KEY"]):
+def create_app(
+    auth_key=CONFIG["API_KEY"], audio_files_to_store=CONFIG["AUDIO_FILES_TO_STORE"]
+):
     """Function to create the Flask app"""
 
     app = Flask(__name__)
@@ -90,6 +92,12 @@ def create_app(auth_key=CONFIG["API_KEY"]):
     def post_transcription():
         """API endpoint to transcribe an audio file"""
         try:
+            # make sure to not store too many audio files that require specific models
+            if (
+                DATA_HANDLER.get_number_of_audio_files() >= int(audio_files_to_store)
+            ) and "model" in request.form:
+                return "Too many audio files in queue", 400
+            # check if a file is in request
             if "file" not in request.files:
                 return "No file posted", 400
             file = request.files["file"]
@@ -105,24 +113,28 @@ def create_app(auth_key=CONFIG["API_KEY"]):
                 # sleep to make sure that the file is saved before the transcription starts
                 time.sleep(0.1)
 
+                # get body parameters
+                settings = None
+                model = None
+                if "settings" in request.form:
+                    settings = json.loads(request.form["settings"])
+                if "model" in request.form:
+                    model = request.form["model"]
+
                 # create transcription status file
-                settings = (
-                    json.loads(request.form["settings"])
-                    if "settings" in request.form
-                    else None
-                )
                 data = {
                     "transcription_id": transcription_id,
                     "status": TranscriptionStatus.IN_QUERY.value,
                     "start_time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "settings": settings,
+                    "model": model,
                 }
 
                 DATA_HANDLER.write_status_file(transcription_id, data)
                 return jsonify(data), 200
         # pylint: disable=broad-except
         except Exception as e:
-            LOGGER.print_error(f"Error while POST Transcriptions: {e}")
+            LOGGER.print_error(f"Error while POST /transcriptions: {e}")
         return "Something went wrong"
 
     return app

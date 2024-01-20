@@ -72,13 +72,16 @@ class WebSocketServer:
             audio_segment, self.settings
         )
 
-        if response is None:
-            response = "Transcription timed out"
+        if response["success"] is False:
+            await websocket.send(str(response["data"]))
             self.timeout_counter += 1
         else:
-            self.timeout_counter = 0
+            try:
+                await websocket.send(json.dumps(response["data"]))
+                self.timeout_counter = 0
 
-        if isinstance(response, dict):
-            await websocket.send(json.dumps(response))
-        else:
-            await websocket.send(str(response))
+            # need to catch all exceptions here
+            # pylint: disable=W0718
+            except Exception as e:
+                self.timeout_counter += 1
+                await websocket.send("handle_transcription failed: " + str(e))

@@ -22,7 +22,6 @@ def read_config() -> dict:
     return {
         "PORT": int(get_config("PORT", default="1234")),
         "WEBSOCKET_PORT": int(get_config("WEBSOCKET_PORT", default="1235")),
-        "ENVIRONMENT": get_config("ENVIRONMENT", default="development"),
         "HOST": get_config("HOST", default="localhost"),
         "MODEL_PATH": get_config("MODEL_PATH", required=True),
         "MODEL_CONFIG_YAML_PATH": get_config("MODEL_CONFIG_YAML_PATH", required=True),
@@ -33,6 +32,7 @@ def read_config() -> dict:
         "API_KEY": get_config("API_KEY", required=True),
         "DEBUG": get_config("DEBUG", default=False),
         "AUDIO_FILE_PATH": get_config("AUDIO_FILE_PATH", required=True),
+        "AUDIO_FILES_TO_STORE": get_config("AUDIO_FILES_TO_STORE", required=True),
         "STATUS_PATH": get_config("STATUS_PATH", required=True),
         "AUDIO_FILE_FORMAT": get_config("AUDIO_FILE_FORMAT", required=True),
         "MAX_OLD_STATUS_FILES": get_config("MAX_OLD_STATUS_FILES", required=True),

@@ -182,3 +182,12 @@ def test_delete_audio_file_fail():
     """Tests deleting a non existing audio file."""
     res = DATA_HANDLER.delete_audio_file("non_existing")
     assert res is False
+
+def test_get_number_of_audio_files():
+    """Tests getting the number of audio files."""
+    assert DATA_HANDLER.get_number_of_audio_files() == 0
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
+    DATA_HANDLER.save_audio_file(example_audio_data, "example-file")
+    assert DATA_HANDLER.get_number_of_audio_files() == 1
+    DATA_HANDLER.delete_audio_file("example-file")
+    assert DATA_HANDLER.get_number_of_audio_files() == 0

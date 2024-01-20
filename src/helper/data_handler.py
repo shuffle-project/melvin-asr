@@ -178,3 +178,14 @@ class DataHandler:
             return True
         self.log.print_error(f"Audio file {file_name} not found.")
         return False
+
+    def get_number_of_audio_files(self) -> int:
+        """
+        Returns the number of audio files 
+        with the config audio file format and 
+        in the config audio file path.
+        """
+        audio_files = [
+            f for f in os.listdir(self.audio_file_path) if f.endswith(CONFIG["AUDIO_FILE_FORMAT"])
+        ]
+        return len(audio_files)

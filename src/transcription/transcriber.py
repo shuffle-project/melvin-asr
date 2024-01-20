@@ -123,7 +123,7 @@ class Transcriber:
     @time_it
     def transcribe_audio_audio_segment(
         self, audio_segment, settings: dict = None
-    ) -> dict:
+    ) -> {"success": bool, "data": dict}:
         """Function to run the transcription process"""
         self.load_model()
         try:
@@ -134,28 +134,44 @@ class Transcriber:
                 .astype(np.float32)
                 / 32768.0
             )
-            return self.transcribe_with_settings(audio_data_bytes, self.model, settings)
+            return {
+                "success": True,
+                "data": self.transcribe_with_settings(
+                    audio_data_bytes, self.model, settings
+                ),
+            }
         # need to catch all exceptions here because the whisper call is not
         # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return None
+            return {
+                "success": False,
+                "data": str(e)
+            }
 
     @time_it
     def transcribe_audio_file(
         self, audio_file_path: str, settings: dict = None
-    ) -> dict:
+    ) -> {"success": bool, "data": dict}:
         """Function to run the transcription process"""
         self.load_model()
         try:
             self.log.print_log("Transcribing file: " + str(audio_file_path))
-            return self.transcribe_with_settings(audio_file_path, self.model, settings)
+            return {
+                "success": True,
+                "data": self.transcribe_with_settings(
+                    audio_file_path, self.model, settings
+                ),
+            }
 
             # need to catch all exceptions here because the whisper call is not
             # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return None
+            return {
+                "success": False,
+                "data": str(e)
+            }
 
     def transcribe_with_settings(
         self, audio, model: WhisperModel, settings: dict

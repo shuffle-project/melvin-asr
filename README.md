@@ -79,12 +79,14 @@ GET /transcriptions
 - **Request Body:**
   - `file`: Audio file (multipart/form-data)
   - `settings`: Any value (see chapter down below for settings options)
+  - `model`: The name of the model that needs to transcribe the audio_file 
+      (! In case the model is not running, the file will not be transcribed at all)
 - **Response:** Confirmation of transcription request submission.
 
 Example:
 ```
 Header: key: shuffle2024
-Body: settings: {"test": "test"}, file: "test.wav"
+Body: settings: {"test": "test"}, model: "tiny", file: "test.wav"
 POST /transcriptions
 ```
 
@@ -198,7 +200,7 @@ This documentation provides an overview of specific configuration options availa
 ! Not all of these Settings have been tested for our setup, please refer to https://github.com/SYSTRAN/faster-whisper for more information
 
 ### Rest API
-Please send these options as on JSON object named "settings" in the body to the ```/transcriptions Endpoint (POST)```, e.g. ```{"language": "auto"}```.
+Please send these options as on JSON object named "settings" in the body to the ```/transcriptions Endpoint (POST)```, e.g. ```{"language": "de"}```.
 
 ### Websocket API
 The Websocket API does not allow setting input by the client. All settings are fixed in the `src/api/websocket/websockets_settings.py` file.

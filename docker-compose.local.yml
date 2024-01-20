@@ -9,7 +9,6 @@ services:
       - ./data/audio_files:/asr-api/data/audio_files
       - ./data/status:/asr-api/data/status
     environment:
-      - ENVIRONMENT=production
       - PORT=8393
       - WEBSOCKET_PORT=8394
       - HOST=0.0.0.0

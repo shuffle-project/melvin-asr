@@ -83,18 +83,18 @@ class Runner:
         settings = self.data_handler.get_status_file_settings(transcription_id)
 
         # transcribe and update data
-        transcript_data = self.transcriber.transcribe_audio_file(
+        response = self.transcriber.transcribe_audio_file(
             audio_file_path, settings
         )
-        if (transcript_data is None) or (transcript_data["segments"] is None):
+        self.data_handler.delete_audio_file(transcription_id)
+        if response["success"] is False or (response["data"]["segments"] is None):
             self.data_handler.update_status_file(
                 TranscriptionStatus.ERROR.value,
                 transcription_id,
-                "Transcription failed.",
+                response["data"],
             )
             return
-        self.data_handler.merge_transcript_to_status(transcription_id, transcript_data)
-        self.data_handler.delete_audio_file(transcription_id)
+        self.data_handler.merge_transcript_to_status(transcription_id, response["data"])
         self.data_handler.update_status_file(
             TranscriptionStatus.FINISHED.value, transcription_id
         )
@@ -108,11 +108,11 @@ class Runner:
         oldest_start_time = None
         oldest_transcription_id: str = None
 
-        # wait to avoid race conditions between runners
-
         files = os.listdir(data_handler.status_path)
         if len(files) == 0:
             return "None"
+
+        # wait to avoid race conditions between runners
 
         time.sleep(random.randint(0, race_condition_sleep_ms) / 1000.0)
 
@@ -124,11 +124,15 @@ class Runner:
                     )
                     current_status = data.get("status")
                     start_time = data.get("start_time")
+                    model = data.get("model")
 
                     if start_time is None or current_status is None:
                         continue
 
                     if current_status != TranscriptionStatus.IN_QUERY.value:
+                        continue
+
+                    if model != self.transcriber.model_name and model is not None:
                         continue
 
                     current_datetime = datetime.fromisoformat(
