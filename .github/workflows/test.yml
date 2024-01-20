@@ -1,4 +1,4 @@
-name: PyTest
+name: PyLint & PyTest
 
 on:
   pull_request:
@@ -38,6 +38,9 @@ jobs:
         uses: AnimMouse/setup-ffmpeg@v1
         with:
           version: 5.1
+
+      - name: Run Pylint
+        run: pylint $(git ls-files '*.py')
 
       - name: Run PyTest
         run: pytest --cov=src

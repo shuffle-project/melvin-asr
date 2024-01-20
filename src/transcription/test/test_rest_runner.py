@@ -81,4 +81,4 @@ def test_get_oldest_status_file_in_query_correct_model(cleanup_data):
     }
     DATA_HANDLER.write_status_file("writeOld", data)
     # check status file
-    assert RUNNER.get_oldest_status_file_in_query(1, DATA_HANDLER) == "writeNew1"
+    assert RUNNER.get_oldest_status_file_in_query(1, DATA_HANDLER) == "writeNew"
