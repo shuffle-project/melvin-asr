@@ -2,3 +2,4 @@ __pycache__
 deploy_key
 deploy_key.pub
 whisper.cpp
+.coverage
