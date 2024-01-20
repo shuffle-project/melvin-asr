@@ -40,10 +40,8 @@ jobs:
           version: 5.1
 
       - name: Run PyTest
-        run: pytest
+        run: pytest --cov=src
 
       - name: Test Code Coverage /src
-        run: |
-          pytest --cov=src
-          coverage report --fail-under=80
+        run: coverage report --fail-under=80
 
