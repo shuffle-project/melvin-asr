@@ -8,7 +8,7 @@ from src.helper.logger import Logger
 class ModelHandler:
     """Class to handle the models"""
 
-    def __init__(self, model_path = CONFIG["MODEL_PATH"]):
+    def __init__(self, model_path=CONFIG["MODEL_PATH"]):
         self.log = Logger("ModelHandler", True)
         self.model_path = model_path
 
@@ -21,9 +21,8 @@ class ModelHandler:
             self.log.print_log(f"Model {model_to_load} not found, downloading..")
             self.download_model(model_to_load)
             return True
-        else:
-            self.log.print_log(f"Model {model_to_load} found, skipping download..")
-            return False
+        self.log.print_log(f"Model {model_to_load} found, skipping download..")
+        return False
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
@@ -33,7 +32,9 @@ class ModelHandler:
     def download_model(self, model_name: str) -> None:
         """Function to download a model"""
         try:
-            self.log.print_log(download_model(model_name, self.get_model_path(model_name)))
+            self.log.print_log(
+                download_model(model_name, self.get_model_path(model_name))
+            )
         except ValueError as e:
             self.log.print_error(
                 f"tried to download_model for an INVALID MODEL NAME: {e}"
