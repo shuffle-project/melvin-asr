@@ -8,10 +8,11 @@ from src.helper.logger import Logger
 class ModelHandler:
     """Class to handle the models"""
 
-    def __init__(self):
+    def __init__(self, model_path = CONFIG["MODEL_PATH"]):
         self.log = Logger("ModelHandler", True)
+        self.model_path = model_path
 
-    def setup_model(self, model_to_load: str) -> None:
+    def setup_model(self, model_to_load: str) -> bool:
         """Function to setup the models"""
         self.log.print_log(f"Setting up model.. {model_to_load}")
 
@@ -19,12 +20,14 @@ class ModelHandler:
         if model is None:
             self.log.print_log(f"Model {model_to_load} not found, downloading..")
             self.download_model(model_to_load)
+            return True
         else:
             self.log.print_log(f"Model {model_to_load} found, skipping download..")
+            return False
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
-        model_path = os.getcwd() + CONFIG["MODEL_PATH"] + model_name
+        model_path = os.getcwd() + self.model_path + model_name
         return model_path
 
     def download_model(self, model_name: str) -> None:
