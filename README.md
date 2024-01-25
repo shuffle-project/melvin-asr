@@ -217,8 +217,9 @@ pylint $(git ls-files '*.py')
 
 ### Integration Tests
 
-To imporove our code quality, we are linting each Pull Request adding new code to main.
-See `.github/workflows/lint.yml`.
+To imporove our code quality, we are linting and unit-testing each Pull Request adding new code to main.
+This includes a test of the unit-test coverage for our our `/src` folder of 80%.
+See `.github/workflows/test.yml`.
 
 ### Smoke Tests
 
@@ -234,9 +235,9 @@ Call `python websocket.py {port}` to test the Websockets endpoints.
 ## Deployment
 
 ### Deploy Process
-To ensure our code is tested and deployed as we want, we setup 2 branches to handle a development and production codebase.
-1. **main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
-2. **deploy**: Our deploy branch is the production base we are holding code that is deployed to the production Server. This is where our deployment pipeline is running off.
+We are maintaining our code in trunk based development. This means we are working on features branches, integrating into one trunk, the main branch.
+**main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
+
 
 ### Deploy Pipeline
 
