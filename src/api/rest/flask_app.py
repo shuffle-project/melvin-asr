@@ -1,22 +1,26 @@
 """Flask app to handle the REST API requests"""
 import json
-import os
 import time
 import uuid
+from datetime import datetime
 from functools import wraps
 from pydub import AudioSegment
 from flask import Flask, jsonify, request
+from src.helper.logger import Color, Logger
 from src.config import CONFIG
-from src.helper.convert_save_received_audio_files import convert_to_wav
-from src.helper.transcription import (
-    Transcription,
-    TranscriptionNotFoundError,
-    TranscriptionStatusValue,
+from src.helper.types.transcription_status import (
+    TranscriptionStatus,
 )
-from src.helper.welcome_message import welcome_message
+from src.api.rest.endpoints.welcome import welcome_message
+from src.helper.data_handler import DataHandler
+
+LOGGER = Logger("FlaskApp", False, Color.GREEN)
+DATA_HANDLER = DataHandler()
 
 
-def create_app():
+def create_app(
+    auth_key=CONFIG["API_KEY"], audio_files_to_store=CONFIG["AUDIO_FILES_TO_STORE"]
+):
     """Function to create the Flask app"""
 
     app = Flask(__name__)
@@ -28,12 +32,16 @@ def create_app():
         def wrapper(*args, **kwargs):
             api_key = request.headers.get("key")
 
-            if api_key and api_key == CONFIG["API_KEY"]:
+            if api_key and api_key == auth_key:
                 return func(*args, **kwargs)
-            print(api_key)
-            print(request.headers)
+
+            LOGGER.print_error(
+                "Unauthorized REST API request. "
+                + f"api_key: {api_key}, config_key: {auth_key}"
+            )
+
             return (
-                jsonify({"error": "Unauthorized. Please provide a valid API key"}),
+                jsonify("Unauthorized"),
                 401,
             )
 
@@ -44,77 +52,89 @@ def create_app():
         """Function that returns basic information about the API usage."""
         return welcome_message()
 
-    # API endpoint to get all transcriptions and their status in a list
-    @app.route("/transcriptions", methods=["GET"])
-    @require_api_key
-    def get_transcriptions():
-        status_files = list(os.listdir(CONFIG["STATUS_PATH"]))
-        transcriptions = []
-        for file_name in status_files:
-            with open(
-                os.path.join(CONFIG["STATUS_PATH"], file_name), "r", encoding="utf-8"
-            ) as file:
-                data = json.load(file)
-                transcription_id = data.get("transcription_id")
-                status = data.get("status")
-                transcriptions.append(
-                    {"transcription_id": transcription_id, "status": status}
-                )
-
-        return jsonify(transcriptions)
-
-    @app.route("/transcriptions", methods=["POST"])
-    @require_api_key
-    def transcribe_audio():
-        """API endpoint to transcribe an audio file"""
-        if "file" not in request.files:
-            return "No file part"
-        file = request.files["file"]
-        if file.filename == "":
-            return "No selected file"
-        if file:
-            transcription = Transcription(uuid.uuid4())
-            audio = AudioSegment.from_file(file.stream)
-            result = convert_to_wav(
-                audio, CONFIG["AUDIO_FILE_PATH"], transcription.transcription_id
-            )
-
-            time.sleep(1)
-
-            try:
-                transcription.settings = json.loads(request.form["settings"])
-            except KeyError:
-                transcription.settings = None
-
-            if result["success"] is not True:
-                transcription.status = TranscriptionStatusValue.ERROR
-                transcription.error_message = result["message"]
-
-            transcription.save_to_file()
-            return jsonify(transcription.get_status())
-        return "Something went wrong"
-
-    @app.route("/transcriptions/<transcription_id>", methods=["GET"])
-    @require_api_key
-    def get_transcription_status_route(transcription_id):
-        """API endpoint to get the status of a transcription"""
-        try:
-            file_path = os.path.join(
-                os.getcwd() + CONFIG["STATUS_PATH"], f"{transcription_id}.json"
-            )
-            if os.path.exists(file_path):
-                with open(file_path, "r", encoding="utf-8") as file:
-                    return jsonify(json.load(file))
-            else:
-                print("TranscriptionNotFoundError")
-                raise TranscriptionNotFoundError(transcription_id)
-        except TranscriptionNotFoundError as e:
-            return jsonify(str(e)), 404
-
     @app.route("/health", methods=["GET"])
     def health_check():
         """return health status"""
-        print("health check")
         return "OK"
+
+    @app.route("/transcriptions", methods=["GET"])
+    @require_api_key
+    def get_transcriptions():
+        """API endpoint to get all transcriptions and their status in a list"""
+        transcriptions = []
+        for file_name in DATA_HANDLER.get_all_status_filenames():
+            try:
+                file_name = file_name[:-5]  # remove .json
+                data = DATA_HANDLER.get_status_file_by_id(file_name)
+                transcriptions.append(
+                    {
+                        "transcription_id": data["transcription_id"],
+                        "status": data["status"],
+                    }
+                )
+            # pylint: disable=broad-except
+            except Exception as e:
+                LOGGER.print_error(f"Error while reading status file {file_name}: {e}")
+                DATA_HANDLER.delete_status_file(file_name)
+        return jsonify(transcriptions)
+
+    @app.route("/transcriptions/<transcription_id>", methods=["GET"])
+    @require_api_key
+    def get_transcriptions_id(transcription_id):
+        """API endpoint to get the status of a transcription"""
+        file = DATA_HANDLER.get_status_file_by_id(transcription_id)
+        if file:
+            return jsonify(file), 200
+        return "Transcription ID not found", 404
+
+    @app.route("/transcriptions", methods=["POST"])
+    @require_api_key
+    def post_transcription():
+        """API endpoint to transcribe an audio file"""
+        try:
+            # make sure to not store too many audio files that require specific models
+            if (
+                DATA_HANDLER.get_number_of_audio_files() >= int(audio_files_to_store)
+            ) and "model" in request.form:
+                return "Too many audio files in queue", 400
+            # check if a file is in request
+            if "file" not in request.files:
+                return "No file posted", 400
+            file = request.files["file"]
+            if file:
+                # store audio file
+                transcription_id = str(uuid.uuid4())
+                result = DATA_HANDLER.save_audio_file(
+                    AudioSegment.from_file(file.stream), transcription_id
+                )
+                if result["success"] is not True:
+                    return jsonify(result["message"]), 400
+
+                # sleep to make sure that the file is saved before the transcription starts
+                time.sleep(0.1)
+
+                # get body parameters
+                settings = None
+                model = None
+                if "settings" in request.form:
+                    settings = json.loads(request.form["settings"])
+                if "model" in request.form:
+                    model = request.form["model"]
+
+                # create transcription status file
+                data = {
+                    "transcription_id": transcription_id,
+                    "status": TranscriptionStatus.IN_QUERY.value,
+                    "start_time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "settings": settings,
+                    "model": model,
+                }
+
+                DATA_HANDLER.write_status_file(transcription_id, data)
+                return jsonify(data), 200
+        # pylint: disable=broad-except
+        except Exception as e:
+            LOGGER.print_error(f"Error while POST /transcriptions: {e}")
+        return "Something went wrong"
 
     return app

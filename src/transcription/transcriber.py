@@ -4,7 +4,6 @@ import time
 from faster_whisper import WhisperModel
 from faster_whisper.transcribe import TranscriptionInfo
 import numpy as np
-from src.helper.system_monitor import SystemMonitor
 from src.config import CONFIG
 from src.helper.logger import Logger, Color
 from src.transcription.transcription_settings import TranscriptionSettings
@@ -39,8 +38,6 @@ class Transcriber:
         self.model_name = model_name
         self.device = device
         self.compute_type = compute_type
-
-        self.system_monitor = SystemMonitor()
         self.model: WhisperModel = None
 
     def load_model(self) -> bool:
@@ -70,10 +67,6 @@ class Transcriber:
                 self.model = WhisperModel(
                     model_path, local_files_only=True, device="cpu", compute_type="int8"
                 )
-
-            self.log.print_log(
-                f"Model loaded, RAM usage now: {self.system_monitor.return_ram_usage()}"
-            )
             return True
         # need to catch all exceptions here
         # pylint: disable=W0718
@@ -85,9 +78,6 @@ class Transcriber:
         """unloads the model if loaded"""
         if self.model is not None:
             self.model = None
-            self.log.print_log(
-                f"Model unloaded, RAM usage now: {self.system_monitor.return_ram_usage()}"
-            )
         return True
 
     def get_model_path(self, model_name: str) -> str:
@@ -133,7 +123,7 @@ class Transcriber:
     @time_it
     def transcribe_audio_audio_segment(
         self, audio_segment, settings: dict = None
-    ) -> dict:
+    ) -> {"success": bool, "data": dict}:
         """Function to run the transcription process"""
         self.load_model()
         try:
@@ -144,28 +134,44 @@ class Transcriber:
                 .astype(np.float32)
                 / 32768.0
             )
-            return self.transcribe_with_settings(audio_data_bytes, self.model, settings)
+            return {
+                "success": True,
+                "data": self.transcribe_with_settings(
+                    audio_data_bytes, self.model, settings
+                ),
+            }
         # need to catch all exceptions here because the whisper call is not
         # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return None
+            return {
+                "success": False,
+                "data": str(e)
+            }
 
     @time_it
     def transcribe_audio_file(
         self, audio_file_path: str, settings: dict = None
-    ) -> dict:
+    ) -> {"success": bool, "data": dict}:
         """Function to run the transcription process"""
         self.load_model()
         try:
             self.log.print_log("Transcribing file: " + str(audio_file_path))
-            return self.transcribe_with_settings(audio_file_path, self.model, settings)
+            return {
+                "success": True,
+                "data": self.transcribe_with_settings(
+                    audio_file_path, self.model, settings
+                ),
+            }
 
             # need to catch all exceptions here because the whisper call is not
             # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return None
+            return {
+                "success": False,
+                "data": str(e)
+            }
 
     def transcribe_with_settings(
         self, audio, model: WhisperModel, settings: dict

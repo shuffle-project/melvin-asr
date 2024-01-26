@@ -79,12 +79,14 @@ GET /transcriptions
 - **Request Body:**
   - `file`: Audio file (multipart/form-data)
   - `settings`: Any value (see chapter down below for settings options)
+  - `model`: The name of the model that needs to transcribe the audio_file 
+      (! In case the model is not running, the file will not be transcribed at all)
 - **Response:** Confirmation of transcription request submission.
 
 Example:
 ```
 Header: key: shuffle2024
-Body: settings: {"test": "test"}, file: "test.wav"
+Body: settings: {"test": "test"}, model: "tiny", file: "test.wav"
 POST /transcriptions
 ```
 
@@ -198,7 +200,7 @@ This documentation provides an overview of specific configuration options availa
 ! Not all of these Settings have been tested for our setup, please refer to https://github.com/SYSTRAN/faster-whisper for more information
 
 ### Rest API
-Please send these options as on JSON object named "settings" in the body to the ```/transcriptions Endpoint (POST)```, e.g. ```{"language": "auto"}```.
+Please send these options as on JSON object named "settings" in the body to the ```/transcriptions Endpoint (POST)```, e.g. ```{"language": "de"}```.
 
 ### Websocket API
 The Websocket API does not allow setting input by the client. All settings are fixed in the `src/api/websocket/websockets_settings.py` file.
@@ -215,8 +217,9 @@ pylint $(git ls-files '*.py')
 
 ### Integration Tests
 
-To imporove our code quality, we are linting each Pull Request adding new code to main.
-See `.github/workflows/lint.yml`.
+To imporove our code quality, we are linting and unit-testing each Pull Request adding new code to main.
+This includes a test of the unit-test coverage for our our `/src` folder of 80%.
+See `.github/workflows/test.yml`.
 
 ### Smoke Tests
 
@@ -232,9 +235,9 @@ Call `python websocket.py {port}` to test the Websockets endpoints.
 ## Deployment
 
 ### Deploy Process
-To ensure our code is tested and deployed as we want, we setup 2 branches to handle a development and production codebase.
-1. **main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
-2. **deploy**: Our deploy branch is the production base we are holding code that is deployed to the production Server. This is where our deployment pipeline is running off.
+We are maintaining our code in trunk based development. This means we are working on features branches, integrating into one trunk, the main branch.
+**main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
+
 
 ### Deploy Pipeline
 
