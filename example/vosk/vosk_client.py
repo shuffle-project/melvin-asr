@@ -5,28 +5,27 @@
 
 #!/usr/bin/env python3
 
-import wave
+import asyncio
+import websockets
 import sys
-import traceback
-from websocket import create_connection
+import wave
 
-ws = create_connection("ws://localhost:2700")
+async def run_test(uri):
+    async with websockets.connect(uri) as websocket:
 
-wf = wave.open(sys.argv[1], "rb")
-ws.send('{ "config" : { "sample_rate" : %d } }' % (wf.getframerate()))
-buffer_size = int(wf.getframerate() * 0.2)  # 0.2 seconds of audio
+        wf = wave.open(sys.argv[1], "rb")
+        await websocket.send('{ "config" : { "sample_rate" : %d } }' % (wf.getframerate()))
+        buffer_size = int(wf.getframerate() * 1) # 0.2 seconds of audio
+        while True:
+            data = wf.readframes(buffer_size)
 
-try:
-    while True:
-        data = wf.readframes(buffer_size)
+            if len(data) == 0:
+                break
 
-        if len(data) == 0:
-            break
+            await websocket.send(data)
+            print (await websocket.recv())
 
-        ws.send_binary(data)
-        print(ws.recv())
-    ws.send('{"eof" : 1}')
-    print(ws.recv())
+        await websocket.send('{"eof" : 1}')
+        print (await websocket.recv())
 
-except Exception as err:
-    print("".join(traceback.format_exception(type(err), err, err.__traceback__)))
+asyncio.run(run_test('ws://localhost:8764'))
