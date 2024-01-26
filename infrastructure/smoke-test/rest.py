@@ -14,40 +14,76 @@ import requests
 #   If not provided, defaults are used (port 8080, key 'default-key').
 # - The audio file is assumed to be 'input.wav' in the script's directory,
 #   but this can be changed in the code.
+#
+# Example: python3 rest.py 8080 your-key
 
 
 def send_file_http(file_path="./input.wav", port=8080, key="your-key"):
     """Sends the audio file to the server and checks transcription status."""
     url = f"http://localhost:{port}/transcriptions"
     headers = {"key": key}
-    #pylint: disable=consider-using-with
+    # pylint: disable=consider-using-with
     files = {"file": open(file_path, "rb")}
 
     # Sending the audio file to the server
-    response = requests.post(url, files=files, headers=headers, timeout=10)
-    print("Response from server:", response.text)
+    try:
+        response = requests.post(url, files=files, headers=headers, timeout=10)
+        print("Response from server:", response.text)
+    except requests.exceptions.ConnectionError:
+        print("Could not connect to the server.")
+        return False
 
     # Extracting transcription_id from the response
     try:
         transcription_id = json.loads(response.text).get("transcription_id")
     except (json.JSONDecodeError, KeyError):
         print("Could not retrieve transcription ID from the response.")
-        return
+        return False
 
     print(f"Transcription ID: {transcription_id}")
-    print("Waiting for 10 seconds...")
-    time.sleep(10)
+    print("Waiting for 3 seconds...")
+    time.sleep(3)
 
-    if transcription_id:
-        # Constructing the URL for checking transcription status
-        status_url = f"http://localhost:{port}/transcriptions/{transcription_id}"
+    # Constructing the URL for checking transcription status
+    status_url = f"http://localhost:{port}/transcriptions/{transcription_id}"
 
+    # Trying for 60 seconds if the status is not 'Succeeded'
+    print("Checking transcription status..")
+    counter = 0
+    while counter < 10:
         # Checking the status of the transcription
         status_response = requests.get(status_url, headers=headers, timeout=10)
-        print(f"Status for {transcription_id}: {status_response.text}")
+
+        # If the status is 'Succeeded', break the loop early
+        response_dict = json.loads(status_response.text)
+        if "status" in response_dict:
+            if response_dict["status"] == "finished":
+                transcipt = response_dict["transcript"]
+                transcipt_string = ""
+                if "segments" in transcipt:
+                    for segment in transcipt["segments"]:
+                        transcipt_string += segment[4]
+
+                if "And so my fellow Americans" in transcipt_string:
+                    print("Transcription succeeded.")
+                    return True
+                print("Transcription text is incorrect.")
+                print(response_dict["transcript"])
+                return False
+
+        # Wait for 5 seconds before the next check
+        time.sleep(5)
+        counter += 1
+        print("Checking again...")
+
+    print("Could not retrieve successful transcription status.")
+    return False
 
 
 if __name__ == "__main__":
-    arg_port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
-    arg_key = sys.argv[2] if len(sys.argv) > 2 else "default-key"
-    send_file_http(port=arg_port, key=arg_key)
+    PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
+    KEY = sys.argv[2] if len(sys.argv) > 2 else "default-key"
+    RES = send_file_http(port=PORT, key=KEY)
+    if RES:
+        sys.exit(0)
+    sys.exit(1)

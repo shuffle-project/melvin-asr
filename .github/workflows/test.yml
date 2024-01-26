@@ -1,4 +1,4 @@
-name: PyLint
+name: PyLint & PyTest
 
 on:
   pull_request:
@@ -34,6 +34,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ./requirements.txt
 
+      - name: Setup FFmpeg
+        uses: AnimMouse/setup-ffmpeg@v1
+        with:
+          version: 5.1
+
       - name: Run Pylint
         run: pylint $(git ls-files '*.py')
+
+      - name: Run PyTest
+        run: pytest --cov=src
+
+      - name: Test Code Coverage /src
+        run: coverage report --fail-under=80
 

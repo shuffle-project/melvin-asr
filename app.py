@@ -11,41 +11,38 @@ from src.transcription.run import run_file_transcriber
 LOGGER = Logger("app.py", True, Color.GREEN)
 
 
-def run(port, websocket_port, environment, host):
-    """start flask & websockets apps for development and production based on environment"""
-
-    if environment == "production":
-        LOGGER.print_log("Running production..")
-        transcription_runner = multiprocessing.Process(
-            target=run_file_transcriber,
-            args=(),
-        )
-        websocket_server = multiprocessing.Process(
-            target=run_websocket_app,
-            args=(
-                websocket_port,
-                host,
-            ),
-        )
-        flask_server = multiprocessing.Process(
-            target=run_flask_app_prod,
-            args=(
-                port,
-                host,
-            ),
-        )
-        transcription_runner.start()
-        websocket_server.start()
-        flask_server.start()
-        transcription_runner.join()
-        websocket_server.join()
-        flask_server.join()
+def run(port, websocket_port, host):
+    """start flask & websockets apps"""
+    transcription_runner = multiprocessing.Process(
+        target=run_file_transcriber,
+        args=(),
+    )
+    websocket_server = multiprocessing.Process(
+        target=run_websocket_app,
+        args=(
+            websocket_port,
+            host,
+        ),
+    )
+    flask_server = multiprocessing.Process(
+        target=run_flask_app_prod,
+        args=(
+            port,
+            host,
+        ),
+    )
+    transcription_runner.start()
+    websocket_server.start()
+    flask_server.start()
+    transcription_runner.join()
+    websocket_server.join()
+    flask_server.join()
 
 
 if __name__ == "__main__":
     LOGGER.print_log(CONFIG)
     try:
-        run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["ENVIRONMENT"], CONFIG["HOST"])
+        run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["HOST"])
     except KeyboardInterrupt as e:
         current_pid = os.getpid()
         print(f"Terminating all processes for PID {current_pid}")
