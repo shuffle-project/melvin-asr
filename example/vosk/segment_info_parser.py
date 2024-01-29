@@ -1,3 +1,5 @@
+# pylint: disable-all
+
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
 import json
