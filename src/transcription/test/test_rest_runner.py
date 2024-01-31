@@ -1,7 +1,7 @@
 """This File contains tests for the Runner class."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
+# ignore unused-import because of pytest fixtures
+# ruff: noqa: F811
+# ruff: noqa: F401
 from src.test_base.cleanup_data_fixture import cleanup_data
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus

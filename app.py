@@ -43,7 +43,7 @@ if __name__ == "__main__":
     LOGGER.print_log(CONFIG)
     try:
         run(CONFIG["PORT"], CONFIG["WEBSOCKET_PORT"], CONFIG["HOST"])
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         current_pid = os.getpid()
         print(f"Terminating all processes for PID {current_pid}")
         os.killpg(current_pid, signal.SIGTERM)
