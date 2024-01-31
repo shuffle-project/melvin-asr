@@ -83,9 +83,7 @@ class Runner:
         settings = self.data_handler.get_status_file_settings(transcription_id)
 
         # transcribe and update data
-        response = self.transcriber.transcribe_audio_file(
-            audio_file_path, settings
-        )
+        response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
         self.data_handler.delete_audio_file(transcription_id)
         if response["success"] is False or (response["data"]["segments"] is None):
             self.data_handler.update_status_file(

@@ -1,4 +1,6 @@
 """Welcome message for the API."""
+
+
 def welcome_message() -> str:
     """Function that returns information about the API usage."""
     return """

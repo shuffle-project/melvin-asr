@@ -13,8 +13,8 @@ def read_config() -> dict:
         value = dotenv_config.get(key, os.getenv(key, default))
         if required and value is None:
             raise ValueError(
-                f"Configuration error: '{key}' is not set in .env" +
-                " as an environment variable or as a default value"
+                f"Configuration error: '{key}' is not set in .env"
+                + " as an environment variable or as a default value"
             )
         return value
 
@@ -25,10 +25,14 @@ def read_config() -> dict:
         "HOST": get_config("HOST", default="localhost"),
         "MODEL_PATH": get_config("MODEL_PATH", required=True),
         "MODEL_CONFIG_YAML_PATH": get_config("MODEL_CONFIG_YAML_PATH", required=True),
-        "UNLAOD_REST_MODELS_SCHEDULE": get_config("UNLAOD_REST_MODELS_SCHEDULE", required=True),
+        "UNLAOD_REST_MODELS_SCHEDULE": get_config(
+            "UNLAOD_REST_MODELS_SCHEDULE", required=True
+        ),
         "STREAM_MODEL": get_config("STREAM_MODEL", required=True),
         "STREAM_MODEL_DEVICE": get_config("STREAM_MODEL_DEVICE", required=True),
-        "STREAM_MODEL_COMPUTE_TYPE": get_config("STREAM_MODEL_COMPUTE_TYPE", required=True),
+        "STREAM_MODEL_COMPUTE_TYPE": get_config(
+            "STREAM_MODEL_COMPUTE_TYPE", required=True
+        ),
         "API_KEY": get_config("API_KEY", required=True),
         "DEBUG": get_config("DEBUG", default=False),
         "AUDIO_FILE_PATH": get_config("AUDIO_FILE_PATH", required=True),
