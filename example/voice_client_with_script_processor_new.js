@@ -6,6 +6,7 @@ var webSocket;
 var outputParagraph;
 var text = "";
 var isRecording = false;
+var listenButton;
 var enabledSVG;
 var disabledSVG;
 var header;
@@ -23,7 +24,7 @@ var initComplete = false;
     refreshSVG = document.getElementById("refresh");
     outputParagraph = document.getElementById("q");
 
-    const listenButton = document.getElementById("recordToggle");
+    listenButton = document.getElementById("recordToggle");
 
     refreshSVG.addEventListener("mousedown", function () {
       //refresh the page
@@ -53,6 +54,7 @@ var initComplete = false;
           console.log("trying to close");
           enabledSVG.style.display = "none";
           refreshSVG.style.display = "inline";
+          listenButton.classList.remove("recording");
 
           header.innerText = "Tap to reload page";
           webSocket.close();
@@ -72,6 +74,9 @@ var initComplete = false;
 })();
 
 const handleSuccess1 = function (stream) {
+  // set class "recording" on listenButton
+  listenButton.classList.add("recording");
+
   enabledSVG.style.display = "inline";
   disabledSVG.style.display = "none";
   header.innerText = "Listening...";
