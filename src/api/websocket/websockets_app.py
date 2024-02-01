@@ -56,6 +56,7 @@ class WebSocketServer:
 
             audio_data = bytearray()
             async for message in websocket:
+                print("new message")
                 audio_data.extend(message)
                 break
             await self.handle_transcription(audio_data, websocket)
