@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="./microphone.css" />
+
+    <script src="https://kit.fontawesome.com/fa592f389d.js"></script>
+    <script
+      type="text/javascript"
+      src="voice_client_with_script_processor_new.js"></script>
+
+    <title>asr-api</title>
+    <style></style>
+  </head>
+  <body>
+    <main>
+      <h2>Tap to transcribe</h2>
+      <button id="recordToggle" class="logo">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="64"
+          height="64"
+          viewBox="0 0 256 256">
+          <path
+            fill="#2d2b2c"
+            d="M80 128V64a48 48 0 0 1 96 0v64a48 48 0 0 1-96 0m128 0a8 8 0 0 0-16 0a64 64 0 0 1-128 0a8 8 0 0 0-16 0a80.11 80.11 0 0 0 72 79.6V232a8 8 0 0 0 16 0v-24.4a80.11 80.11 0 0 0 72-79.6" />
+        </svg>
+      </button>
+      <div id="messages">
+        <p id="q" rows="5" cols="60"></p>
+      </div>
+    </main>
+  </body>
+</html>

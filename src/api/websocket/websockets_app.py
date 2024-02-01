@@ -8,6 +8,7 @@ from src.config import CONFIG
 from src.api.websocket.websockets_settings import (
     default_websocket_settings,
 )
+from websockets.exceptions import ConnectionClosed
 from src.transcription.transcriber import Transcriber
 
 WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
@@ -56,12 +57,13 @@ class WebSocketServer:
 
             audio_data = bytearray()
             async for message in websocket:
-                print("new message")
                 audio_data.extend(message)
                 break
             await self.handle_transcription(audio_data, websocket)
         finally:
             self.is_busy = False  # Reset the flag when the client session ends
+
+
 
     async def handle_transcription(self, audio_data, websocket):
         """Initiates the transcription process and waits for the result."""
@@ -74,15 +76,22 @@ class WebSocketServer:
         )
 
         if response["success"] is False:
-            await websocket.send(str(response["data"]))
+            try:
+                await websocket.send(str(response["data"]))
+            except ConnectionClosed:
+                print("WebSocket connection was closed unexpectedly.")
             self.timeout_counter += 1
         else:
             try:
                 await websocket.send(json.dumps(response["data"]))
                 self.timeout_counter = 0
-
-            # need to catch all exceptions here
-            # pylint: disable=W0718
+            except ConnectionClosed:
+                print("WebSocket connection was closed unexpectedly.")
             except Exception as e:
+                # Log the exception here if needed
                 self.timeout_counter += 1
-                await websocket.send("handle_transcription failed: " + str(e))
+                try:
+                    await websocket.send("handle_transcription failed: " + str(e))
+                except ConnectionClosed:
+                    print("WebSocket connection was closed unexpectedly.")
+

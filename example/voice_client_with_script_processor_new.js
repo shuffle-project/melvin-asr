@@ -3,7 +3,9 @@ var source;
 var processor;
 var streamLocal;
 var webSocket;
-var inputArea;
+var outputParagraph;
+var text = "";
+var isRecording = false;
 const bufferSize = 16384;
 const sampleRate = 16000;
 const wsURL = "ws://localhost:1338";
@@ -11,44 +13,40 @@ var initComplete = false;
 
 (function () {
   document.addEventListener("DOMContentLoaded", (event) => {
-    inputArea = document.getElementById("q");
+    outputParagraph = document.getElementById("q");
 
-    const listenButton = document.getElementById("listenWithScript");
-    const stopListeningButton = document.getElementById(
-      "stopListeningWithScript"
-    );
+    const listenButton = document.getElementById("recordToggle");
 
     listenButton.addEventListener("mousedown", function () {
-      listenButton.disabled = true;
+      if (!isRecording) {
+        console.log("start recording ");
+        initWS();
+        navigator.mediaDevices
+          .getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              channelCount: 1,
+              sampleRate,
+            },
+            video: false,
+          })
+          .then(handleSuccess1);
+        initComplete = true;
+        isRecording = true;
+      } else {
+        if (initComplete === true) {
+          console.log("trying to close");
+          webSocket.close();
 
-      initWS();
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            channelCount: 1,
-            sampleRate,
-          },
-          video: false,
-        })
-        .then(handleSuccess1);
-      listenButton.style.color = "green";
-      initComplete = true;
-    });
-
-    stopListeningButton.addEventListener("mouseup", function () {
-      if (initComplete === true) {
-        webSocket.close();
-
-        source.disconnect(processor);
-        processor.disconnect(context.destination);
-        if (streamLocal.active) {
-          streamLocal.getTracks()[0].stop();
+          source.disconnect(processor);
+          processor.disconnect(context.destination);
+          if (streamLocal.active) {
+            streamLocal.getTracks()[0].stop();
+          }
+          initComplete = false;
+          // outputParagraph.innerText = "";
         }
-        listenButton.style.color = "black";
-        listenButton.disabled = false;
-        initComplete = false;
       }
     });
   });
@@ -128,7 +126,7 @@ function sendAudio(audioDataChunk) {
 
 function initWS() {
   webSocket = new WebSocket(wsURL);
-  //   webSocket.binaryType = "arraybuffer";
+  // webSocket.binaryType = "arraybuffer";
 
   webSocket.onopen = function (event) {
     console.log("New connection established");
@@ -152,7 +150,7 @@ function initWS() {
         console.log(segment[4]);
         message += segment[4];
       }
-      inputArea.innerText = message;
+      outputParagraph.innerText = message;
     }
   };
 }
