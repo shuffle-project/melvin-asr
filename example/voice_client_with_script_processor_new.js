@@ -6,6 +6,10 @@ var webSocket;
 var outputParagraph;
 var text = "";
 var isRecording = false;
+var enabledSVG;
+var disabledSVG;
+var header;
+var refreshSVG;
 const bufferSize = 16384;
 const sampleRate = 16000;
 const wsURL = "ws://localhost:1338";
@@ -13,13 +17,23 @@ var initComplete = false;
 
 (function () {
   document.addEventListener("DOMContentLoaded", (event) => {
+    header = document.getElementById("header");
+    enabledSVG = document.getElementById("enabled");
+    disabledSVG = document.getElementById("disabled");
+    refreshSVG = document.getElementById("refresh");
     outputParagraph = document.getElementById("q");
 
     const listenButton = document.getElementById("recordToggle");
 
+    refreshSVG.addEventListener("mousedown", function () {
+      //refresh the page
+      location.reload();
+    });
+
     listenButton.addEventListener("mousedown", function () {
       if (!isRecording) {
         console.log("start recording ");
+
         initWS();
         navigator.mediaDevices
           .getUserMedia({
@@ -37,6 +51,10 @@ var initComplete = false;
       } else {
         if (initComplete === true) {
           console.log("trying to close");
+          enabledSVG.style.display = "none";
+          refreshSVG.style.display = "inline";
+
+          header.innerText = "Tap to reload page";
           webSocket.close();
 
           source.disconnect(processor);
@@ -45,6 +63,7 @@ var initComplete = false;
             streamLocal.getTracks()[0].stop();
           }
           initComplete = false;
+          isRecording = false;
           // outputParagraph.innerText = "";
         }
       }
@@ -53,6 +72,9 @@ var initComplete = false;
 })();
 
 const handleSuccess1 = function (stream) {
+  enabledSVG.style.display = "inline";
+  disabledSVG.style.display = "none";
+  header.innerText = "Listening...";
   streamLocal = stream;
   context = new AudioContext({ sampleRate: sampleRate });
   source = context.createMediaStreamSource(stream);

@@ -17,9 +17,21 @@
   </head>
   <body>
     <main>
-      <h2>Tap to transcribe</h2>
+      <h2 id="header">Tap to start listening</h2>
       <button id="recordToggle" class="logo">
         <svg
+          id="disabled"
+          xmlns="http://www.w3.org/2000/svg"
+          width="64"
+          height="64"
+          viewBox="0 0 256 256">
+          <path
+            fill="#2d2b2c"
+            d="M213.38 221.92a8 8 0 0 1-11.3-.54l-26.46-29.1A79.74 79.74 0 0 1 136 207.59V232a8 8 0 0 1-16 0v-24.4A80.11 80.11 0 0 1 48 128a8 8 0 0 1 16 0a64 64 0 0 0 100.79 52.36l-10.88-12A48 48 0 0 1 80 128V87.09L42.08 45.38a8 8 0 1 1 11.84-10.76l160 176a8 8 0 0 1-.54 11.3m-51.3-92.11a8 8 0 0 0 13.92-5.38V64a48 48 0 0 0-88.84-25.22a8 8 0 0 0 .84 9.59Zm30.1 31.83a8 8 0 0 0 10.36-4.55A79.62 79.62 0 0 0 208 128a8 8 0 0 0-16 0a63.71 63.71 0 0 1-4.36 23.27a8 8 0 0 0 4.54 10.37" />
+        </svg>
+        <svg
+          id="enabled"
+          style="display: none"
           xmlns="http://www.w3.org/2000/svg"
           width="64"
           height="64"
@@ -27,6 +39,18 @@
           <path
             fill="#2d2b2c"
             d="M80 128V64a48 48 0 0 1 96 0v64a48 48 0 0 1-96 0m128 0a8 8 0 0 0-16 0a64 64 0 0 1-128 0a8 8 0 0 0-16 0a80.11 80.11 0 0 0 72 79.6V232a8 8 0 0 0 16 0v-24.4a80.11 80.11 0 0 0 72-79.6" />
+        </svg>
+
+        <svg
+          style="display: none"
+          id="refresh"
+          xmlns="http://www.w3.org/2000/svg"
+          width="64"
+          height="64"
+          viewBox="0 0 24 24">
+          <path
+            fill="#2d2b2c"
+            d="M12 20q-3.35 0-5.675-2.325T4 12q0-3.35 2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V4h2v7h-7V9h4.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12q0 2.5 1.75 4.25T12 18q1.925 0 3.475-1.1T17.65 14h2.1q-.7 2.65-2.85 4.325T12 20" />
         </svg>
       </button>
       <div id="messages">
