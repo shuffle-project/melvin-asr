@@ -223,6 +223,18 @@ Ruff allows formatting as well.
 ruff format . 
 ```
 
+### Pytest
+
+To test our code we are writing tests utilizing the official Python recommendation: **pytest**. Each subfolder in `/src` has its own `/test` folder holding the testfiles. We are thriving to keep a coverage of 80% of our `/src` folder.
+Shared test functionality, which is used in multiple test files can be found in `src/test_base`.
+
+## Deployment
+
+### Code Integration
+
+We are maintaining our code in trunk based development. This means we are working on features branches, integrating into one trunk, the main branch.
+**main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
+
 ### Integration Tests
 
 To imporove our code quality, we are linting and unit-testing each Pull Request adding new code to main.
@@ -240,22 +252,23 @@ Call `python rest.py {port} {auth_key}` to test the REST endpoints.
 **websocket.py**
 Call `python websocket.py {port}` to test the Websockets endpoints.
 
-## Deployment
 
 ### Deploy Process
-We are maintaining our code in trunk based development. This means we are working on features branches, integrating into one trunk, the main branch.
-**main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
 
+For deploying the the ASR-API to a production stage, there is a Docker Compose & GitHub Actions solution set up. The deployment is handled partialy by GitHub Actions, see the `.github/workflows/deploy-publish.yml` for more information. And partialy by manual steps.
 
-### Deploy Pipeline
-
-For deploying the both services to production, we have a docker-compose solution setup. The deployment is handled by GitHub Actions, see the `.github/workflows/deploy-publish.yml` for more information. 
 Steps in Deployment:
-1. **Build Docker images**: We are building both services in a container using the Dockerfile in the corresponding directory.
+1. **Build Docker images**: We are building a container using the Dockerfile in the root directory of the repository.
 
 2. **Publish Docker images**: After the build process, both images are published to the GitHub packages registry of the [Shuffle-project](https://github.com/orgs/shuffle-project/).
 
-3. **Deployment**: Once both services are packed in container and published to the registry, the `docker-compose.yml` and the `scripts/startup.sh` script are copied and run on the Shuffle server. This spins up both services to production.
+3. **Deployment**: Once the container is packed and published to the registry, the `docker-compose.yml` and the `/infrastructure` script are copied to the Shuffle server.
+
+4. **Starting Docker Compose**: After the deployment pipeline copied all files, the startup of the new containers is handled manually. Use Docker Compose to shut the current containers down and start the new ones. The commands are `docker compose down` and `docker compose up`. In case the Containers are not working, keep the old images to rollback the service.
+
+5. **Smoke Tests**: As described in the section above, there are smoke tests for the REST-API and the Websocket-API of the ASR-API service. Run both against the newly running containers to make sure everything is up and running. Rollback in case there are any troubles. The REST-Endpoints `/` and `/health` can be used for an health-check as well.
+
+
 
 ## License
 
