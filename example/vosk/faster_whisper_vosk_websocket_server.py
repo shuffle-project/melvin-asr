@@ -1,5 +1,3 @@
-# pylint: disable-all
-
 import asyncio
 import io
 import json

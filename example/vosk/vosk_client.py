@@ -1,5 +1,3 @@
-# pylint: disable-all
-
 # This is a simple example that shows how to transcribe a file using vosk server.
 # https://github.com/alphacep/vosk-server/blob/master/client-samples/python/asr-test-client.py
 

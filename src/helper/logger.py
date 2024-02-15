@@ -3,8 +3,6 @@
 from datetime import datetime
 from src.config import CONFIG
 
-
-# pylint: disable=R0903
 class Color:
     """This class contains ANSI escape sequences for colored output."""
 

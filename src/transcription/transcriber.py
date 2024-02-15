@@ -47,7 +47,6 @@ class Transcriber:
         model_path = self.get_model_path(self.model_name)
         try:
             # compute_type for CPU is only int8, for CUDA ist float16 or int8_float16
-            # pylint: disable=R0916
             if (
                 (self.device == "cpu" and self.compute_type == "int8")
                 or (self.device == "cuda" and self.compute_type == "float16")
@@ -68,8 +67,6 @@ class Transcriber:
                     model_path, local_files_only=True, device="cpu", compute_type="int8"
                 )
             return True
-        # need to catch all exceptions here
-        # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error loading model: " + str(e))
             return False
@@ -141,8 +138,6 @@ class Transcriber:
                     audio_data_bytes, self.model, settings
                 ),
             }
-        # need to catch all exceptions here because the whisper call is not
-        # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
             return {"success": False, "data": str(e)}
@@ -162,9 +157,6 @@ class Transcriber:
                     audio_file_path, self.model, settings
                 ),
             }
-
-            # need to catch all exceptions here because the whisper call is not
-            # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
             return {"success": False, "data": str(e)}

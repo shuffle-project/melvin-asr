@@ -22,7 +22,6 @@ def send_file_http(file_path="./input.wav", port=8080, key="your-key"):
     """Sends the audio file to the server and checks transcription status."""
     url = f"http://localhost:{port}/transcriptions"
     headers = {"key": key}
-    # pylint: disable=consider-using-with
     files = {"file": open(file_path, "rb")}
 
     # Sending the audio file to the server

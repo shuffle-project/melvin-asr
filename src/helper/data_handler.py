@@ -6,9 +6,6 @@ from src.config import CONFIG
 from src.helper.file_handler import FileHandler
 from src.helper.logger import Color, Logger
 
-
-# Need this many instance attributes to fulfill business requirements
-# pylint: disable=R0902
 class DataHandler:
     """This class handles the data folder."""
 
@@ -142,8 +139,6 @@ class DataHandler:
             data = self.file_handler.read_json(file_path)
             if data and "settings" in data:
                 return data.get("settings")
-        # need to catch all exceptions here to not break the loop in runner.py
-        # pylint: disable=W0703
         except Exception as e:
             self.log.print_error(
                 f"Error getting settings from status file: {str(e)}" + e
@@ -162,8 +157,6 @@ class DataHandler:
                 )
             )
             return {"success": True, "message": "Conversion successful."}
-        # need to catch all exceptions here to not break the loop in runner.py
-        # pylint: disable=W0703
         except Exception as e:
             error_message = f"Audio File creation failed for: {str(e)}"
             self.log.print_error(error_message)

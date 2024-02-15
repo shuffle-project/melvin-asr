@@ -74,7 +74,7 @@ def create_app(
                         "status": data["status"],
                     }
                 )
-            # pylint: disable=broad-except
+
             except Exception as e:
                 LOGGER.print_error(f"Error while reading status file {file_name}: {e}")
                 DATA_HANDLER.delete_status_file(file_name)
@@ -99,12 +99,10 @@ def create_app(
                 DATA_HANDLER.get_number_of_audio_files() >= int(audio_files_to_store)
             ) and "model" in request.form:
                 return "Too many audio files in queue", 400
-            # check if a file is in request
             if "file" not in request.files:
                 return "No file posted", 400
             file = request.files["file"]
             if file:
-                # store audio file
                 transcription_id = str(uuid.uuid4())
                 result = DATA_HANDLER.save_audio_file(
                     AudioSegment.from_file(file.stream), transcription_id
@@ -115,7 +113,6 @@ def create_app(
                 # sleep to make sure that the file is saved before the transcription starts
                 time.sleep(0.1)
 
-                # get body parameters
                 settings = None
                 model = None
                 if "settings" in request.form:
@@ -123,7 +120,6 @@ def create_app(
                 if "model" in request.form:
                     model = request.form["model"]
 
-                # create transcription status file
                 data = {
                     "transcription_id": transcription_id,
                     "status": TranscriptionStatus.IN_QUERY.value,
@@ -134,7 +130,7 @@ def create_app(
 
                 DATA_HANDLER.write_status_file(transcription_id, data)
                 return jsonify(data), 200
-        # pylint: disable=broad-except
+            
         except Exception as e:
             LOGGER.print_error(f"Error while POST /transcriptions: {e}")
         return "Something went wrong"

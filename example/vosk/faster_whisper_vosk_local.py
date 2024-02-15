@@ -1,5 +1,3 @@
-# pylint: disable-all
-
 import io
 from faster_whisper import WhisperModel
 import wave

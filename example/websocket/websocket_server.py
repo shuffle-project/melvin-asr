@@ -13,8 +13,6 @@ print(OUTPUT_FILE)
 def bytes_to_wav(data, outfile=OUTPUT_FILE):
     """Converts an audio byte stream to a 16kHz mono WAV file."""
     with wave.open(outfile, "wb") as wav_file:
-        # wave.open does return Wave_write object, pylint does not recognize it
-        # pylint: disable=E1101
         wav_file.setnchannels(1)  # Mono
         wav_file.setsampwidth(2)  # 16-bit samples
         wav_file.setframerate(16000)
