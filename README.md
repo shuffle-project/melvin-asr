@@ -79,7 +79,7 @@ GET /transcriptions
 - **Request Body:**
   - `file`: Audio file (multipart/form-data)
   - `settings`: Any value (see chapter down below for settings options)
-  - `model`: The name of the model that needs to transcribe the audio_file 
+  - `model` (optional): The name of the model that needs to transcribe the audio_file 
       (! In case the model is not running, the file will not be transcribed at all)
 - **Response:** Confirmation of transcription request submission.
 

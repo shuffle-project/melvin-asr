@@ -34,7 +34,7 @@ class Logger:
     def __init__(
         self,
         identifier: str,
-        debug: bool = CONFIG["DEBUG"],
+        debug: bool = CONFIG["debug"],
         debug_color: Color = Color.BLUE,
         error_color: Color = Color.FAIL,
     ):

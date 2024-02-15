@@ -1,6 +1,6 @@
 """ Settings for the transcription module. """
 
-# The settings are used to configure the transcription process:
+# The settings are used to configure the transcription process by faster-whisper:
 
 #   - language: The language spoken in the audio. It should be a language code such
 #     as "en" or "fr". If not set, the language will be detected in the first 30 seconds of audio.

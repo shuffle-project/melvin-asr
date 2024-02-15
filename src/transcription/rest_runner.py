@@ -39,15 +39,15 @@ class Runner:
             if transcription_id == "None":
                 time.sleep(0.1)
 
-                schedule = int(CONFIG["UNLAOD_REST_MODELS_SCHEDULE"]) * 10  # in seconds
+                schedule = int(CONFIG["rest_models_in_ram_in_seconds"]) * 10
                 if cu > schedule:
                     self.transcriber.unload_model()
                     cu = 0
 
-                schedule = int(CONFIG["CLEAN_UP_SCHEDULE"]) * 10 * 60  # in minutes
+                schedule = int(CONFIG["cleanup_schedule_in_minutes"]) * 10 * 60
                 if cc > schedule:
                     self.data_handler.clean_up_status_files(
-                        int(CONFIG["MAX_OLD_STATUS_FILES"])
+                        int(CONFIG["status_files_to_store"])
                     )
                     self.log.print_log("Status files cleaned up.")
                     cc = 0

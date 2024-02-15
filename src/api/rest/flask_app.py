@@ -19,7 +19,7 @@ DATA_HANDLER = DataHandler()
 
 
 def create_app(
-    auth_key=CONFIG["API_KEY"], audio_files_to_store=CONFIG["AUDIO_FILES_TO_STORE"]
+    api_keys=CONFIG["api_keys"], audio_files_to_store=CONFIG["audio_files_to_store"]
 ):
     """Function to create the Flask app"""
 
@@ -32,12 +32,12 @@ def create_app(
         def wrapper(*args, **kwargs):
             api_key = request.headers.get("key")
 
-            if api_key and api_key == auth_key:
+            if api_key and api_key in api_keys:
                 return func(*args, **kwargs)
 
             LOGGER.print_error(
                 "Unauthorized REST API request. "
-                + f"api_key: {api_key}, config_key: {auth_key}"
+                + f"api_key: {api_key}, config_key: {api_keys}"
             )
 
             return (

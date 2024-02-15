@@ -11,9 +11,9 @@ class DataHandler:
 
     def __init__(
         self,
-        status_path: str = CONFIG["STATUS_PATH"],
-        audio_file_path: str = CONFIG["AUDIO_FILE_PATH"],
-        audio_file_format: str = CONFIG["AUDIO_FILE_FORMAT"],
+        status_path: str = CONFIG["status_file_path"],
+        audio_file_path: str = CONFIG["audio_file_path"],
+        audio_file_format: str = CONFIG["audio_file_format"],
     ):
         self.log = Logger("DataHandler", False, Color.GREEN)
         self.root_path = os.getcwd()
@@ -109,7 +109,7 @@ class DataHandler:
     def clean_up_status_files(self, max_old_status_files: int = 100):
         """Deletes the oldest status files with
         current_status=TranscriptionStatus.FINISHED or TranscriptionStatus.ERROR
-        if there are more than set in CONFIG MAX_OLD_STATUS_FILES number."""
+        if there are more than set in CONFIG status_files_to_store number."""
         cleanup_files = []
         for filename in os.listdir(self.status_path):
             if filename.endswith(".json"):

@@ -79,7 +79,7 @@ class Transcriber:
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
-        model_path = os.getcwd() + CONFIG["MODEL_PATH"] + model_name
+        model_path = os.getcwd() + CONFIG["model_path"] + model_name
         return model_path
 
     def parse_transcription_info_to_dict(self, info: TranscriptionInfo) -> dict:
