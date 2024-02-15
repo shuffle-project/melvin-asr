@@ -24,14 +24,14 @@ def rest_client():
 
 def test_health_check(rest_client):
     """Test the health check endpoint"""
-    response = rest_client.get("/health")
+    response = rest_client.get("/health", headers={"key": EXAMPLE_AUTH_KEY})
     assert response.status_code == 200
     assert response.data == b"OK"
 
 
 def test_welcome(rest_client):
     """Test the welcome endpoint"""
-    response = rest_client.get("/")
+    response = rest_client.get("/", headers={"key": EXAMPLE_AUTH_KEY})
     assert response.status_code == 200
     assert (
         "Welcome to the Transcription API!" in response.data.decode("utf-8")
