@@ -40,7 +40,7 @@ jobs:
           version: 5.1
 
       - name: Lint with Ruff
-        run: ruff lint ./**/*.py 
+        run: ruff check ./src
 
       - name: Run PyTest
         run: pytest --cov=src
