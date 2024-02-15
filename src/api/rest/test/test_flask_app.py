@@ -6,6 +6,7 @@ import os
 import pytest
 from src.api.rest.flask_app import create_app
 from src.helper.data_handler import DataHandler
+from src.test_base.cleanup_data_fixture import cleanup_data
 
 EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/test_base/example.wav"
 EXAMPLE_AUTH_KEY = "example"

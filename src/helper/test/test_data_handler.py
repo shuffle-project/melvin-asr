@@ -7,6 +7,7 @@ import os
 from pydub import AudioSegment
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
+from src.test_base.cleanup_data_fixture import cleanup_data
 
 EXAMPLE_TRANSCRIPTION_ID = "example"
 EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/test_base/example.wav"
