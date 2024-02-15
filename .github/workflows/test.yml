@@ -39,8 +39,8 @@ jobs:
         with:
           version: 5.1
 
-      - name: Run Pylint
-        run: pylint $(git ls-files '*.py')
+      - name: Run Ruff linting
+        run: ruff check ./src  
 
       - name: Run PyTest
         run: pytest --cov=src
