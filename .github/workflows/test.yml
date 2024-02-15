@@ -39,8 +39,8 @@ jobs:
         with:
           version: 5.1
 
-      - name: Run Ruff linting
-        run: ruff check ./src  
+      - name: Lint with Ruff
+        run: ruff lint ./**/*.py 
 
       - name: Run PyTest
         run: pytest --cov=src

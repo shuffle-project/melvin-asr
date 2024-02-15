@@ -1,7 +1,8 @@
 """This File contains tests for the Runner class."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
+# ignore unused-import because of pytest fixtures
+# ruff: noqa: F811
+# ruff: noqa: F401
+from src.test_base.cleanup_data_fixture import cleanup_data
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.transcription.rest_runner import Runner
@@ -43,9 +44,10 @@ def test_get_oldest_status_file_in_query_oldest_first(cleanup_data):
     DATA_HANDLER.write_status_file("writeOld", data)
     assert RUNNER.get_oldest_status_file_in_query(1, DATA_HANDLER) == "writeOld"
 
+
 def test_get_oldest_status_file_in_query_wrong_model(cleanup_data):
     """
-    Tests getting the oldest status file in query 
+    Tests getting the oldest status file in query
     with a file that has another model specified that the restrunner is using.
     It should not be returned.
     """
@@ -53,14 +55,15 @@ def test_get_oldest_status_file_in_query_wrong_model(cleanup_data):
         "transcription_id": "writeNew",
         "status": TranscriptionStatus.IN_QUERY.value,
         "start_time": "2021-05-01T00:00:00Z",
-        "model": "small"
+        "model": "small",
     }
     DATA_HANDLER.write_status_file("writeNew", data)
     assert RUNNER.get_oldest_status_file_in_query(1, DATA_HANDLER) == "None"
 
+
 def test_get_oldest_status_file_in_query_correct_model(cleanup_data):
     """
-    Tests getting the oldest status file in query 
+    Tests getting the oldest status file in query
     with a file that has another model specified that the restrunner is using.
     And a file that has the model of the restrunner specified but is newer.
     It should still return the newer one (date is closer to now).
@@ -69,14 +72,14 @@ def test_get_oldest_status_file_in_query_correct_model(cleanup_data):
         "transcription_id": "writeNew",
         "status": TranscriptionStatus.IN_QUERY.value,
         "start_time": "2021-05-01T00:00:00Z",
-        "model": "tiny"
+        "model": "tiny",
     }
     DATA_HANDLER.write_status_file("writeNew", data)
     data = {
         "transcription_id": "writeOld",
         "status": TranscriptionStatus.IN_QUERY.value,
         "start_time": "2021-04-01T00:00:00Z",
-        "model": "small"
+        "model": "small",
     }
     DATA_HANDLER.write_status_file("writeOld", data)
     # check status file

@@ -1,7 +1,7 @@
 """This File contains tests for the Flask_app endpoints."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
+# ignore unused-import because of pytest fixtures
+# ruff: noqa: F811
+# ruff: noqa: F401
 import os
 import pytest
 from src.api.rest.flask_app import create_app

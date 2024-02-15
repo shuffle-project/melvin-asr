@@ -1,14 +1,10 @@
 """This File contains tests for the ModelHandler class."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
-
 import os
 import shutil
-
 from src.helper.model_handler import ModelHandler
 
 MODEL_HANDLER_TEST_PATH = "/src/helper/test/test_models/"
+
 
 def test_setup_model_and_get_model_path():
     """Setup Should download the model tiny"""

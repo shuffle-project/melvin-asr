@@ -33,17 +33,17 @@ Besides the local Docker Compose stack, there is an option to run both services 
 
 ### Install dependencies
 ```bash
-    pip install -r ./requirements.txt
+pip install -r ./requirements.txt
 ```
 
 ### Run the app
 Locally for a development environment the websocket and the flask api are started seperatly.
 
-   ```bash
-   python ./app.py
-   ``` 
+```bash
+python ./app.py
+``` 
 
-## Usage
+## REST API Guide
 
 > :warning: Some of the following endpoints require authentication using an API key:
 > - `/transcriptions`
@@ -207,13 +207,21 @@ The Websocket API does not allow setting input by the client. All settings are f
 
 ## Testing
 
-### Pylint
+### Ruff
 
-Linting is done with pylint for all `*.py` files checked in to Git.
+VS Code Extension: https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff
+
+Linting is done with Ruff (https://github.com/astral-sh/ruff) for all `*.py` files checked in to Git.
 
 ```bash
-pylint $(git ls-files '*.py')  
+ruff check .    
 ``` 
+
+Ruff allows formatting as well.
+
+```bash
+ruff format . 
+```
 
 ### Integration Tests
 

@@ -12,9 +12,8 @@ model = WhisperModel("tiny", device="cpu", compute_type="int8")
 MOVING_CHUNK_CACHE = b""
 ALL_CHUNK_CACHE = b""
 
-def transcribe_chunk_partial(
-    chunk, sample_rate, num_channels, sampwidth
-):
+
+def transcribe_chunk_partial(chunk, sample_rate, num_channels, sampwidth):
     """Function to transcribe a chunk of audio"""
     global MOVING_CHUNK_CACHE
     global ALL_CHUNK_CACHE
@@ -23,8 +22,8 @@ def transcribe_chunk_partial(
 
     # If the chunk cache is larger than 10 times the size of the chunk
     if len(MOVING_CHUNK_CACHE) >= (len(chunk) * 10):
-        #cut the first bytes of the length of the new chunk
-        MOVING_CHUNK_CACHE = MOVING_CHUNK_CACHE[len(chunk):]
+        # cut the first bytes of the length of the new chunk
+        MOVING_CHUNK_CACHE = MOVING_CHUNK_CACHE[len(chunk) :]
     # Create a WAV file in memory with the correct headers
     if len(MOVING_CHUNK_CACHE) > 0:
         with io.BytesIO() as wav_io:
@@ -45,7 +44,6 @@ def transcribe_chunk_partial(
                     print(segment["text"])
 
 
-
 def main(audio_file_path):
     with wave.open(audio_file_path, "rb") as wf:
         sample_rate = wf.getframerate()
@@ -62,9 +60,7 @@ def main(audio_file_path):
                 if len(data) == 0:
                     break
 
-                transcribe_chunk_partial(
-                    data, sample_rate, num_channels, sampwidth
-                )
+                transcribe_chunk_partial(data, sample_rate, num_channels, sampwidth)
 
         except Exception as err:
             print(

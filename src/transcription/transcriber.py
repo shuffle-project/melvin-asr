@@ -120,6 +120,7 @@ class Transcriber:
         }
         return combined_dict
 
+    # returns a dict with success and data {"success": bool, "data": dict}
     @time_it
     def transcribe_audio_audio_segment(
         self, audio_segment, settings: dict = None
@@ -144,11 +145,9 @@ class Transcriber:
         # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return {
-                "success": False,
-                "data": str(e)
-            }
+            return {"success": False, "data": str(e)}
 
+    # returns a dict with success and data {"success": bool, "data": dict}
     @time_it
     def transcribe_audio_file(
         self, audio_file_path: str, settings: dict = None
@@ -168,10 +167,7 @@ class Transcriber:
             # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return {
-                "success": False,
-                "data": str(e)
-            }
+            return {"success": False, "data": str(e)}
 
     def transcribe_with_settings(
         self, audio, model: WhisperModel, settings: dict

@@ -3,4 +3,5 @@ deploy_key
 deploy_key.pub
 whisper.cpp
 .coverage
+.coverage.*
 .pytest_cache

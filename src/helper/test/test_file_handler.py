@@ -1,7 +1,7 @@
 """This File contains tests for the FileHandler class."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
+# ignore unused-import because of pytest fixtures
+# ruff: noqa: F811
+# ruff: noqa: F401
 import datetime
 import json
 import os

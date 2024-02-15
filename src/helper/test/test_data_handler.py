@@ -1,7 +1,7 @@
 """This File contains tests for the DataHandler class."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
+# ignore unused-import because of pytest fixtures
+# ruff: noqa: F811
+# ruff: noqa: F401
 import datetime
 import os
 from pydub import AudioSegment
@@ -173,13 +173,14 @@ def test_delete_audio_file_success():
     # delete example-delete.wav
     res = DATA_HANDLER.delete_audio_file("example-delete")
     assert res is True
-    assert os.path.isfile(DATA_HANDLER.audio_file_path+"example-delete.wav") is False
+    assert os.path.isfile(DATA_HANDLER.audio_file_path + "example-delete.wav") is False
 
 
 def test_delete_audio_file_fail():
     """Tests deleting a non existing audio file."""
     res = DATA_HANDLER.delete_audio_file("non_existing")
     assert res is False
+
 
 def test_get_number_of_audio_files():
     """Tests getting the number of audio files."""
