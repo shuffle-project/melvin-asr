@@ -48,11 +48,13 @@ def create_app(
         return wrapper
 
     @app.route("/")
+    @require_api_key
     def welcome():
         """Function that returns basic information about the API usage."""
         return welcome_message()
 
     @app.route("/health", methods=["GET"])
+    @require_api_key
     def health_check():
         """return health status"""
         return "OK"
