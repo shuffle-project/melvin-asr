@@ -7,6 +7,7 @@ from enum import Enum
 
 from src.config import CONFIG
 
+
 class TranscriptionStatusValue(Enum):
     """status values of a transcription"""
 
@@ -23,16 +24,14 @@ class TranscriptionNotFoundError(Exception):
 
     def __str__(self):
         return f"Transcription not found: {super().__str__()}"
- 
+
 
 class Transcription:
     """
     Class representing a transcription.
     """
 
-    def __init__(
-        self, transcription_id: uuid.UUID
-    ):
+    def __init__(self, transcription_id: uuid.UUID):
         """
         Constructor of the Transcription class.
         :param transcription_id: The id of the transcription.

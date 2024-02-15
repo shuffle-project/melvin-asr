@@ -3,12 +3,12 @@ import asyncio
 import json
 import websockets
 from pydub import AudioSegment
+from websockets.exceptions import ConnectionClosed
 from src.helper.model_handler import ModelHandler
 from src.config import CONFIG
 from src.api.websocket.websockets_settings import (
     default_websocket_settings,
 )
-from websockets.exceptions import ConnectionClosed
 from src.transcription.transcriber import Transcriber
 
 WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
@@ -63,8 +63,6 @@ class WebSocketServer:
         finally:
             self.is_busy = False  # Reset the flag when the client session ends
 
-
-
     async def handle_transcription(self, audio_data, websocket):
         """Initiates the transcription process and waits for the result."""
         # start transcription
@@ -94,4 +92,3 @@ class WebSocketServer:
                     await websocket.send("handle_transcription failed: " + str(e))
                 except ConnectionClosed:
                     print("WebSocket connection was closed unexpectedly.")
-
