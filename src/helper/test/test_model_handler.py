@@ -6,7 +6,6 @@
 import os
 import shutil
 
-import pytest
 from src.helper.model_handler import ModelHandler
 
 MODEL_HANDLER_TEST_PATH = "/src/helper/test/test_models/"

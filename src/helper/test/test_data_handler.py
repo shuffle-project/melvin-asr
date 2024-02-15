@@ -4,9 +4,7 @@
 # pylint: disable=unused-import
 import datetime
 import os
-import shutil
 from pydub import AudioSegment
-from src.test_base.cleanup_data_fixture import cleanup_data
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
 

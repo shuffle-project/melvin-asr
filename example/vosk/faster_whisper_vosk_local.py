@@ -1,7 +1,6 @@
 # pylint: disable-all
 
 import io
-import json
 from faster_whisper import WhisperModel
 import wave
 import sys

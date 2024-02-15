@@ -3,9 +3,7 @@
 # pylint: disable=unused-argument
 # pylint: disable=unused-import
 import os
-from unittest.mock import MagicMock, patch
 import pytest
-from src.test_base.cleanup_data_fixture import cleanup_data
 from src.api.rest.flask_app import create_app
 from src.helper.data_handler import DataHandler
 

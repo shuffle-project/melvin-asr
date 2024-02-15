@@ -123,7 +123,7 @@ class Transcriber:
     @time_it
     def transcribe_audio_audio_segment(
         self, audio_segment, settings: dict = None
-    ) -> {"success": bool, "data": dict}:
+    ) -> dict:
         """Function to run the transcription process"""
         self.load_model()
         try:
@@ -152,7 +152,7 @@ class Transcriber:
     @time_it
     def transcribe_audio_file(
         self, audio_file_path: str, settings: dict = None
-    ) -> {"success": bool, "data": dict}:
+    ) -> dict:
         """Function to run the transcription process"""
         self.load_model()
         try:
