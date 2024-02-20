@@ -13,6 +13,8 @@ def read_config(config_yml_path: str) -> dict:
     def get_config(key, default=None):
         """Function to check and get configuration"""
 
+        # Get the value from the config file, if it is not there, get it from the environment variables
+        # allow environment variables to override the config file for easy deployment
         value = config.get(key, os.getenv(key, default))
         if value is None:
             raise ValueError(

@@ -22,13 +22,16 @@ def test_read_config_success():
 
 def test_read_config_raise_error():
     """Tests reading a config.yml and raising an error."""
-
-    # Test raises ValueError
-
     try:
         read_config(TEST_CONFIG_RAISE_PATH)
     except ValueError as e:
         assert str(e) == "Configuration error: 'api_keys' is not set in .env as an environment variable or as a default value"
 
+def test_read_config_raise_error():
+    """Tests reading a config.yml and raising an error."""
+    try:
+        read_config(TEST_CONFIG_RAISE_PATH)
+    except ValueError as e:
+        assert str(e) == "Configuration error: 'api_keys' is not set in .env as an environment variable or as a default value"
 
 
