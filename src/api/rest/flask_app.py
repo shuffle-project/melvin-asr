@@ -11,7 +11,6 @@ from src.config import CONFIG
 from src.helper.types.transcription_status import (
     TranscriptionStatus,
 )
-from src.api.rest.endpoints.welcome import welcome_message
 from src.helper.data_handler import DataHandler
 
 LOGGER = Logger("FlaskApp", False, Color.GREEN)
@@ -49,9 +48,9 @@ def create_app(
 
     @app.route("/")
     @require_api_key
-    def welcome():
-        """Function that returns basic information about the API usage."""
-        return welcome_message()
+    def show_config():
+        """Function that returns the config of this service."""
+        return json.dumps(CONFIG, indent=4)
 
     @app.route("/health", methods=["GET"])
     @require_api_key

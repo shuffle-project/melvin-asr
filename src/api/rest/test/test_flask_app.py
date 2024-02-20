@@ -2,9 +2,11 @@
 # ignore unused-import because of pytest fixtures
 # ruff: noqa: F811
 # ruff: noqa: F401
+import json
 import os
 import pytest
 from src.api.rest.flask_app import create_app
+from src.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.test_base.cleanup_data_fixture import cleanup_data
 
@@ -29,15 +31,19 @@ def test_health_check(rest_client):
     assert response.status_code == 200
     assert response.data == b"OK"
 
-
-def test_welcome(rest_client):
-    """Test the welcome endpoint"""
+def test_show_config(rest_client):
+    """Test the show config endpoint"""
     response = rest_client.get("/", headers={"key": EXAMPLE_AUTH_KEY})
     assert response.status_code == 200
-    assert (
-        "Welcome to the Transcription API!" in response.data.decode("utf-8")
-    ) is True
+    assert response.data.decode("utf-8") == json.dumps(CONFIG, indent=4)
+    # make sure indent is right
+    assert response.data.decode("utf-8") != json.dumps(CONFIG, indent=2)
 
+def test_show_config_unauthorized(rest_client):
+    """Test the show config endpoint with an invalid auth key"""
+    response = rest_client.get("/", headers={"key": "INVALID_KEY"})
+    assert response.status_code == 401
+    assert "Unauthorized" in response.data.decode("utf-8")
 
 def test_post_transcription(rest_client, cleanup_data):
     """Test the post transcription endpoint"""
@@ -52,14 +58,11 @@ def test_post_transcription(rest_client, cleanup_data):
 
     response_dict = response.get_json()
 
-    # check if the response is correct
     assert response.status_code == 200
     assert response_dict["settings"] is None
     assert response_dict["status"] == "in_query"
     assert response_dict["transcription_id"] is not None
     assert ("start_time" in response_dict) is True
-
-    # check if the audio file and status file exist
     assert (
         DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
         is not None
@@ -77,7 +80,6 @@ def test_post_transcription_without_file(rest_client, cleanup_data):
     """Test the post transcription endpoint without a file"""
     response = rest_client.post("/transcriptions", headers={"key": EXAMPLE_AUTH_KEY})
     assert response.status_code == 400
-    # parse the response to a string to compare it with the expected string
     assert response.data.decode("utf-8") == "No file posted"
 
 
@@ -91,7 +93,6 @@ def test_post_transcription_with_wrong_file(rest_client, cleanup_data):
             content_type="multipart/form-data",
         )
     assert response.status_code == 400
-    # parse the response to a string to compare it with the expected string
     assert response.data.decode("utf-8") == "No file posted"
 
 
@@ -137,7 +138,6 @@ def test_get_transcriptions_without_files(rest_client):
 
 def test_get_transcriptions_with_files(rest_client, cleanup_data):
     """Test the get transcription id endpoint with files"""
-    # write file
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response_post = rest_client.post(
             "/transcriptions",
@@ -147,7 +147,6 @@ def test_get_transcriptions_with_files(rest_client, cleanup_data):
         )
     response_dict_post = response_post.get_json()
     transcription_id = response_dict_post["transcription_id"]
-    # read file
     response_get = rest_client.get(
         f"/transcriptions/{transcription_id}",
         headers={"key": EXAMPLE_AUTH_KEY},
@@ -200,7 +199,6 @@ def test_post_transc_with_tomany_audio_files_stored_including_model(
     with to many audio files stored in the queue
     It should return a 400 error when a model is given
     """
-    # post with a audio file in the bodys
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
             "/transcriptions",
@@ -228,7 +226,6 @@ def test_post_transc_with_tomany_audio_files_stored_not_including_model(
     with to many audio files stored in the queue
     It should still allow to post a transcription without a model specified
     """
-    # post with a audio file in the bodys
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
             "/transcriptions",
