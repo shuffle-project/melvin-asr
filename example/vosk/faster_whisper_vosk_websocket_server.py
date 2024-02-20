@@ -19,19 +19,14 @@ class VoskWebSocketServer:
         self.moving_chunk_cache = b""
         self.all_chunk_cache = b""
 
-        # transcription parameters
         # number of chunks to cache for partial transcription
         self.moving_chunk_cache_size = 100
 
-        # audio parameters
         self.sample_rate = 16000
         self.num_channels = 1
         self.sampwidth = 2
 
-        # helper variables
-        self.is_busy = (
-            False  # Flag to indicate if the server is currently handling a client
-        )
+        self.is_busy = False
 
     async def main(self):
         async with serve(self.echo, "localhost", 8764):
@@ -112,14 +107,11 @@ class VoskWebSocketServer:
         """Function to transcribe a chunk of audio"""
         with io.BytesIO() as wav_io:
             with wave.open(wav_io, "wb") as wav_file:
-                # Set the parameters of the wav file
                 wav_file.setnchannels(self.num_channels)
                 wav_file.setsampwidth(self.sampwidth)
                 wav_file.setframerate(self.sample_rate)
                 wav_file.writeframes(audio_chunk)
-            # Seek to the beginning so it can be read by model
             wav_io.seek(0)
-            # Transcribe the audio chunk
             segments, info = model.transcribe(wav_io, word_timestamps=True)
             return parse_segments_and_info_to_dict(segments, info)
 

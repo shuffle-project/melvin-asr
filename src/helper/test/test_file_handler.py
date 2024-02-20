@@ -55,12 +55,9 @@ def test_write_json_fail():
 
 def test_delete_file():
     """Tests deleting a file."""
-    # create a file first
     data = {"test": "test"}
     FILE_HANDLER.create(TEST_FILE_PATH, data)
     assert FILE_HANDLER.read_json(TEST_FILE_PATH) == data
-    # delete the file
     success = FILE_HANDLER.delete(TEST_FILE_PATH)
     assert success is True
-    # check if the file still exists
     assert FILE_HANDLER.read_json(TEST_FILE_PATH) is None

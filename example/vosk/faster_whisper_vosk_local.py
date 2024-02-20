@@ -26,14 +26,11 @@ def transcribe_chunk_partial(chunk, sample_rate, num_channels, sampwidth):
     if len(MOVING_CHUNK_CACHE) > 0:
         with io.BytesIO() as wav_io:
             with wave.open(wav_io, "wb") as wav_file:
-                # Set the parameters of the wav file
                 wav_file.setnchannels(num_channels)
                 wav_file.setsampwidth(sampwidth)
                 wav_file.setframerate(sample_rate)
                 wav_file.writeframes(MOVING_CHUNK_CACHE)
-            # Seek to the beginning so it can be read by model
             wav_io.seek(0)
-            # Transcribe the audio chunk
             segments, info = model.transcribe(wav_io, word_timestamps=True)
 
             data = parse_segments_and_info_to_dict(segments, info)

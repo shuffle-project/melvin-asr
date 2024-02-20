@@ -11,6 +11,7 @@ from src.api.websocket.websockets_settings import (
 )
 from src.transcription.transcriber import Transcriber
 
+# Constants for Websocket server
 WAIT_FOR_TRANSCRIPTION = 4  # seconds to wait for transcription
 TRANSCRIPTION_TIMEOUT_SLEEP = 60  # seconds to sleep after timeout
 TIMEOUT_COUNT = 3  # number of timeouts before stopping the server
