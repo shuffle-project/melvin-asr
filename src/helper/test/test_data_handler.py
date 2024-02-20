@@ -1,14 +1,14 @@
 """This File contains tests for the DataHandler class."""
-# pylint: disable=redefined-outer-name
-# pylint: disable=unused-argument
-# pylint: disable=unused-import
+# ignore unused-import because of pytest fixtures
+# ruff: noqa: F811
+# ruff: noqa: F401
 import datetime
 import os
-import shutil
 from pydub import AudioSegment
-from src.test_base.cleanup_data_fixture import cleanup_data
+from src.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
+from src.test_base.cleanup_data_fixture import cleanup_data
 
 EXAMPLE_TRANSCRIPTION_ID = "example"
 EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/test_base/example.wav"
@@ -175,7 +175,7 @@ def test_delete_audio_file_success():
     # delete example-delete.wav
     res = DATA_HANDLER.delete_audio_file("example-delete")
     assert res is True
-    assert os.path.isfile(DATA_HANDLER.audio_file_path+"example-delete.wav") is False
+    assert os.path.isfile(DATA_HANDLER.audio_file_path + "example-delete.wav") is False
 
 
 def test_delete_audio_file_fail():
@@ -183,7 +183,8 @@ def test_delete_audio_file_fail():
     res = DATA_HANDLER.delete_audio_file("non_existing")
     assert res is False
 
-def test_get_number_of_audio_files():
+
+def test_get_number_of_audio_files(cleanup_data):
     """Tests getting the number of audio files."""
     assert DATA_HANDLER.get_number_of_audio_files() == 0
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
@@ -191,3 +192,29 @@ def test_get_number_of_audio_files():
     assert DATA_HANDLER.get_number_of_audio_files() == 1
     DATA_HANDLER.delete_audio_file("example-file")
     assert DATA_HANDLER.get_number_of_audio_files() == 0
+
+def test_clean_up_audio_and_status_files(cleanup_data):
+    """Tests cleaning up audio and status files."""
+    DATA_HANDLER.write_status_file("example", {"test": "test"})
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
+    DATA_HANDLER.save_audio_file(example_audio_data, "example")
+
+    assert DATA_HANDLER.get_number_of_audio_files() == 1
+    assert DATA_HANDLER.get_status_file_by_id("example") is not None
+
+    DATA_HANDLER.clean_up_audio_and_status_files(0)
+    assert DATA_HANDLER.get_number_of_audio_files() == 0
+    assert DATA_HANDLER.get_status_file_by_id("example") is None
+
+def test_clean_up_audio_and_status_files_do_keep(cleanup_data):
+    """Tests cleaning up audio and status files."""
+    DATA_HANDLER.write_status_file("example", {"test": "test"})
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
+    DATA_HANDLER.save_audio_file(example_audio_data, "example")
+
+    assert DATA_HANDLER.get_number_of_audio_files() == 1
+    assert DATA_HANDLER.get_status_file_by_id("example") is not None
+
+    DATA_HANDLER.clean_up_audio_and_status_files(1)
+    assert DATA_HANDLER.get_number_of_audio_files() == 1
+    assert DATA_HANDLER.get_status_file_by_id("example") is not None

@@ -1,11 +1,8 @@
-# pylint: disable-all
-
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
 import json
 
 
-# This is the function to use
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
     """parses the segments and info to a dictionary"""
     segments_list = list(segments)
@@ -17,7 +14,6 @@ def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
     return combined_dict
 
 
-# These are the helper functions
 def parse_transcription_info_to_dict(info) -> dict:
     """Parses the transcription info to a dictionary"""
 

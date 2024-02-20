@@ -47,7 +47,6 @@ class Transcriber:
         model_path = self.get_model_path(self.model_name)
         try:
             # compute_type for CPU is only int8, for CUDA ist float16 or int8_float16
-            # pylint: disable=R0916
             if (
                 (self.device == "cpu" and self.compute_type == "int8")
                 or (self.device == "cuda" and self.compute_type == "float16")
@@ -68,8 +67,6 @@ class Transcriber:
                     model_path, local_files_only=True, device="cpu", compute_type="int8"
                 )
             return True
-        # need to catch all exceptions here
-        # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error loading model: " + str(e))
             return False
@@ -82,7 +79,7 @@ class Transcriber:
 
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
-        model_path = os.getcwd() + CONFIG["MODEL_PATH"] + model_name
+        model_path = os.getcwd() + CONFIG["model_path"] + model_name
         return model_path
 
     def parse_transcription_info_to_dict(self, info: TranscriptionInfo) -> dict:
@@ -120,10 +117,11 @@ class Transcriber:
         }
         return combined_dict
 
+    # returns a dict with success and data {"success": bool, "data": dict}
     @time_it
     def transcribe_audio_audio_segment(
         self, audio_segment, settings: dict = None
-    ) -> {"success": bool, "data": dict}:
+    ) -> dict:
         """Function to run the transcription process"""
         self.load_model()
         try:
@@ -140,19 +138,15 @@ class Transcriber:
                     audio_data_bytes, self.model, settings
                 ),
             }
-        # need to catch all exceptions here because the whisper call is not
-        # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return {
-                "success": False,
-                "data": str(e)
-            }
+            return {"success": False, "data": str(e)}
 
+    # returns a dict with success and data {"success": bool, "data": dict}
     @time_it
     def transcribe_audio_file(
         self, audio_file_path: str, settings: dict = None
-    ) -> {"success": bool, "data": dict}:
+    ) -> dict:
         """Function to run the transcription process"""
         self.load_model()
         try:
@@ -163,15 +157,9 @@ class Transcriber:
                     audio_file_path, self.model, settings
                 ),
             }
-
-            # need to catch all exceptions here because the whisper call is not
-            # pylint: disable=W0718
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return {
-                "success": False,
-                "data": str(e)
-            }
+            return {"success": False, "data": str(e)}
 
     def transcribe_with_settings(
         self, audio, model: WhisperModel, settings: dict

@@ -11,16 +11,13 @@ from src.config import CONFIG
 from src.helper.types.transcription_status import (
     TranscriptionStatus,
 )
-from src.api.rest.endpoints.welcome import welcome_message
 from src.helper.data_handler import DataHandler
 
 LOGGER = Logger("FlaskApp", False, Color.GREEN)
 DATA_HANDLER = DataHandler()
 
 
-def create_app(
-    auth_key=CONFIG["API_KEY"], audio_files_to_store=CONFIG["AUDIO_FILES_TO_STORE"]
-):
+def create_app(api_keys=CONFIG["api_keys"]):
     """Function to create the Flask app"""
 
     app = Flask(__name__)
@@ -32,12 +29,12 @@ def create_app(
         def wrapper(*args, **kwargs):
             api_key = request.headers.get("key")
 
-            if api_key and api_key == auth_key:
+            if api_key and api_key in api_keys:
                 return func(*args, **kwargs)
 
             LOGGER.print_error(
                 "Unauthorized REST API request. "
-                + f"api_key: {api_key}, config_key: {auth_key}"
+                + f"api_key: {api_key}, config_key: {api_keys}"
             )
 
             return (
@@ -49,9 +46,9 @@ def create_app(
 
     @app.route("/")
     @require_api_key
-    def welcome():
-        """Function that returns basic information about the API usage."""
-        return welcome_message()
+    def show_config():
+        """Function that returns the config of this service."""
+        return json.dumps(CONFIG, indent=4)
 
     @app.route("/health", methods=["GET"])
     @require_api_key
@@ -74,7 +71,7 @@ def create_app(
                         "status": data["status"],
                     }
                 )
-            # pylint: disable=broad-except
+
             except Exception as e:
                 LOGGER.print_error(f"Error while reading status file {file_name}: {e}")
                 DATA_HANDLER.delete_status_file(file_name)
@@ -94,17 +91,10 @@ def create_app(
     def post_transcription():
         """API endpoint to transcribe an audio file"""
         try:
-            # make sure to not store too many audio files that require specific models
-            if (
-                DATA_HANDLER.get_number_of_audio_files() >= int(audio_files_to_store)
-            ) and "model" in request.form:
-                return "Too many audio files in queue", 400
-            # check if a file is in request
             if "file" not in request.files:
                 return "No file posted", 400
             file = request.files["file"]
             if file:
-                # store audio file
                 transcription_id = str(uuid.uuid4())
                 result = DATA_HANDLER.save_audio_file(
                     AudioSegment.from_file(file.stream), transcription_id
@@ -115,7 +105,6 @@ def create_app(
                 # sleep to make sure that the file is saved before the transcription starts
                 time.sleep(0.1)
 
-                # get body parameters
                 settings = None
                 model = None
                 if "settings" in request.form:
@@ -123,7 +112,6 @@ def create_app(
                 if "model" in request.form:
                     model = request.form["model"]
 
-                # create transcription status file
                 data = {
                     "transcription_id": transcription_id,
                     "status": TranscriptionStatus.IN_QUERY.value,
@@ -134,7 +122,7 @@ def create_app(
 
                 DATA_HANDLER.write_status_file(transcription_id, data)
                 return jsonify(data), 200
-        # pylint: disable=broad-except
+
         except Exception as e:
             LOGGER.print_error(f"Error while POST /transcriptions: {e}")
         return "Something went wrong"

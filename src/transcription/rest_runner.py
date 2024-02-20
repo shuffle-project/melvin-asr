@@ -36,27 +36,22 @@ class Runner:
             cc += 1
             transcription_id = self.get_oldest_status_file_in_query()
 
-            # if no transcription is available, wait
             if transcription_id == "None":
                 time.sleep(0.1)
-                # unload model if not used for a while
-                schedule = int(CONFIG["UNLAOD_REST_MODELS_SCHEDULE"]) * 10  # in seconds
+
+                schedule = int(CONFIG["rest_models_in_ram_in_seconds"]) * 10
                 if cu > schedule:
                     self.transcriber.unload_model()
                     cu = 0
 
-                # clean up job
-                schedule = int(CONFIG["CLEAN_UP_SCHEDULE"]) * 10 * 60  # in minutes
+                schedule = int(CONFIG["cleanup_schedule_in_minutes"]) * 10 * 60
                 if cc > schedule:
-                    self.data_handler.clean_up_status_files(
-                        int(CONFIG["MAX_OLD_STATUS_FILES"])
-                    )
+                    self.data_handler.clean_up_audio_and_status_files()
                     self.log.print_log("Status files cleaned up.")
                     cc = 0
 
                 continue
 
-            # if transcription is available, process it
             self.log.print_log("Processing file: " + transcription_id)
             try:
                 self.data_handler.update_status_file(
@@ -65,8 +60,6 @@ class Runner:
                 self.transcribe(transcription_id)
                 cu = 0
 
-            # need to catch all exceptions here
-            # pylint: disable=W0718
             except Exception as e:
                 self.log.print_error(
                     f"Runner Exception of type {type(e).__name__}: {str(e)}"
@@ -78,14 +71,10 @@ class Runner:
 
     def transcribe(self, transcription_id) -> None:
         """Transcribes the audio file with the given transcription_id."""
-        # get data
         audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
         settings = self.data_handler.get_status_file_settings(transcription_id)
 
-        # transcribe and update data
-        response = self.transcriber.transcribe_audio_file(
-            audio_file_path, settings
-        )
+        response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
         self.data_handler.delete_audio_file(transcription_id)
         if response["success"] is False or (response["data"]["segments"] is None):
             self.data_handler.update_status_file(
@@ -113,7 +102,6 @@ class Runner:
             return "None"
 
         # wait to avoid race conditions between runners
-
         time.sleep(random.randint(0, race_condition_sleep_ms) / 1000.0)
 
         for filename in os.listdir(data_handler.status_path):
@@ -145,8 +133,6 @@ class Runner:
                         oldest_start_time = current_datetime
                         oldest_transcription_id = data.get("transcription_id")
 
-            # need to catch all exceptions here to not break the loop in runner.py
-            # pylint: disable=W0718
             except Exception as e:
                 self.log.print_error(
                     f"Caught Exception of type {type(e).__name__}"

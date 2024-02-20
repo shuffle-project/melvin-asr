@@ -3,8 +3,6 @@
 from datetime import datetime
 from src.config import CONFIG
 
-
-# pylint: disable=R0903
 class Color:
     """This class contains ANSI escape sequences for colored output."""
 
@@ -36,7 +34,7 @@ class Logger:
     def __init__(
         self,
         identifier: str,
-        debug: bool = CONFIG["DEBUG"],
+        debug: bool = CONFIG["debug"],
         debug_color: Color = Color.BLUE,
         error_color: Color = Color.FAIL,
     ):

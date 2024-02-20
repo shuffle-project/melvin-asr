@@ -1,0 +1,25 @@
+# config_dev.yml
+# This file is used to configure the service locally for development
+debug: True
+host: "some_host"
+api_keys: 
+  - "key1"
+
+# Runner Configuration
+# The max. count of runners for rest_runner is 10
+# The max. count of runners for stream_runner is 1
+# Example:
+# identifier:
+#   device: "cpu" or "cuda"
+#   model: model_name
+#   compute_type: "int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
+
+stream_runner:
+  -   device: cpu
+      model: tiny
+      compute_type: int8
+
+rest_runner:
+  -   device: cpu
+      model: tiny
+      compute_type: int8
