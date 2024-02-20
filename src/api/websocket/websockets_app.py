@@ -3,6 +3,7 @@ import asyncio
 import json
 import websockets
 from pydub import AudioSegment
+from websockets.exceptions import ConnectionClosed
 from src.helper.model_handler import ModelHandler
 from src.config import CONFIG
 from src.api.websocket.websockets_settings import (
@@ -23,16 +24,14 @@ class WebSocketServer:
         self.host = host
         self.port = port
         self.settings = default_websocket_settings()
-        ModelHandler().setup_model(CONFIG["STREAM_MODEL"])
+        ModelHandler().setup_model(CONFIG["stream_runner"][0]["model"])
         self.transcriber = Transcriber(
-            CONFIG["STREAM_MODEL"],
-            CONFIG["STREAM_MODEL_DEVICE"],
-            CONFIG["STREAM_MODEL_COMPUTE_TYPE"],
+            CONFIG["stream_runner"][0]["model"],
+            CONFIG["stream_runner"][0]["device"],
+            CONFIG["stream_runner"][0]["compute_type"],
         )
         self.timeout_counter = 0
-        self.is_busy = (
-            False  # Flag to indicate if the server is currently handling a client
-        )
+        self.is_busy = False
 
     async def start_server(self):
         """Function to start the WebSocket server"""
@@ -46,7 +45,7 @@ class WebSocketServer:
             await websocket.close()
             return
 
-        self.is_busy = True  # Set the flag when a client is being served
+        self.is_busy = True 
 
         try:
             if self.timeout_counter > TIMEOUT_COUNT:
@@ -60,11 +59,10 @@ class WebSocketServer:
                 break
             await self.handle_transcription(audio_data, websocket)
         finally:
-            self.is_busy = False  # Reset the flag when the client session ends
+            self.is_busy = False
 
     async def handle_transcription(self, audio_data, websocket):
         """Initiates the transcription process and waits for the result."""
-        # start transcription
         audio_segment = AudioSegment(
             data=audio_data, sample_width=2, frame_rate=16000, channels=1
         )
@@ -73,15 +71,20 @@ class WebSocketServer:
         )
 
         if response["success"] is False:
-            await websocket.send(str(response["data"]))
+            try:
+                await websocket.send(str(response["data"]))
+            except ConnectionClosed:
+                print("WebSocket connection was closed unexpectedly.")
             self.timeout_counter += 1
         else:
             try:
                 await websocket.send(json.dumps(response["data"]))
                 self.timeout_counter = 0
-
-            # need to catch all exceptions here
-            # pylint: disable=W0718
+            except ConnectionClosed:
+                print("WebSocket connection was closed unexpectedly.")
             except Exception as e:
                 self.timeout_counter += 1
-                await websocket.send("handle_transcription failed: " + str(e))
+                try:
+                    await websocket.send("handle_transcription failed: " + str(e))
+                except ConnectionClosed:
+                    print("WebSocket connection was closed unexpectedly.")

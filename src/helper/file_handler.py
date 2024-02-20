@@ -4,10 +4,6 @@ import os
 
 from src.helper.logger import Logger, Color
 
-# Need to catch all Exceptions here
-# pylint: disable=W0718
-
-
 class FileHandler:
     """This class handles the reading and writing of JSON files."""
 

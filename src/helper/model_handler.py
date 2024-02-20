@@ -8,7 +8,7 @@ from src.helper.logger import Logger
 class ModelHandler:
     """Class to handle the models"""
 
-    def __init__(self, model_path=CONFIG["MODEL_PATH"]):
+    def __init__(self, model_path=CONFIG["model_path"]):
         self.log = Logger("ModelHandler", True)
         self.model_path = model_path
 

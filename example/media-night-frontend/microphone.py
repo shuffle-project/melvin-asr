@@ -40,7 +40,6 @@ class SpeechListener:
                     if "segments" in data:
                         for segment in data["segments"]:
                             print("\033[96m" + segment[4] + "\033[0m")
-                # pylint: disable=broad-except
                 except Exception as e:
                     print("\033[93m" + str(e) + "\033[0m")
 

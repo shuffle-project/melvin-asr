@@ -8,7 +8,6 @@ WORKDIR /asr-api
 
 COPY ./src ./src
 COPY ./app.py ./app.py
-COPY ./models.yaml ./models.yaml
 COPY ./requirements.txt ./requirements.txt
 
 # Install Python and pip

@@ -1,12 +1,8 @@
-# pylint: disable-all
-
 import asyncio
 import io
 import json
 from faster_whisper import WhisperModel
 import wave
-import sys
-import traceback
 
 from websockets import serve
 import websockets

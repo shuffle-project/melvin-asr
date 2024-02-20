@@ -1,7 +1,6 @@
 """ Settings for the transcription module. """
 
-
-# pylint: disable=C0301
+# The settings are used to configure the transcription process by faster-whisper:
 
 #   - language: The language spoken in the audio. It should be a language code such
 #     as "en" or "fr". If not set, the language will be detected in the first 30 seconds of audio.
@@ -45,8 +44,6 @@
 #   - vad_parameters: Dictionary of Silero VAD parameters or VadOptions class (see available
 #     parameters and default values in the class VadOptions).
 
-
-# pylint: disable=too-few-public-methods
 class TranscriptionSettings:
     """Settings for the transcription module."""
 
