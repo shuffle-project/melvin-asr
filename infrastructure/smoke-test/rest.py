@@ -18,7 +18,7 @@ import requests
 # Example: python3 rest.py 8080 your-key
 
 
-def send_file_http(file_path="./input.wav", port=8080, key="your-key"):
+def send_file_http(file_path="./input.wav", port=8393, key="your-key"):
     """Sends the audio file to the server and checks transcription status."""
     url = f"http://localhost:{port}/transcriptions"
     headers = {"key": key}

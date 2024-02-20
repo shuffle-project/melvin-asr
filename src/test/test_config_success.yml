@@ -1,11 +1,9 @@
-# config.yml
-# This file is used to configure the service for a production stage in a Docker container
+# config_dev.yml
+# This file is used to configure the service locally for development
 debug: True
-host: "0.0.0.0"
+host: "some_host"
 api_keys: 
-  - "shuffle2024"
-  - "api_key_1"
-  - "api_key_2"
+  - "key1"
 
 # Runner Configuration
 # The max. count of runners for rest_runner is 10

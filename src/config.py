@@ -29,16 +29,21 @@ def read_config(config_yml_path: str) -> dict:
         "stream_runner": get_config("stream_runner"),
 
         # Networking Configuration
-        # Port that the REST API will listen on
+        #   Port that the REST API will listen on
         "rest_port": int(get_config("rest_port", default="8393")),
-        # Port that the Websocket will listen on
+        #   Port that the Websocket will listen on
         "websocket_port": int(get_config("websocket_port", default="8394")),
-        # Host name of the application
+        #   Host name of the application
         "host": get_config("host", default="localhost"),
+        #
         # File System Configuration
+        #   Path to the status file folder
         "status_file_path": get_config("status_file_path", default="/data/status/"),
+        #   Path to the model folder
         "model_path": get_config("model_path", default="/models/"),
+        #   Path to the audio file folder
         "audio_file_path": get_config("audio_file_path", default="/data/audio_files/"),
+        #   Audio file format to use
         "audio_file_format": get_config("audio_file_format", default=".wav"),
         #
         # Domain Configuration
@@ -56,7 +61,12 @@ def read_config(config_yml_path: str) -> dict:
 
 
 try:
-    CONFIG = read_config(os.getcwd() + "/config.yml")
+    if (os.path.exists(os.getcwd() + "/config.dev.yml")):
+        CONFIG = read_config(os.getcwd() + "/config.dev.yml")
+    elif (os.path.exists(os.getcwd() + "/config.yml")):
+        CONFIG = read_config(os.getcwd() + "/config.yml")
+    else:
+        raise RuntimeWarning("No config file found")
 except ValueError as e:
     print(f"Error: {e}")
     CONFIG = None

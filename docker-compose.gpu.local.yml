@@ -6,8 +6,8 @@ services:
     container_name: asr-api
     volumes:
       - ./models:/asr-api/models
-      - ./data/audio_files:/asr-api/data/audio_files
-      - ./data/status:/asr-api/data/status
+      - ./data:/asr-api/data
+      - ./config.yml:/asr-api/config.yml
     ports:
       - "8393:8393"
       - "8394:8394"
