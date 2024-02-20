@@ -46,9 +46,7 @@ class Runner:
 
                 schedule = int(CONFIG["cleanup_schedule_in_minutes"]) * 10 * 60
                 if cc > schedule:
-                    self.data_handler.clean_up_status_files(
-                        int(CONFIG["status_files_to_store"])
-                    )
+                    self.data_handler.clean_up_audio_and_status_files()
                     self.log.print_log("Status files cleaned up.")
                     cc = 0
 

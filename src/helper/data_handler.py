@@ -1,6 +1,7 @@
 """This module works as Interface for the access to the data folder."""
 import os
 from datetime import datetime
+import time
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.config import CONFIG
 from src.helper.file_handler import FileHandler
@@ -15,7 +16,7 @@ class DataHandler:
         audio_file_path: str = CONFIG["audio_file_path"],
         audio_file_format: str = CONFIG["audio_file_format"],
     ):
-        self.log = Logger("DataHandler", False, Color.GREEN)
+        self.log = Logger("DataHandler", True, Color.GREEN)
         self.root_path = os.getcwd()
         self.data_folder = os.path.join(self.root_path, "data")
         self.file_handler = FileHandler()
@@ -106,30 +107,27 @@ class DataHandler:
         )
         return False
 
-    def clean_up_status_files(self, max_old_status_files: int = 100):
-        """Deletes the oldest status files with
-        current_status=TranscriptionStatus.FINISHED or TranscriptionStatus.ERROR
-        if there are more than set in CONFIG status_files_to_store number."""
-        cleanup_files = []
-        for filename in os.listdir(self.status_path):
-            if filename.endswith(".json"):
-                data = self.file_handler.read_json(
-                    os.path.join(self.status_path, filename)
-                )
-                current_status = data.get("status")
-                if current_status in (
-                    TranscriptionStatus.FINISHED.value,
-                    TranscriptionStatus.ERROR.value,
-                ):
-                    cleanup_files.append((filename, data.get("start_time")))
-
-        if len(cleanup_files) > max_old_status_files:
-            cleanup_files.sort(
-                key=lambda x: datetime.fromisoformat(x[1].replace("Z", "+00:00"))
-            )
-            for i in range(len(cleanup_files) - max_old_status_files):
-                file_to_delete = cleanup_files[i][0]
-                os.remove(os.path.join(self.status_path, file_to_delete))
+    def clean_up_audio_and_status_files(self, keep_data_for_hours: int = CONFIG["keep_data_for_hours"]) -> None:
+        """Deletes status and audio files that are older than the keep_data_for_hours."""
+        try:
+            for filename in os.listdir(self.status_path):
+                if filename.endswith(".json"):
+                    file_path = os.path.join(self.status_path, filename)
+                    file_time = os.path.getmtime(file_path)
+                    # 3600 seconds in an hour
+                    if (time.time() - file_time) / 3600 > keep_data_for_hours:
+                        os.remove(file_path)
+                        self.log.print_log(f"Deleted status file {filename}")
+            for filename in os.listdir(self.audio_file_path):
+                if filename.endswith(CONFIG["audio_file_format"]):
+                    file_path = os.path.join(self.audio_file_path, filename)
+                    file_time = os.path.getmtime(file_path)
+                    # 3600 seconds in an hour
+                    if (time.time() - file_time) / 3600 > keep_data_for_hours:
+                        os.remove(file_path)
+                        self.log.print_log(f"Deleted audio file {filename}")
+        except Exception as e:
+            self.log.print_error(f"Error while cleaning up files: {str(e)}")
 
     def get_status_file_settings(self, transcription_id: str) -> dict:
         """Returns the settings from the status file."""

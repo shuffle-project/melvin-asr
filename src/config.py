@@ -53,12 +53,10 @@ def read_config(config_yml_path: str) -> dict:
         "rest_models_in_ram_in_seconds": get_config("rest_models_in_ram_in_seconds", default=20),
         #
         # Cleanup Configuration
-        #   Number of audio files to keep in the audio files folder, before the endpoint refuses to accept new files
-        "audio_files_to_store": get_config("audio_files_to_store", default=100),
-        #   Number of files to keep in the status folder
-        "status_files_to_store": get_config("status_files_to_store", default=100),
-        #   How often to clean up finished or error status files in minutes (only runs if no transcriptions are in progress)
-        "cleanup_schedule_in_minutes": get_config("cleanup_schedule_in_minutes", default=5),
+        #   Hours that status and audio files are kept
+        "keep_data_for_hours": get_config("keep_data_for_hours", default=72),
+        #   How often to clean up files in data (only runs if no transcriptions are in progress)
+        "cleanup_schedule_in_minutes": get_config("cleanup_schedule_in_minutes", default=10),
     }
 
 

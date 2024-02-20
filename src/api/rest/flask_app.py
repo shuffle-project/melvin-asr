@@ -17,9 +17,7 @@ LOGGER = Logger("FlaskApp", False, Color.GREEN)
 DATA_HANDLER = DataHandler()
 
 
-def create_app(
-    api_keys=CONFIG["api_keys"], audio_files_to_store=CONFIG["audio_files_to_store"]
-):
+def create_app(api_keys=CONFIG["api_keys"]):
     """Function to create the Flask app"""
 
     app = Flask(__name__)
@@ -93,11 +91,6 @@ def create_app(
     def post_transcription():
         """API endpoint to transcribe an audio file"""
         try:
-            # make sure to not store too many audio files that require specific models
-            if (
-                DATA_HANDLER.get_number_of_audio_files() >= int(audio_files_to_store)
-            ) and "model" in request.form:
-                return "Too many audio files in queue", 400
             if "file" not in request.files:
                 return "No file posted", 400
             file = request.files["file"]
@@ -129,7 +122,7 @@ def create_app(
 
                 DATA_HANDLER.write_status_file(transcription_id, data)
                 return jsonify(data), 200
-            
+
         except Exception as e:
             LOGGER.print_error(f"Error while POST /transcriptions: {e}")
         return "Something went wrong"
