@@ -12,7 +12,6 @@ from src.test_base.cleanup_data_fixture import cleanup_data
 
 EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/test_base/example.wav"
 EXAMPLE_AUTH_KEY = "example"
-EXAMPLE_FILES_TO_STORE = 1
 
 DATA_HANDLER = DataHandler()
 
@@ -20,7 +19,7 @@ DATA_HANDLER = DataHandler()
 @pytest.fixture
 def rest_client():
     """Create a Flask test client"""
-    app = create_app(EXAMPLE_AUTH_KEY, EXAMPLE_FILES_TO_STORE)
+    app = create_app(EXAMPLE_AUTH_KEY)
     with app.test_client() as client:
         yield client
 
@@ -189,34 +188,6 @@ def test_post_transcription_with_settings_model(rest_client, cleanup_data):
     assert response_dict["transcription_id"] is not None
     assert ("start_time" in response_dict) is True
     assert response_dict == response_dict_post
-
-
-def test_post_transc_with_tomany_audio_files_stored_including_model(
-    rest_client, cleanup_data
-):
-    """
-    Test the post transcription endpoint
-    with to many audio files stored in the queue
-    It should return a 400 error when a model is given
-    """
-    with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
-        response = rest_client.post(
-            "/transcriptions",
-            headers={"key": EXAMPLE_AUTH_KEY},
-            data={"file": audio_file},
-            content_type="multipart/form-data",
-        )
-    assert response.status_code == 200
-    with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
-        response = rest_client.post(
-            "/transcriptions",
-            headers={"key": EXAMPLE_AUTH_KEY},
-            data={"model": "tiny", "file": audio_file},
-            content_type="multipart/form-data",
-        )
-    assert response.status_code == 400
-    assert response.data.decode("utf-8") == "Too many audio files in queue"
-
 
 def test_post_transc_with_tomany_audio_files_stored_not_including_model(
     rest_client, cleanup_data
