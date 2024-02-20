@@ -181,6 +181,6 @@ class DataHandler:
         audio_files = [
             f
             for f in os.listdir(self.audio_file_path)
-            if f.endswith(CONFIG["AUDIO_FILE_FORMAT"])
+            if f.endswith(CONFIG["audio_file_format"])
         ]
         return len(audio_files)
