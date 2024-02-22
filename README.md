@@ -268,6 +268,20 @@ Steps in Deployment:
 
 5. **Smoke Tests**: As described in the section above, there are smoke tests for the REST-API and the Websocket-API of the ASR-API service. Run both against the newly running containers to make sure everything is up and running. Rollback in case there are any troubles. The REST-Endpoints `/` and `/health` can be used for an health-check as well.
 
+6. **Config.yml**: The ASR-API is configured in the `config.yml` file. In order to spin up the docker container using docker compose, make sure the config file is availible in the `docker-compose.yml`'s directory
+
+## Configuration
+The configuration of the ASR-API is done in the `config.yml` and `config.dev.yml`. These files are read by the `src/config.py` module, which is providing configurations to the service logic. 
+Please make sure to set the required options:
+
+### Required Configuration
+
+1. *debug* - Actives debug more for logging
+2. *api_keys* - Set the key that are used to access the REST API.
+3. *stream_runner* - Defined the models running to provide the websocket transcription (*currently only one is supported!*)
+4. *rest_runner*- Defined the models running to provide the http transcription
+
+See the files for more information.
 
 
 ## License

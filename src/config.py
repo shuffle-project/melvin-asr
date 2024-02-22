@@ -60,13 +60,9 @@ def read_config(config_yml_path: str) -> dict:
     }
 
 
-try:
-    if (os.path.exists(os.getcwd() + "/config.dev.yml")):
-        CONFIG = read_config(os.getcwd() + "/config.dev.yml")
-    elif (os.path.exists(os.getcwd() + "/config.yml")):
-        CONFIG = read_config(os.getcwd() + "/config.yml")
-    else:
-        raise RuntimeWarning("No config file found")
-except ValueError as e:
-    print(f"Error: {e}")
-    CONFIG = None
+if (os.path.exists(os.getcwd() + "/config.dev.yml")):
+    CONFIG = read_config(os.getcwd() + "/config.dev.yml")
+elif (os.path.exists(os.getcwd() + "/config.yml")):
+    CONFIG = read_config(os.getcwd() + "/config.yml")
+else:
+    raise RuntimeWarning("No config file found")

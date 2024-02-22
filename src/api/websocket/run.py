@@ -6,7 +6,6 @@ from src.helper.logger import Color, Logger
 from src.api.websocket.websockets_app import WebSocketServer
 
 
-# startup functions for flask & websockets apps
 def run_websocket_app(websocket_port, host):
     """Starts the websocket server."""
     log = Logger("run_websocket_app", True, Color.UNDERLINE)

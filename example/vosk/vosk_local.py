@@ -4,16 +4,12 @@ import sys
 import wave
 from vosk import Model, KaldiRecognizer
 
-# Load the model you downloaded
 model = Model(os.getcwd() + "/vosk-models/vosk-model-en-us-0.22-lgraph")
-
-# Open a wav file
 wf = wave.open(os.getcwd() + "/input.wav", "rb")
 if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
     print("Audio file must be WAV format mono PCM.")
     sys.exit(1)
 
-# Create a recognizer object
 rec = KaldiRecognizer(model, wf.getframerate())
 
 while True:

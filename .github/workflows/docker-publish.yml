@@ -68,4 +68,5 @@ jobs:
         USER: ${{ secrets.USER }}
       run: |
         scp -i ~/.ssh/id_rsa -r ./infrastructure $USER@$HOST:/home/shuffle/asr-api-prod/
-        scp -i ~/.ssh/id_rsa ./docker-compose.yml $USER@$HOST:/home/shuffle/asr-api-prod/    
+        scp -i ~/.ssh/id_rsa ./docker-compose.yml $USER@$HOST:/home/shuffle/asr-api-prod/
+        scp -i ~/.ssh/id_rsa ./config.yml $USER@$HOST:/home/shuffle/asr-api-prod/

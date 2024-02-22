@@ -20,12 +20,10 @@ def test_setup_model_and_get_model_path():
     assert os.path.exists(expected_model_path)
     assert model_handler.get_model_path("tiny") == expected_model_path
     assert model_handler.get_model("tiny") == expected_model_path
-    # see that the setup_model function returns True, it downloaded the model
     assert res is True
 
     # setup the tiny model again
     res = model_handler.setup_model("tiny")
-    # see that the setup_model function returns False, it did not download the model
     assert res is False
 
     # remove the tiny model

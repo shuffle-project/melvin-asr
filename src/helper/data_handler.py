@@ -21,7 +21,6 @@ class DataHandler:
         self.data_folder = os.path.join(self.root_path, "data")
         self.file_handler = FileHandler()
 
-        # get config settings
         self.status_path = self.root_path + status_path
         self.audio_file_path = self.root_path + audio_file_path
         self.audio_file_format = audio_file_format
