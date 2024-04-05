@@ -58,7 +58,7 @@ def read_config(config_yml_path: str) -> dict:
         #   How often to clean up files in data (only runs if no transcriptions are in progress)
         "cleanup_schedule_in_minutes": get_config("cleanup_schedule_in_minutes", default=10),
     }
-
+egasfgargrgr
 
 if (os.path.exists(os.getcwd() + "/config.dev.yml")):
     CONFIG = read_config(os.getcwd() + "/config.dev.yml")
