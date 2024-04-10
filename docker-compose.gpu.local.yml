@@ -2,7 +2,9 @@ version: '3'
 
 services:
   asr-api:
-    build: .
+    build: 
+      context: .
+      dockerfile: gpu.Dockerfile
     container_name: asr-api
     volumes:
       - ./models:/asr-api/models
