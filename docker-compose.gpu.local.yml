@@ -9,7 +9,7 @@ services:
     volumes:
       - ./models:/asr-api/models
       - ./data:/asr-api/data
-      - ./config.yml:/asr-api/config.yml
+      - ./config.gpu.yml:/asr-api/config.yml
     ports:
       - "8393:8393"
       - "8394:8394"
