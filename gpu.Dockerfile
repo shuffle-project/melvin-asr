@@ -16,4 +16,4 @@ RUN apt-get update && apt-get install -y python3.10 python3-pip ffmpeg
 RUN pip install -r ./requirements.txt
 
 # using unbuffered output "-u" to stdout, so that we can see the output in docker logs in real time
-CMD ["python", "-u", "app.py"]
+CMD ["python3", "-u", "app.py"]
