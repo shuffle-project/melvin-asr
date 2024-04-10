@@ -87,7 +87,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
         """API endpoint to get the status of a transcription"""
         file = DATA_HANDLER.get_status_file_by_id(transcription_id)
         if file:
-            return make_response(jsonify(file), 200, {"Content-Type": "application/json"})
+            return make_response(file, 200, {"Content-Type": "application/json"})
         return make_response("Transcription ID not found", 404)
 
     @app.route("/transcriptions", methods=["POST"])
