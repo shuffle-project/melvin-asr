@@ -33,10 +33,19 @@ def test_health_check(rest_client):
 def test_show_config(rest_client):
     """Test the show config endpoint"""
     response = rest_client.get("/", headers={"key": EXAMPLE_AUTH_KEY})
+    config_info = CONFIG.copy()
+    config_info.pop("api_keys")
     assert response.status_code == 200
-    assert response.data.decode("utf-8") == json.dumps(CONFIG, indent=4)
+    assert response.data.decode("utf-8") == json.dumps(config_info, indent=4)
     # make sure indent is right
-    assert response.data.decode("utf-8") != json.dumps(CONFIG, indent=2)
+    assert response.data.decode("utf-8") != json.dumps(config_info, indent=2)
+
+def test_show_config_without_api_keys(rest_client):
+    """Make sure the show config endpoint does not show api keys"""
+    response = rest_client.get("/", headers={"key": EXAMPLE_AUTH_KEY})
+    assert response.status_code == 200
+    assert "api_keys" not in response.data.decode("utf-8")
+    assert response.data.decode("utf-8") != json.dumps(CONFIG, indent=4)
 
 def test_show_config_unauthorized(rest_client):
     """Test the show config endpoint with an invalid auth key"""

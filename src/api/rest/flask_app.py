@@ -48,7 +48,10 @@ def create_app(api_keys=CONFIG["api_keys"]):
     @require_api_key
     def show_config():
         """Function that returns the config of this service."""
-        return json.dumps(CONFIG, indent=4)
+        config_info = CONFIG.copy()
+        # remove api_keys from config, as we don't want to show them
+        config_info.pop("api_keys")
+        return json.dumps(config_info, indent=4)
 
     @app.route("/health", methods=["GET"])
     @require_api_key
