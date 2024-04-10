@@ -1,7 +1,7 @@
 # config_dev.yml
 # This file is used to configure the service locally for development
 debug: true
-host: "localhost"
+host: "0.0.0.0"
 api_keys: 
   - "shuffle2024"
   - "api_key_1"
