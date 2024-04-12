@@ -1,10 +1,5 @@
 
 # Deployment
-## Code Integration
-
-We are maintaining our code in trunk based development. This means we are working on features branches, integrating into one trunk, the main branch.
-**main**: Our main branch is the development base we are integrating in while developing. New code is tested in this set.
-
 ## Deployment Testing
 ### Integration Tests
 
@@ -42,7 +37,7 @@ Once the container is packed and published to the registry, the `docker-compose.
 6. **Config.yml**: The ASR-API is configured in the `config.yml` file. In order to spin up the docker container using docker compose, make sure the config file is availible in the `docker-compose.yml`'s directory
 
 ## Docker & Docker Compose
-As ASR-API is delivered as a Docker container, there are multiple things to consider regarding Docker and Docker Compose. Currently there are deployment without a GPU and with a GPU usage in mind.
+As ASR-API is delivered as a Docker container, there are multiple things to consider regarding Docker and Docker Compose. Currently there are deployments without a GPU and with a GPU usage in mind.
 
 ### Dockerfile
 The Dockerfiles can be found at root level, there are 2 files:
@@ -57,12 +52,12 @@ There are 3 different compose files at root level:
 1. **docker-compose.gpu.local.yml**:  A compose file, that starts the local version of ASR-API from the local source code. It is meant for development and testing new changes. This one does work with a GPU. Make sure to setup your server as described in the following docs. This compose does reserve a Cuda GPU on the Host.
 
 ### Setup a Server with a CUDA GPU
-To use a Docker Image from Nvidia/cuda, which we are using, you are required to install the Cuda drivers and a container toolkit that connects the GPU to Docker.
+To use a Docker image from Nvidia/cuda, which we are using, you are required to install the Cuda drivers and a container toolkit that connects the GPU to Docker.
 
 1. Install the Container Toolkit: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 2. Install the Cuda Driver for Linux Servers: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/
 
-After everything is setup, make sure that the container you are using from Nvidia/cuda (https://hub.docker.com/r/nvidia/cuda/) does support cudnn8 - which does require a "runtime" or "devel" type of container.
+After everything is setup, make sure that the container you are using from Nvidia/cuda (https://hub.docker.com/r/nvidia/cuda/) does support `cudnn8` - which does require a "runtime" or "devel" type of container.
 
-Another import point is the CUDA Version, make sure the version of your container and the version installed on the server are matching. Mostly this means that the major verison must match, e.g. CUDA Driver 12.4 and CUDA container 12.2 will match. CUDA Driver 11.8 and CUDA container 12.0 will not match. 
+Also keep an eye on the CUDA Version. Make sure the version of your container and the version of the drivers installed on the server are matching. Mostly this means that the major verison must match, e.g. CUDA Driver 12.4 and CUDA container 12.2 will match. CUDA Driver 11.8 and CUDA container 12.0 will not match. 
 

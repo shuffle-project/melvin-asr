@@ -63,7 +63,7 @@ See the files for more information.
 
 ASR-API provides two APIs for two different usecases:
 
-1. A REST API based uon HTTP requests that handles the transcription of files in an async workflow, enabling user to send an audio file in a first request and receive the transcription via a second request as soon as the transcript is ready. See [REST Documentation](docs/rest-api.md)
+1. A REST API based un HTTP requests that handles the transcription of files in an async workflow, enabling user to send an audio file in a first request and receive the transcription via a second request as soon as the transcript is ready. See [REST Documentation](docs/rest-api.md)
 1. A Websocket API that does provide streaming capabilities. See [Websocket Documentation](docs/websocket-api.md)
 
 ## Testing
@@ -90,7 +90,11 @@ To test our code we are writing tests utilizing the official Python recommendati
 Shared test functionality, which is used in multiple test files can be found in `src/test_base`.
 
 ## Deployment
-ASR-API is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in paly. See [Deployment Documentation](docs/deployment.md)
+ASR-API is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in play. See [Deployment Documentation](docs/deployment.md)
+
+## Code Integration
+
+We are maintaining our code following trunk based development. This means we are working on features branches, integrating into one trunk, the main branch. Please keep your side branches small, and bring them back t o main as soon as possible.
 
 ## License
 
