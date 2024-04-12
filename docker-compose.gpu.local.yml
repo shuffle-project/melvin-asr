@@ -4,7 +4,7 @@ services:
   asr-api:
     build: 
       context: .
-      dockerfile: gpu.Dockerfile
+      dockerfile: Dockerfile.gpu
     container_name: asr-api
     volumes:
       - ./models:/asr-api/models
