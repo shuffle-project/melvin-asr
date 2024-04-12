@@ -33,10 +33,20 @@ def test_health_check(rest_client):
 def test_show_config(rest_client):
     """Test the show config endpoint"""
     response = rest_client.get("/", headers={"key": EXAMPLE_AUTH_KEY})
+    config_info = CONFIG.copy()
+    config_info.pop("api_keys")
     assert response.status_code == 200
-    assert response.data.decode("utf-8") == json.dumps(CONFIG, indent=4)
+    assert response.data.decode("utf-8") == json.dumps(config_info, indent=4)
+    assert response.headers["Content-Type"] == "application/json"
     # make sure indent is right
-    assert response.data.decode("utf-8") != json.dumps(CONFIG, indent=2)
+    assert response.data.decode("utf-8") != json.dumps(config_info, indent=2)
+
+def test_show_config_without_api_keys(rest_client):
+    """Make sure the show config endpoint does not show api keys"""
+    response = rest_client.get("/", headers={"key": EXAMPLE_AUTH_KEY})
+    assert response.status_code == 200
+    assert "api_keys" not in response.data.decode("utf-8")
+    assert response.data.decode("utf-8") != json.dumps(CONFIG, indent=4)
 
 def test_show_config_unauthorized(rest_client):
     """Test the show config endpoint with an invalid auth key"""
@@ -57,6 +67,7 @@ def test_post_transcription(rest_client, cleanup_data):
 
     response_dict = response.get_json()
 
+    assert response.headers["Content-Type"] == "application/json"
     assert response.status_code == 200
     assert response_dict["settings"] is None
     assert response_dict["status"] == "in_query"
@@ -110,6 +121,7 @@ def test_get_transcriptions_id(rest_client, cleanup_data):
         f"/transcriptions/{transcription_id}", headers={"key": EXAMPLE_AUTH_KEY}
     )
     response_dict = response.get_json()
+    assert response.headers["Content-Type"] == "application/json"
     assert response.status_code == 200
     assert response_dict["settings"] is None
     assert response_dict["model"] is None
@@ -132,6 +144,7 @@ def test_get_transcriptions_without_files(rest_client):
     """Test the get transcriptions endpoint without files"""
     response = rest_client.get("/transcriptions", headers={"key": EXAMPLE_AUTH_KEY})
     assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/json"
     assert response.get_json() == []
 
 
@@ -150,6 +163,7 @@ def test_get_transcriptions_with_files(rest_client, cleanup_data):
         f"/transcriptions/{transcription_id}",
         headers={"key": EXAMPLE_AUTH_KEY},
     )
+    assert response_get.headers["Content-Type"] == "application/json"
     assert response_get.status_code == 200
     response_dict_get = response_get.get_json()
     assert "transcription_id" in response_dict_get
@@ -181,6 +195,7 @@ def test_post_transcription_with_settings_model(rest_client, cleanup_data):
         f"/transcriptions/{transcription_id}", headers={"key": EXAMPLE_AUTH_KEY}
     )
     response_dict = response.get_json()
+    assert response.headers["Content-Type"] == "application/json"
     assert response.status_code == 200
     assert response_dict["settings"] == {"test": "test"}
     assert response_dict["model"] == "tiny"
@@ -213,6 +228,7 @@ def test_post_transc_with_tomany_audio_files_stored_not_including_model(
             content_type="multipart/form-data",
         )
     response_dict = response.get_json()
+    assert response.headers["Content-Type"] == "application/json"
     assert response.status_code == 200
     assert response_dict["status"] == "in_query"
     assert response_dict["transcription_id"] is not None
