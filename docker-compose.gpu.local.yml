@@ -2,12 +2,21 @@ version: '3'
 
 services:
   asr-api:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.gpu
     container_name: asr-api
     volumes:
       - ./models:/asr-api/models
       - ./data:/asr-api/data
-      - ./config.yml:/asr-api/config.yml
+      - ./config.gpu.yml:/asr-api/config.yml
     ports:
       - "8393:8393"
       - "8394:8394"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
