@@ -16,5 +16,10 @@ RUN apt-get update && apt-get install -y python3.10 python3-pip ffmpeg && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
 
+# Set the cuda path
+ENV PATH /usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+
 # Set unbuffered output for Python, facilitating real-time log output
 CMD ["python3", "-u", "app.py"]
