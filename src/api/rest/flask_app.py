@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from functools import wraps
 from pydub import AudioSegment
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from src.helper.logger import Color, Logger
 from src.config import CONFIG
 from src.helper.types.transcription_status import (
@@ -25,6 +25,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
     def require_api_key(func):
         """Decorator function to require an API key for a route"""
 
+        
         @wraps(func)
         def wrapper(*args, **kwargs):
             api_key = request.headers.get("key")
@@ -48,13 +49,16 @@ def create_app(api_keys=CONFIG["api_keys"]):
     @require_api_key
     def show_config():
         """Function that returns the config of this service."""
-        return json.dumps(CONFIG, indent=4)
+        config_info = CONFIG.copy()
+        # remove api_keys from config, as we don't want to show them
+        config_info.pop("api_keys")
+        return make_response(json.dumps(config_info, indent=4), 200, {"Content-Type": "application/json"})
 
     @app.route("/health", methods=["GET"])
     @require_api_key
     def health_check():
         """return health status"""
-        return "OK"
+        return make_response("OK", 200)
 
     @app.route("/transcriptions", methods=["GET"])
     @require_api_key
@@ -75,7 +79,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
             except Exception as e:
                 LOGGER.print_error(f"Error while reading status file {file_name}: {e}")
                 DATA_HANDLER.delete_status_file(file_name)
-        return jsonify(transcriptions)
+        return make_response(jsonify(transcriptions), 200, {"Content-Type": "application/json"})
 
     @app.route("/transcriptions/<transcription_id>", methods=["GET"])
     @require_api_key
@@ -83,8 +87,8 @@ def create_app(api_keys=CONFIG["api_keys"]):
         """API endpoint to get the status of a transcription"""
         file = DATA_HANDLER.get_status_file_by_id(transcription_id)
         if file:
-            return jsonify(file), 200
-        return "Transcription ID not found", 404
+            return make_response(file, 200, {"Content-Type": "application/json"})
+        return make_response("Transcription ID not found", 404)
 
     @app.route("/transcriptions", methods=["POST"])
     @require_api_key
@@ -100,7 +104,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
                     AudioSegment.from_file(file.stream), transcription_id
                 )
                 if result["success"] is not True:
-                    return jsonify(result["message"]), 400
+                    return make_response(jsonify(result["message"]), 400, {"Content-Type": "application/json"})
 
                 # sleep to make sure that the file is saved before the transcription starts
                 time.sleep(0.1)
@@ -121,10 +125,10 @@ def create_app(api_keys=CONFIG["api_keys"]):
                 }
 
                 DATA_HANDLER.write_status_file(transcription_id, data)
-                return jsonify(data), 200
+                return make_response(jsonify(data), 200, {"Content-Type": "application/json"})
 
         except Exception as e:
             LOGGER.print_error(f"Error while POST /transcriptions: {e}")
-        return "Something went wrong"
+        return make_response("Something went wrong", 500)
 
     return app
