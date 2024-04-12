@@ -1,5 +1,4 @@
-# Make sure to install the NVIDIA Container Toolkit: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:12.4.1-base-ubuntu22.04
 
 EXPOSE 8394
 EXPOSE 8393
