@@ -21,7 +21,7 @@ class VoskWebSocketServer:
         self.all_chunk_cache = b""
 
         # number of chunks to cache for partial transcription
-        self.moving_chunk_cache_size = 5
+        self.moving_chunk_cache_size = 10
 
         self.sample_rate = 16000
         self.num_channels = 1
@@ -44,9 +44,10 @@ class VoskWebSocketServer:
                     print("Received audio data ({} bytes)".format(len(message)))
                     start_time = time.time()
                     response = self.transcribe_chunk_partial(message)
+                    # hier müssen wir sicherstellen, dass der transcribe_chunk_partial nicht länger läuft, als die Chunks lang sind.
                     await websocket.send(response)
                     end_time = time.time()
-                    print("Sent transcription (took {:.2f} ms)".format(end_time - start_time))
+                    print("Sent transcription (took {:.2f} s)".format(end_time - start_time))
                 else:
                     print(message)
                     if "config" in message:
