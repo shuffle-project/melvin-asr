@@ -1,4 +1,6 @@
 """Example of using the Websocket Server by sending Microphone audio asynchronously."""
+import webrtcvad
+import pyaudio
 import asyncio
 import json
 import threading
@@ -21,9 +23,11 @@ class SpeechListener:
         self.loop = asyncio.new_event_loop()
         self.websocket_task = threading.Thread(target=self.start_websocket_task)
         self.listen_thread = None
+        self.vad = webrtcvad.Vad()
+        self.vad.set_mode(1)
 
     async def send_file_as_websocket(self):
-        """Sends the input file to the WebSocket server."""
+        """Sends the input file to the WebSocket server and prints responses."""
         while not self.stop_event.is_set():
             try:
                 data = self.audio_queue.get(timeout=1)
@@ -34,44 +38,30 @@ class SpeechListener:
                 await websocket.send(data)
                 print("Sent audio data")
                 response = await websocket.recv()
-                print("\033[90m" + response + "\033[0m")
-                # try:
-                #     data = json.loads(response)
-                #     if "segments" in data:
-                #         for segment in data["segments"]:
-                #             print("\033[96m" + segment[4] + "\033[0m")
-                # except Exception as e:
-                #     print("\033[93m" + str(e) + "\033[0m")
+                print_response = json.loads(response)
+                if 'partial' in print_response:
+                    print(f"Transcription: {print_response['partial']}")
+                else:
+                    print("Received: ", response)
 
     def listen_for_speech(self):
-        """Listens to the microphone and puts the audio data into the queue."""
+        """Listens to the microphone and puts the audio data into the queue in smaller chunks."""
         with sr.Microphone() as source:
+            p = pyaudio.PyAudio()
+            stream = p.open(format=pyaudio.paInt16,
+                            channels=1,
+                            rate=16000,
+                            input=True,
+                            frames_per_buffer=320)  # 20 ms of audio per buffer
+            print("Listening for speech...")
             while not self.stop_event.is_set():
-                print("Say something!")
-                start_time = time.time()
-                audio_data = self.recognizer.record(source, duration=AUDIO_FILE_LENGTH)
-
-                elapsed_time = time.time() - start_time
-                if elapsed_time < AUDIO_FILE_LENGTH:
-                    # If recording is shorter than AUDIO_FILE_LENGTH seconds,
-                    # add silence to make it AUDIO_FILE_LENGTH seconds long
-                    silence_duration = AUDIO_FILE_LENGTH - elapsed_time
-                    silence = AudioSegment.silent(duration=silence_duration * 1000)
-                    audio_segment = AudioSegment(
-                        data=audio_data.get_wav_data(),
-                        sample_width=audio_data.sample_width,
-                        frame_rate=audio_data.sample_rate,
-                        channels=1,
-                    )
-                    audio_segment += silence
-                else:
-                    audio_segment = AudioSegment(
-                        data=audio_data.get_wav_data(),
-                        sample_width=audio_data.sample_width,
-                        frame_rate=audio_data.sample_rate,
-                        channels=1,
-                    )
-
+                audio_data = self.recognizer.listen(source, phrase_time_limit=0.5)  # Capture continuously in 0.5 sec chunks
+                audio_segment = AudioSegment(
+                    data=audio_data.get_wav_data(),
+                    sample_width=audio_data.sample_width,
+                    frame_rate=audio_data.sample_rate,
+                    channels=1,
+                )
                 resampled_audio = audio_segment.set_frame_rate(16000).set_channels(1)
                 resampled_audio_data = resampled_audio.raw_data
                 self.audio_queue.put(resampled_audio_data)
