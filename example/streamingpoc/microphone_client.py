@@ -1,5 +1,4 @@
 """Example of using the Websocket Server by sending Microphone audio asynchronously."""
-import webrtcvad
 import pyaudio
 import asyncio
 import json
@@ -10,7 +9,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 import websockets
 
-AUDIO_FILE_LENGTH = 1  # seconds
+phrase_time_limit = 0.5  # seconds
 
 
 class SpeechListener:
@@ -23,8 +22,6 @@ class SpeechListener:
         self.loop = asyncio.new_event_loop()
         self.websocket_task = threading.Thread(target=self.start_websocket_task)
         self.listen_thread = None
-        self.vad = webrtcvad.Vad()
-        self.vad.set_mode(1)
 
     async def send_file_as_websocket(self):
         """Sends the input file to the WebSocket server and prints responses."""
@@ -55,7 +52,7 @@ class SpeechListener:
                             frames_per_buffer=320)  # 20 ms of audio per buffer
             print("Listening for speech...")
             while not self.stop_event.is_set():
-                audio_data = self.recognizer.listen(source, phrase_time_limit=0.5)  # Capture continuously in 0.5 sec chunks
+                audio_data = self.recognizer.listen(source, phrase_time_limit)  # Capture continuously in 0.5 sec chunks
                 audio_segment = AudioSegment(
                     data=audio_data.get_wav_data(),
                     sample_width=audio_data.sample_width,
