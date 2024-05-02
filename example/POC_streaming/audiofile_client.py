@@ -47,14 +47,14 @@ class SpeechListener:
             data = self.audio_chunks.pop(0).raw_data
             print("chunks left: ", len(self.audio_chunks))
             await websocket.send(data)
-            time.sleep(AUDIO_CHUNK_LENGTH / 1000.0)  # Maintain sending rate as per chunk length
+            time.sleep(AUDIO_CHUNK_LENGTH / 1000.0 / 2.5)  # Maintain sending rate as per chunk length
         except queue.Empty:
             return
 
     async def receive_from_websocket(self, websocket):
         """Receives responses from the WebSocket server."""
         try:
-            response = await asyncio.wait_for(websocket.recv(), timeout=1)
+            response = await asyncio.wait_for(websocket.recv(), timeout=AUDIO_CHUNK_LENGTH / 1000.0/ 2.5)
             print(f"Received from server: {response}")
         except asyncio.TimeoutError:
             print("Timeout error")
