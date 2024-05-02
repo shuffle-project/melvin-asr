@@ -43,9 +43,7 @@ class StreamingModelHandler:
             if free_model:
                 segments, info = free_model["model"].transcribe(
                     wav_io,
-                    word_timestamps=True,
-                    device="cuda",
-                    compute_type="float16",
+                    word_timestamps=True
                 )
                 result = parse_segments_and_info_to_dict(segments, info)
             else:
