@@ -20,7 +20,7 @@ class SpeechListener:
         self.loop = asyncio.new_event_loop()
         self.websocket_task = threading.Thread(target=self.run_websocket_tasks)
         self.listen_thread = threading.Thread(target=self.listen_for_speech)
-        self.websocket_url = "ws://localhost:8764"
+        self.websocket_url = "ws://141.62.73.33:8764"
 
     async def send_file_as_websocket(self, websocket):
         """Sends the input file to the WebSocket server and prints responses."""
