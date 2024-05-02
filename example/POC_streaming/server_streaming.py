@@ -15,12 +15,11 @@ BYTES_PER_SECOND = 32000
 
 # We want to print a final transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a final transcription
-FINAL_TRANSCRIPTION_TIMEOUT = 15
+FINAL_TRANSCRIPTION_TIMEOUT = 10
 
 # We want to print a partial transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a partial transcription
 PARTIAL_TRANSCRIPTION_TIMEOUT = 0.5
-
 
 class VoskWebSocketServer:
     """Class to handle a Vosk like WebSocket ASR server"""
@@ -29,11 +28,15 @@ class VoskWebSocketServer:
         # Cache for the last few chunks of audio
         self.recently_added_chunk_cache = b""
 
+        # Cache for the transcribed partials since the last final
+        self.partials_transcribed_since_last_final = b""
+
         # Cache for the chunks since the last final
         self.chunk_cache = b""
 
         # indicates that the server is in use
         self.is_busy = False
+
 
     async def main(self):
         async with websockets.serve(self.echo, "localhost", PORT):
@@ -41,32 +44,29 @@ class VoskWebSocketServer:
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
-
-        print(path)
-
         while True:
             try:
                 message = await websocket.recv()
-                print(len(message))
-                print(len(self.recently_added_chunk_cache))
-                print(len(self.chunk_cache))
+                # print(len(message))
+                # print(len(self.recently_added_chunk_cache))
+                # print(len(self.chunk_cache))
                 print("********** NEW MESSAGE **********")
                 if (isinstance(message, bytes) is True):
                     self.chunk_cache += message
                     self.recently_added_chunk_cache += message
                     print("Received audio data ({} bytes)".format(len(message)))
                     print("Cache size: {} bytes".format(len(self.recently_added_chunk_cache)))
-                    if (len(self.recently_added_chunk_cache) >= BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT):
-                        print("********** NEW PARTIAL **********")
-                        # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
-                        asyncio.ensure_future(self.transcribe_chunk_partial(websocket, self.chunk_cache))
-
-                        self.recently_added_chunk_cache = b""
-
+                    print("Cache size: {} bytes".format(len(self.recently_added_chunk_cache)))
                     if len(self.chunk_cache) >= BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT:
                         print("********** NEW FINAL **********")
                         asyncio.ensure_future(self.transcribe_all_chunk_cache(websocket, self.chunk_cache))
                         self.chunk_cache = b""
+                        self.partials_transcribed_since_last_final = b""
+                    if (len(self.recently_added_chunk_cache) >= BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT):
+                        print("********** NEW PARTIAL **********")
+                        # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
+                        asyncio.ensure_future(self.transcribe_chunk_partial(websocket, self.chunk_cache, message))
+                        self.recently_added_chunk_cache = b""
 
                 else:
                     print("Received message: {}".format(message))
@@ -100,17 +100,15 @@ class VoskWebSocketServer:
                     )
                 text = text + segment["text"]
             result = json.dumps({"result": result, "text": text}, indent=2)
-        print(result)
         await websocket.send(result)
         end_time = time.time()
         print("Sent transcription (took {:.2f} s)".format(end_time - start_time))
 
-    async def transcribe_chunk_partial(self, websocket, chunk_cache) -> str:
+    async def transcribe_chunk_partial(self, websocket, chunk_cache, message) -> str:
         start_time = time.time()
         result: str = "Missing data"
 
         data = await transcribe_bytes(chunk_cache)
-        print(f"Transcribed ({len(chunk_cache)} bytes)")
         if "segments" in data:
             text = ""
             for segment in data["segments"]:
@@ -119,7 +117,11 @@ class VoskWebSocketServer:
         else :
             print("Transcription Data is empty, no segments found")
         await websocket.send(result)
-        print("result: ", result)
+
+        self.partials_transcribed_since_last_final += message
+        print("Audio seconds transcribed since the last final:" + str(len(self.partials_transcribed_since_last_final) / BYTES_PER_SECOND))
+        print("Audio seconds in cache since last final:" + str(len(self.chunk_cache) / BYTES_PER_SECOND))
+
         end_time = time.time()
         print("Start time: {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time)) + f'.{int((start_time % 1) * 1000):03d}'))
         print("End time: {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time)) + f'.{int((end_time % 1) * 1000):03d}'))
