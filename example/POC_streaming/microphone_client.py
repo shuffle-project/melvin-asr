@@ -1,7 +1,4 @@
-"""Example of using the Websocket Server by sending Microphone audio asynchronously."""
-import pyaudio
 import asyncio
-import json
 import threading
 import time
 import queue
@@ -9,7 +6,8 @@ import speech_recognition as sr
 from pydub import AudioSegment
 import websockets
 
-AUDIO_FILE_LENGTH = 4  # seconds
+# Capture continuously in seconds
+AUDIO_FILE_LENGTH = 0.5
 
 
 class SpeechListener:
@@ -20,34 +18,34 @@ class SpeechListener:
         self.stop_event = threading.Event()
         self.audio_queue = queue.Queue()
         self.loop = asyncio.new_event_loop()
-        self.websocket_task = threading.Thread(target=self.start_websocket_task)
-        self.listen_thread = None
+        self.websocket_task = threading.Thread(target=self.run_websocket_tasks)
+        self.listen_thread = threading.Thread(target=self.listen_for_speech)
+        self.websocket_url = "ws://localhost:8764"
 
-    async def send_file_as_websocket(self):
+    async def send_file_as_websocket(self, websocket):
         """Sends the input file to the WebSocket server and prints responses."""
-        while not self.stop_event.is_set():
-            try:
-                data = self.audio_queue.get(timeout=1)
-            except queue.Empty:
-                continue
+        try:
+            data = self.audio_queue.get(timeout=AUDIO_FILE_LENGTH/10)
+            await websocket.send(data)
+        except queue.Empty:
+            # print("Queue is empty.")
+            return
 
-            async with websockets.connect("ws://localhost:8764") as websocket:
-                await websocket.send(data)
-                print("Sent audio data")
-                response = await websocket.recv()
-                print_response = json.loads(response)
-                if 'partial' in print_response:
-                    print(f"Transcription: {print_response['partial']}")
-                else:
-                    print("Received: ", response)
+    async def receive_from_websocket(self, websocket):
+        """Receives the response from the WebSocket server."""
+        # print("Receiving from WebSocket server...")
+        try:
+            response = await asyncio.wait_for(websocket.recv(), timeout=AUDIO_FILE_LENGTH/10)
+            print(f"Received from server: {response}")
+        except asyncio.TimeoutError:
+            return
 
     def listen_for_speech(self):
         """Listens to the microphone and puts the audio data into the queue in smaller chunks."""
         with sr.Microphone() as source:
-
-            print("Listening for speech...")
+            # print("Listening for speech...")
             while not self.stop_event.is_set():
-                audio_data = self.recognizer.listen(source, phrase_time_limit = 0.5)  # Capture continuously in 0.5 sec chunks
+                audio_data = self.recognizer.listen(source, phrase_time_limit=AUDIO_FILE_LENGTH)
                 audio_segment = AudioSegment(
                     data=audio_data.get_wav_data(),
                     sample_width=audio_data.sample_width,
@@ -55,19 +53,24 @@ class SpeechListener:
                     channels=1,
                 )
                 resampled_audio = audio_segment.set_frame_rate(16000).set_channels(1)
-                resampled_audio_data = resampled_audio.raw_data
-                self.audio_queue.put(resampled_audio_data)
+                self.audio_queue.put(resampled_audio.raw_data)
+
+    def run_websocket_tasks(self):
+        """Manages WebSocket tasks."""
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_until_complete(self.websocket_tasks())
+
+    async def websocket_tasks(self):
+        async with websockets.connect(self.websocket_url) as websocket:
+            while not self.stop_event.is_set():
+                send_task = asyncio.create_task(self.send_file_as_websocket(websocket))
+                receive_task = asyncio.create_task(self.receive_from_websocket(websocket))
+                await asyncio.gather(send_task, receive_task)
 
     def start_listening(self):
         """Starts the listening thread and the websocket task."""
-        self.listen_thread = threading.Thread(target=self.listen_for_speech)
         self.listen_thread.start()
         self.websocket_task.start()
-
-    def start_websocket_task(self):
-        """Starts the websocket task."""
-        asyncio.set_event_loop(self.loop)
-        self.loop.run_until_complete(self.send_file_as_websocket())
 
     def stop_listening(self):
         """Stops the listening thread and the websocket task."""
