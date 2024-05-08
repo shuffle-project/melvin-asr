@@ -45,7 +45,7 @@ class SpeechListener:
         with sr.Microphone() as source:
             # print("Listening for speech...")
             while not self.stop_event.is_set():
-                audio_data = self.recognizer.listen(source, phrase_time_limit=AUDIO_FILE_LENGTH)
+                audio_data = self.recognizer.record(source, duration=AUDIO_FILE_LENGTH)
                 audio_segment = AudioSegment(
                     data=audio_data.get_wav_data(),
                     sample_width=audio_data.sample_width,

@@ -34,8 +34,7 @@ This could help to find out when a partial is a logic context that is ready to b
 - SileroVAD? https://github.com/snakers4/silero-vad?tab=readme-ov-file
 
 **Whisper VAD**
-Whisper VAD does run VAD automatically before running the transcription on the audio chunk. This does not help with context recognition.
-We should try it out for better result quality.
+Whisper VAD does run VAD automatically before running the transcription on the audio chunk. This does not help with context recognition but it does increase the transcription time. MacBook M2 on 1 second chunks at a tiny model: From 0,7-0,8sec transcription time to 0.5-0.6 transcription time.
 
 ### Chunk size & Chunk cache size
 - **Chunk size**: We need to collect 2sec of audio bytes to archive useful transcriptions by transcribing with Whsiper. That is why we need to collect partials bigger than 2 seconds. 
@@ -49,6 +48,14 @@ We want to track the performance and latency of the stream by measuring the time
 
 ### Transcription Workflow
 - **Async**: We had issues with a client-workflow where the websocket protocoll did wait for a message to receive before sending the message to the server. This brought us to the conclution that we want to handle each incoming and outgoing message asnycronously on the server and the client. This is how websocket is design and it does allow messages to fail (in transcription or handling) while the server keeps operating. 
+
+### Automated Threshold adjustments
+There are 2 main factors for transcribing partials and finals in our system.
+1. The length of a partial chunk when it is transcribed 
+2. The length of a final chunk when it is transcribed
+
+By monitoring the latecy between received and transcribed audio data, we can increase the partial chunk size between transcriptions to lower cpu/gpu usage when it is using to much power.
+This allows us to make sure that the stream is not falling behind to much, when the transcriptions are not going fast enough.
 
 ### Model setup and size
 

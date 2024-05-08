@@ -5,7 +5,7 @@ import websockets
 
 from streaming_model_handler import StreamingModelHandler
 
-transcribe_bytes = StreamingModelHandler(3).transcribe_bytes
+transcribe_bytes = StreamingModelHandler().transcribe_bytes
 
 PORT = 8764
 
@@ -15,7 +15,7 @@ BYTES_PER_SECOND = 32000
 
 # We want to print a final transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a final transcription
-FINAL_TRANSCRIPTION_TIMEOUT = 5
+FINAL_TRANSCRIPTION_TIMEOUT = 6
 
 # We want to print a partial transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a partial transcription
@@ -42,76 +42,49 @@ class VoskWebSocketServer:
         self.overall_transcribed_bytes = b""
         self.overall_audio_bytes = b""
 
+        # Byte threshold for partial and final transcriptions
+        # If the cache is larger than the threshold, we transcribe
+        self.final_treshold = BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
+        self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
+
     async def main(self):
         async with websockets.serve(self.echo, "localhost", PORT):
             print("Server started at port {}".format(PORT))
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
+        print("echo started")
         self.overall_audio_bytes = b""
         self.overall_transcribed_bytes = b""
-        start_time_new_connection = time.time()
         while True:
             try:
                 message = await websocket.recv()
-                print("********** NEW MESSAGE **********")
-                print("Time since last connection: {}".format(time.time() - start_time_new_connection))
-                print(
-                    "overall audio bytes: {}".format(
-                        str(len(self.overall_audio_bytes) / BYTES_PER_SECOND)
-                    )
-                )
-                print(
-                    "overall transcribed bytes: {}".format(
-                        str(len(self.overall_transcribed_bytes) / BYTES_PER_SECOND)
-                    )
-                )
-                print(
-                    "difference in s: {}".format(
-                        str(
-                            (
-                                len(self.overall_audio_bytes)
-                                - len(self.overall_transcribed_bytes)
-                            )
-                            / BYTES_PER_SECOND
-                        )
-                    )
-                )
+                # print("********** NEW MESSAGE **********")
                 if isinstance(message, bytes) is True:
                     self.chunk_cache += message
                     self.recently_added_chunk_cache += message
                     self.overall_audio_bytes += message
-                    print("Received audio data ({} bytes)".format(len(message)))
-                    print(
-                        "Cache size: {} bytes".format(
-                            len(self.recently_added_chunk_cache)
-                        )
-                    )
-                    print(
-                        "Cache size: {} bytes".format(
-                            len(self.recently_added_chunk_cache)
-                        )
-                    )
-                    if (
-                        len(self.chunk_cache)
-                        >= BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
-                    ):
+
+                    if len(self.chunk_cache) >= self.final_treshold:
                         print("********** NEW FINAL **********")
                         asyncio.ensure_future(
                             self.transcribe_all_chunk_cache(
-                                websocket, self.chunk_cache, message
+                                websocket,
+                                self.chunk_cache,
+                                self.recently_added_chunk_cache,
                             )
                         )
+                        self.recently_added_chunk_cache = b""
                         self.chunk_cache = b""
-                    if (
-                        len(self.recently_added_chunk_cache)
-                        >= BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
-                    ):
+
+                    if len(self.recently_added_chunk_cache) >= self.partial_treshold:
                         print("********** NEW PARTIAL **********")
                         # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
                         asyncio.ensure_future(
                             self.transcribe_chunk_partial(
-                                websocket, self.chunk_cache, message
+                                websocket,
+                                self.chunk_cache,
+                                self.recently_added_chunk_cache,
                             )
                         )
                         self.recently_added_chunk_cache = b""
@@ -119,21 +92,27 @@ class VoskWebSocketServer:
                 else:
                     print("Received message: {}".format(message))
                     await websocket.send("wrong data type")
+
             except websockets.exceptions.ConnectionClosedOK:
+                print("Client left")
                 break
             except websockets.exceptions.ConnectionClosedError:
                 print("Client left unexpectedly")
                 break
             except Exception as e:
+                print("Error occurred")
                 print(e)
                 break
 
-    async def transcribe_all_chunk_cache(self, websocket, chunk_cache, message) -> str:
+    async def transcribe_all_chunk_cache(
+        self, websocket, chunk_cache, recent_cache
+    ) -> str:
         """Function to transcribe a chunk of audio"""
         start_time = time.time()
         result: str = ""
         data = await transcribe_bytes(chunk_cache)
-        self.overall_transcribed_bytes += message
+        self.adjust_threshold_on_latency()
+        self.overall_transcribed_bytes += recent_cache
         if "segments" in data:
             result = []
             text = ""
@@ -151,14 +130,17 @@ class VoskWebSocketServer:
             result = json.dumps({"result": result, "text": text}, indent=2)
         await websocket.send(result)
         end_time = time.time()
-        print("Sent transcription (took {:.2f} s)".format(end_time - start_time))
+        print("Final Transcription took {:.2f} s".format(end_time - start_time))
 
-    async def transcribe_chunk_partial(self, websocket, chunk_cache, message) -> str:
+    async def transcribe_chunk_partial(
+        self, websocket, chunk_cache, recent_cache
+    ) -> str:
         start_time = time.time()
         result: str = "Missing data"
 
         data = await transcribe_bytes(chunk_cache)
-        self.overall_transcribed_bytes += message
+        self.adjust_threshold_on_latency()
+        self.overall_transcribed_bytes += recent_cache
         if "segments" in data:
             text = ""
             for segment in data["segments"]:
@@ -169,21 +151,58 @@ class VoskWebSocketServer:
         await websocket.send(result)
 
         end_time = time.time()
-        print(
-            "Start time: {}".format(
-                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
-                + f".{int((start_time % 1) * 1000):03d}"
-            )
-        )
-        print(
-            "End time: {}".format(
-                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
-                + f".{int((end_time % 1) * 1000):03d}"
-            )
-        )
+        # print(
+        #     "Start time: {}".format(
+        #         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
+        #         + f".{int((start_time % 1) * 1000):03d}"
+        #     )
+        # )
+        # print(
+        #     "End time: {}".format(
+        #         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
+        #         + f".{int((end_time % 1) * 1000):03d}"
+        #     )
+        # )
         print("Partial transcription took {:.2f} s".format(end_time - start_time))
 
+    def adjust_threshold_on_latency(self):
+        """Adjusts the partial threshold based on the latency"""
+        seconds_received = len(self.overall_audio_bytes) / BYTES_PER_SECOND
+        seconds_transcribed = (
+            len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
+        )
+        # Calculate the latency of the connection
+        seconds_difference_received_transcribed = (
+            seconds_received - seconds_transcribed
+        )
+        print(
+            "Difference received transcribed: {}".format(
+                seconds_difference_received_transcribed
+            )
+        )
+
+        # FINAL TRANSCRIPTION TIMEOUT is out definition of bad latency
+        if seconds_difference_received_transcribed > FINAL_TRANSCRIPTION_TIMEOUT:
+            print("Latency is too high, increasing partial threshold")
+            self.partial_treshold = self.partial_treshold * 1.5
+            if self.partial_treshold > self.final_treshold:
+                self.partial_treshold = self.final_treshold
+                print("Partial threshold is now equal to final threshold")
+        
+        if seconds_difference_received_transcribed < FINAL_TRANSCRIPTION_TIMEOUT / 4:
+            print("Latency is low, decreasing partial threshold")
+            self.partial_treshold = self.partial_treshold * 0.75
+            if self.partial_treshold < BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT:
+                self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
+                print("Partial threshold is now equal to the default threshold")
+
+        print("Partial threshold is now: {}".format(self.partial_treshold / BYTES_PER_SECOND))
+        
 
 if __name__ == "__main__":
-    server = VoskWebSocketServer()
-    asyncio.run(server.main())
+    try:
+        server = VoskWebSocketServer()
+        asyncio.run(server.main())
+    except KeyboardInterrupt as e:
+        print("interrupted by user")
+        exit()
