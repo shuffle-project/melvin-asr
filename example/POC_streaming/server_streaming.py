@@ -15,11 +15,11 @@ BYTES_PER_SECOND = 32000
 
 # We want to print a final transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a final transcription
-FINAL_TRANSCRIPTION_TIMEOUT = 10
+FINAL_TRANSCRIPTION_TIMEOUT = 5
 
 # We want to print a partial transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a partial transcription
-PARTIAL_TRANSCRIPTION_TIMEOUT = 2
+PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 
 class VoskWebSocketServer:
