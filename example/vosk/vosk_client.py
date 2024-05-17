@@ -24,7 +24,7 @@ async def run_test(uri):
             print(await websocket.recv())
 
         await websocket.send('{"eof" : 1}')
-        print(await websocket.recv())
+        print(websocket.recv())
 
 
 asyncio.run(run_test("ws://localhost:8764"))
