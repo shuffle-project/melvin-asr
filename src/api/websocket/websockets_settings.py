@@ -5,4 +5,5 @@ def default_websocket_settings():
     """Function to get the settings for the websockets server"""
     return {
         "word_timestamps": True,
+        "vad_filter": True
     }

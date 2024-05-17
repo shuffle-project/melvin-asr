@@ -24,7 +24,7 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 
 class WebSocketServer:
-    """Class to handle a Vosk like WebSocket ASR server"""
+    """Class to handle a WebSocket ASR server"""
 
     def __init__(self, port: int, host: str = "localhost"):
         self.port = port
@@ -54,7 +54,6 @@ class WebSocketServer:
 
     async def main(self):
         async with websockets.serve(self.echo, self.host, self.port):
-            print("Server started at port {}".format(self.port))
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
