@@ -96,7 +96,7 @@ class Transcriber:
         """Function to run the transcription process"""
         self.load_model()
         try:
-            self.log.print_log("Transcribing audio segment")
+            self.log.print_log("Transcribing audio chunk of length: " + str(len(audio_chunk)))
             result = "ERROR"
             with io.BytesIO() as wav_io:
                 with wave.open(wav_io, "wb") as wav_file:
@@ -134,5 +134,7 @@ class Transcriber:
     ) -> dict:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
+        print("settings", settings)
         segments, info = model.transcribe(audio, **settings)
+        print("segments", segments)
         return parse_segments_and_info_to_dict(segments, info)

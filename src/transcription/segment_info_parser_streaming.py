@@ -33,6 +33,8 @@ def parse_transcription_info_to_dict(info) -> dict:
 def parse_segment_words_to_dict(words_array): # type words_array: [[]] -> [dict]
     """Parses the transcription segment word to a dictionary"""
     new_word_array = []
+    if (words_array is None):
+        return new_word_array
     for word_array in words_array:
         word_dict = {
             "start": word_array[0],
@@ -47,7 +49,9 @@ def parse_segment_words_to_dict(words_array): # type words_array: [[]] -> [dict]
 def parse_transcription_segments_to_dict(segment): # type segment -> [dict]
     """Parses the transcription segment to a dictionary"""
     segments_array = json.loads(json.dumps(segment))
-    new_segments_array = []
+    new_segments_array = []    
+    if (segment is None):
+        return new_segments_array
     for segment_array in segments_array:
         segment_dict = {
             "id": segment_array[0],
