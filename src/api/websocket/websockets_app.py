@@ -4,6 +4,7 @@ import json
 import time
 import websockets
 
+from src.config import CONFIG
 from src.api.websocket.websockets_settings import default_websocket_settings
 from src.helper.logger import Color, Logger
 from src.transcription.transcriber import Transcriber
@@ -29,7 +30,8 @@ class WebSocketServer:
     def __init__(self, port: int, host: str = "localhost"):
         self.port = port
         self.host = host
-        self.transcriber = Transcriber(model_name="tiny", device="cpu", compute_type="int8")
+        LOGGER.print_log("Websocket Transcriber Config: {}".format(CONFIG["stream_runner"][0]))
+        self.transcriber = Transcriber(model_name=CONFIG["stream_runner"][0]["model"], device=CONFIG["stream_runner"][0]["device"], compute_type=CONFIG["stream_runner"][0]["compute_type"])
 
         # Cache for the last few chunks of audio
         self.recently_added_chunk_cache = b""
