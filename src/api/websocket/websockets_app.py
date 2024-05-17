@@ -59,7 +59,6 @@ class WebSocketServer:
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
-        print("echo started")
         self.overall_audio_bytes = b""
         self.overall_transcribed_bytes = b""
         while True:

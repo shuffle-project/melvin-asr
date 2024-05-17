@@ -134,7 +134,5 @@ class Transcriber:
     ) -> dict:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
-        print("settings", settings)
         segments, info = model.transcribe(audio, **settings)
-        print("segments", segments)
         return parse_segments_and_info_to_dict(segments, info)
