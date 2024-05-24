@@ -60,8 +60,8 @@ def read_config(config_yml_path: str) -> dict:
     }
 
 
-if (os.path.exists(os.getcwd() + "/config.dev.yml")):
-    CONFIG = read_config(os.getcwd() + "/config.dev.yml")
+if (os.path.exists(os.getcwd() + "/config.local.yml")):
+    CONFIG = read_config(os.getcwd() + "/config.local.yml")
 elif (os.path.exists(os.getcwd() + "/config.yml")):
     CONFIG = read_config(os.getcwd() + "/config.yml")
 else:

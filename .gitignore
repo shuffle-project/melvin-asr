@@ -6,3 +6,4 @@ whisper.cpp
 .coverage.*
 .pytest_cache
 .ruff_cache
+.DS_Store

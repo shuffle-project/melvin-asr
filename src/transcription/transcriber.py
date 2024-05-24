@@ -1,11 +1,12 @@
 """ Module to handle the transcription process """
+import io
 import os
 import time
+import wave
 from faster_whisper import WhisperModel
-from faster_whisper.transcribe import TranscriptionInfo
-import numpy as np
 from src.config import CONFIG
 from src.helper.logger import Logger, Color
+from src.transcription.segment_info_parser_streaming import parse_segments_and_info_to_dict
 from src.transcription.transcription_settings import TranscriptionSettings
 
 LOGGER = Logger("Transcriber", True, Color.MAGENTA)
@@ -82,67 +83,33 @@ class Transcriber:
         model_path = os.getcwd() + CONFIG["model_path"] + model_name
         return model_path
 
-    def parse_transcription_info_to_dict(self, info: TranscriptionInfo) -> dict:
-        """Function to convert the transcription info to a dictionary"""
-        # TUPEL attributes:
-        #
-        # language: str
-        # language_probability: float
-        # duration: float
-        # duration_after_vad: float
-        # all_language_probs: Optional[List[Tuple[str, float]]]
-        # transcription_options: TranscriptionOptions
-        # vad_options: VadOptions
-
-        info_dict = {
-            "language": info.language,
-            "language_probability": info.language_probability,
-            "duration": info.duration,
-            "duration_after_vad": info.duration_after_vad,
-            # "all_language_probs": info.all_language_probs,
-            "transcription_options": info.transcription_options,
-            "vad_options": info.vad_options,
-        }
-        return info_dict
-
-    def make_segments_and_info_to_dict(
-        self, segments: tuple, info: TranscriptionInfo
-    ) -> dict:
-        """Function to convert the segments and info to a dictionary"""
-        segments_list = list(segments)
-
-        combined_dict = {
-            "segments": segments_list,
-            "info": self.parse_transcription_info_to_dict(info),
-        }
-        return combined_dict
-
-    # returns a dict with success and data {"success": bool, "data": dict}
     @time_it
-    def transcribe_audio_audio_segment(
-        self, audio_segment, settings: dict = None
-    ) -> dict:
+    def transcribe_audio_audio_chunk(
+        self,
+        audio_chunk,
+        settings: dict = None,
+        sample_rate=16000,
+        num_channels=1,
+        sampwidth=2,
+    ) -> dict: # returns a tuple with a dict or None
         """Function to run the transcription process"""
         self.load_model()
         try:
-            self.log.print_log("Transcribing audio segment")
-            audio_data_bytes = (
-                np.frombuffer(audio_segment.raw_data, np.int16)
-                .flatten()
-                .astype(np.float32)
-                / 32768.0
-            )
-            return {
-                "success": True,
-                "data": self.transcribe_with_settings(
-                    audio_data_bytes, self.model, settings
-                ),
-            }
+            self.log.print_log("Transcribing audio chunk of length: " + str(len(audio_chunk)))
+            result = "ERROR"
+            with io.BytesIO() as wav_io:
+                with wave.open(wav_io, "wb") as wav_file:
+                    wav_file.setnchannels(num_channels)
+                    wav_file.setsampwidth(sampwidth)
+                    wav_file.setframerate(sample_rate)
+                    wav_file.writeframes(audio_chunk)
+                wav_io.seek(0)
+                result = self.transcribe_with_settings(wav_io, self.model, settings)
+            return result
         except Exception as e:
             self.log.print_error("Error during transcription: " + str(e))
-            return {"success": False, "data": str(e)}
+            return None
 
-    # returns a dict with success and data {"success": bool, "data": dict}
     @time_it
     def transcribe_audio_file(
         self, audio_file_path: str, settings: dict = None
@@ -167,4 +134,4 @@ class Transcriber:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
         segments, info = model.transcribe(audio, **settings)
-        return self.make_segments_and_info_to_dict(segments, info)
+        return parse_segments_and_info_to_dict(segments, info)

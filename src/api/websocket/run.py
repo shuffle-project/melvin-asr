@@ -11,4 +11,4 @@ def run_websocket_app(websocket_port, host):
     log = Logger("run_websocket_app", True, Color.UNDERLINE)
     log.print_log(f"Starting Websockets server on '{host}:{websocket_port}'")
     web_socket_server = WebSocketServer(port=websocket_port, host=host)
-    asyncio.run(web_socket_server.start_server())
+    asyncio.run(web_socket_server.main())
