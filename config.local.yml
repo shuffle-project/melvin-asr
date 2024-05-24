@@ -1,7 +1,8 @@
 # config_dev.yml
 # This file is used to configure the service locally for development
+
 debug: true
-host: "0.0.0.0"
+host: "localhost"
 api_keys: 
   - "shuffle2024"
   - "api_key_1"
@@ -22,6 +23,9 @@ stream_runner:
       compute_type: int8
 
 rest_runner:
-  -   device: cuda
+  -   device: cpu
       model: tiny
-      compute_type: float16
+      compute_type: int8
+  -   device: cpu
+      model: tiny
+      compute_type: int8

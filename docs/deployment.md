@@ -40,16 +40,12 @@ Once the container is packed and published to the registry, the `docker-compose.
 As ASR-API is delivered as a Docker container, there are multiple things to consider regarding Docker and Docker Compose. Currently there are deployments without a GPU and with a GPU usage in mind.
 
 ### Dockerfile
-The Dockerfiles can be found at root level, there are 2 files:
-1. **Dockerfile**: A simple python based container without GPU setup. This Container will not need any pre-deployment setup on the server.
-
-1. **Dockerfile.gpu**: A more advanced container based upon a Nvidia Cuda container image, it provides support for GPUs. This Container does require a pre-deployment setup of the server.
+**Dockerfile**: An advanced container based upon a Nvidia Cuda container image, it provides support for GPUs. This Container does require a pre-deployment setup of the server, in case you want to utilize the GPU. See the following chapter `Setup a Server with a CUDA GPU`.
 
 ### Docker Compose
-There are 3 different compose files at root level:
-1. **docker-compose.yml**: A compose file, that starts the published version of ASR-API from the GitHub container registry. Does not work with GPU.
-1. **docker-compose.local.yml**: A compose file, that starts the local version of ASR-API from the local source code. It is meant for development and testing new changes. Does not work with GPU.
-1. **docker-compose.gpu.local.yml**:  A compose file, that starts the local version of ASR-API from the local source code. It is meant for development and testing new changes. This one does work with a GPU. Make sure to setup your server as described in the following docs. This compose does reserve a Cuda GPU on the Host.
+**docker-compose.yml**:  A compose file, that starts the local version of ASR-API from the local source code. It is meant for development and testing new changes. This one does work with a GPU. Make sure to setup your server as described in the following docs. This compose does reserve a Cuda GPU on the Host.
+
+*Please make sure to use the published version of the ASR-API in case you want to run a stable version. Publishing is done via GitHub Tags.*
 
 ### Setup a Server with a CUDA GPU
 To use a Docker image from Nvidia/cuda, which we are using, you are required to install the Cuda drivers and a container toolkit that connects the GPU to Docker.

@@ -44,9 +44,9 @@ python ./app.py
 ``` 
 
 ## Configuration
-The configuration of the ASR-API is done in the `config.yml` and `config.dev.yml` file. These files are read by the `src/config.py` module, which is providing configurations to the service logic.
+The configuration of the ASR-API is done in the `config.yml` and `config.local.yml` file. These files are read by the `src/config.py` module, which is providing configurations to the service logic.
 
-The `config.dev.yml` is used for local development.
+The `config.local.yml` is used for local development.
 
 Please make sure to set the required options:
 
