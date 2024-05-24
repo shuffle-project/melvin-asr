@@ -1,4 +1,6 @@
 import asyncio
+import json
+import sys
 import threading
 import time
 import queue
@@ -6,9 +8,9 @@ from pydub import AudioSegment
 import websockets
 
 # Constants
-AUDIO_FILE_PATH = "scholz.wav"
+AUDIO_FILE_PATH = "scholz_in_kurz.wav"
 AUDIO_CHUNK_LENGTH = 1 # seconds
-BYTES_PER_SECOND = 32000  # 16 kHz, 16-bit audio
+BYTES_PER_SECOND = 32000  # 16 kHz, 16-bit audioGPU Usage Metrics 
 
 class SpeechListener:
     """Handles sending audio data from a file to a WebSocket server."""
@@ -19,6 +21,7 @@ class SpeechListener:
         self.websocket_thread = threading.Thread(target=self.run_websocket_tasks)
         self.stop_event = threading.Event()
         self.audio_chunks = []
+        self.reveived_from_server = []
 
     def process_audio_file(self):
         """Reads and queues audio from the file."""
@@ -40,9 +43,7 @@ class SpeechListener:
         """Connects to the WebSocket server and handles sending/receiving."""
         async with websockets.connect(self.websocket_url) as websocket:
             while not self.stop_event.is_set():
-                print("send_task")
                 send_task = asyncio.create_task(self.send_audio_to_websocket(websocket))
-                print("receive_task")
                 receive_task = asyncio.create_task(self.receive_from_websocket(websocket))
                 await asyncio.gather(send_task, receive_task)
 
@@ -50,12 +51,12 @@ class SpeechListener:
         """Sends queued audio data to the WebSocket server."""
         try:
             if (len(self.audio_chunks) == 0):
-                print("No more chunks to send.")
+                print("No more chunks to send. Waiting for server response...")
+                await asyncio.sleep(3)
+                print("\n".join(self.reveived_from_server))
                 exit()
 
             data = self.audio_chunks.pop(0)
-            print("chunks left: ", len(self.audio_chunks))
-            print(type(data))
             await websocket.send(data)
             time.sleep(AUDIO_CHUNK_LENGTH / 2)  # Maintain sending rate as per chunk length
         except queue.Empty:
@@ -65,10 +66,15 @@ class SpeechListener:
         """Receives responses from the WebSocket server."""
         try:
             response = await asyncio.wait_for(websocket.recv(), timeout=AUDIO_CHUNK_LENGTH / 2)
-            print(f"Received from server: {response}")
+            json_response = json.loads(response)
+            if 'text' in json_response:
+                print(f"Received final: {json_response['text']}")
+                self.reveived_from_server.append(json_response['text'])
+            else:
+                print(response)
             time.sleep(AUDIO_CHUNK_LENGTH / 4)
         except asyncio.TimeoutError:
-            print("Timeout error")
+            print("Waiting for responses from server...")
 
     def run_websocket_tasks(self):
         """Manages WebSocket tasks using asyncio."""
@@ -88,9 +94,10 @@ class SpeechListener:
         self.websocket_thread.join()
 
 if __name__ == "__main__":
+
+    PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
     host = "localhost"
-    port = 8394
-    websocket_url = f"ws://{host}:{port}"
+    websocket_url = f"ws://{host}:{PORT}"
     listener = SpeechListener(websocket_url)
     listener.start()
 
