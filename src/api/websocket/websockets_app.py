@@ -30,8 +30,14 @@ class WebSocketServer:
     def __init__(self, port: int, host: str = "localhost"):
         self.port = port
         self.host = host
-        LOGGER.print_log("Websocket Transcriber Config: {}".format(CONFIG["stream_runner"][0]))
-        self.transcriber = Transcriber(model_name=CONFIG["stream_runner"][0]["model"], device=CONFIG["stream_runner"][0]["device"], compute_type=CONFIG["stream_runner"][0]["compute_type"])
+        LOGGER.print_log(
+            "Websocket Transcriber Config: {}".format(CONFIG["stream_runner"][0])
+        )
+        self.transcriber = Transcriber(
+            model_name=CONFIG["stream_runner"][0]["model"],
+            device=CONFIG["stream_runner"][0]["device"],
+            compute_type=CONFIG["stream_runner"][0]["compute_type"],
+        )
 
         # Cache for the last few chunks of audio
         self.recently_added_chunk_cache = b""
@@ -59,8 +65,11 @@ class WebSocketServer:
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
+        print("echo started")
         self.overall_audio_bytes = b""
         self.overall_transcribed_bytes = b""
+        self.chunk_cache = b""
+        self.recently_added_chunk_cache = b""
         while True:
             try:
                 message = await websocket.recv()
@@ -113,7 +122,9 @@ class WebSocketServer:
         """Function to transcribe a chunk of audio"""
         start_time = time.time()
         result: str = ""
-        data = self.transcriber.transcribe_audio_audio_chunk(chunk_cache, settings=default_websocket_settings())
+        data = self.transcriber.transcribe_audio_audio_chunk(
+            chunk_cache, settings=default_websocket_settings()
+        )
         self.adjust_threshold_on_latency()
         self.overall_transcribed_bytes += recent_cache
         if "segments" in data:
@@ -133,7 +144,9 @@ class WebSocketServer:
             result = json.dumps({"result": result, "text": text}, indent=2)
         await websocket.send(result)
         end_time = time.time()
-        LOGGER.print_log("Final Transcription took {:.2f} s".format(end_time - start_time))
+        LOGGER.print_log(
+            "Final Transcription took {:.2f} s".format(end_time - start_time)
+        )
 
     async def transcribe_chunk_partial(
         self, websocket, chunk_cache, recent_cache
@@ -141,7 +154,9 @@ class WebSocketServer:
         start_time = time.time()
         result: str = "Missing data"
 
-        data = self.transcriber.transcribe_audio_audio_chunk(chunk_cache, settings=default_websocket_settings())
+        data = self.transcriber.transcribe_audio_audio_chunk(
+            chunk_cache, settings=default_websocket_settings()
+        )
         self.adjust_threshold_on_latency()
         self.overall_transcribed_bytes += recent_cache
         if "segments" in data:
@@ -154,18 +169,16 @@ class WebSocketServer:
         await websocket.send(result)
 
         end_time = time.time()
-        LOGGER.print_log("Partial transcription took {:.2f} s".format(end_time - start_time))
+        LOGGER.print_log(
+            "Partial transcription took {:.2f} s".format(end_time - start_time)
+        )
 
     def adjust_threshold_on_latency(self):
         """Adjusts the partial threshold based on the latency"""
         seconds_received = len(self.overall_audio_bytes) / BYTES_PER_SECOND
-        seconds_transcribed = (
-            len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
-        )
+        seconds_transcribed = len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
         # Calculate the latency of the connection
-        seconds_difference_received_transcribed = (
-            seconds_received - seconds_transcribed
-        )
+        seconds_difference_received_transcribed = seconds_received - seconds_transcribed
         LOGGER.print_log(
             "Difference received transcribed: {}".format(
                 seconds_difference_received_transcribed
@@ -174,24 +187,41 @@ class WebSocketServer:
 
         # we need to exclude the partial threshold from the calculation, because the if the threshold is reached, the latency is always bad
         seconds_difference_received_transcribed_exclude_partial = (
-            seconds_difference_received_transcribed - self.partial_treshold / BYTES_PER_SECOND
+            seconds_difference_received_transcribed
+            - self.partial_treshold / BYTES_PER_SECOND
         )
-        LOGGER.print_log("Difference received, excluding Partial threshold: {}".format(seconds_difference_received_transcribed_exclude_partial))
+        LOGGER.print_log(
+            "Difference received, excluding Partial threshold: {}".format(
+                seconds_difference_received_transcribed_exclude_partial
+            )
+        )
 
         # FINAL TRANSCRIPTION TIMEOUT is out definition of bad latency
-        if seconds_difference_received_transcribed_exclude_partial > FINAL_TRANSCRIPTION_TIMEOUT-2:
+        if (
+            seconds_difference_received_transcribed_exclude_partial
+            > FINAL_TRANSCRIPTION_TIMEOUT - 2
+        ):
             LOGGER.print_log("Latency is too high, increasing partial threshold")
             self.partial_treshold = self.partial_treshold * 1.5
             if self.partial_treshold > self.final_treshold:
                 self.partial_treshold = self.final_treshold
                 # this is a bad case, maximum threshold
                 LOGGER.print_error("Partial threshold is now equal to final threshold")
-        
-        if seconds_difference_received_transcribed_exclude_partial < FINAL_TRANSCRIPTION_TIMEOUT / 6:
+
+        if (
+            seconds_difference_received_transcribed_exclude_partial
+            < FINAL_TRANSCRIPTION_TIMEOUT / 6
+        ):
             LOGGER.print_log("Latency is low, decreasing partial threshold")
             self.partial_treshold = self.partial_treshold * 0.75
             if self.partial_treshold < BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT:
                 self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
-                LOGGER.print_log("Partial threshold is now equal to the default threshold")
+                LOGGER.print_log(
+                    "Partial threshold is now equal to the default threshold"
+                )
 
-        LOGGER.print_log("Partial threshold is now: {}".format(self.partial_treshold / BYTES_PER_SECOND))
+        LOGGER.print_log(
+            "Partial threshold is now: {}".format(
+                self.partial_treshold / BYTES_PER_SECOND
+            )
+        )
