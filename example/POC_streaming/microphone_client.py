@@ -1,3 +1,4 @@
+# import necessary modules
 import asyncio
 import threading
 import time
@@ -8,7 +9,7 @@ import websockets
 
 # Capture continuously in seconds
 AUDIO_FILE_LENGTH = 0.5
-
+TRANSCRIPTION_FILE = 'transcription.txt'  # File to save the transcription
 
 class SpeechListener:
     """Listens to the microphone and sends the audio data to the websocket server."""
@@ -20,7 +21,7 @@ class SpeechListener:
         self.loop = asyncio.new_event_loop()
         self.websocket_task = threading.Thread(target=self.run_websocket_tasks)
         self.listen_thread = threading.Thread(target=self.listen_for_speech)
-        self.websocket_url = "ws://localhost:8394"
+        self.websocket_url = "ws://localhost:8764"
 
     async def send_file_as_websocket(self, websocket):
         """Sends the input file to the WebSocket server and prints responses."""
@@ -28,22 +29,21 @@ class SpeechListener:
             data = self.audio_queue.get(timeout=AUDIO_FILE_LENGTH/10)
             await websocket.send(data)
         except queue.Empty:
-            # print("Queue is empty.")
             return
 
     async def receive_from_websocket(self, websocket):
         """Receives the response from the WebSocket server."""
-        # print("Receiving from WebSocket server...")
         try:
             response = await asyncio.wait_for(websocket.recv(), timeout=AUDIO_FILE_LENGTH/10)
             print(f"Received from server: {response}")
+            with open(TRANSCRIPTION_FILE, 'w') as f:
+                f.write(response)  # Save the transcription to a file
         except asyncio.TimeoutError:
             return
 
     def listen_for_speech(self):
         """Listens to the microphone and puts the audio data into the queue in smaller chunks."""
         with sr.Microphone() as source:
-            # print("Listening for speech...")
             while not self.stop_event.is_set():
                 audio_data = self.recognizer.record(source, duration=AUDIO_FILE_LENGTH)
                 audio_segment = AudioSegment(
