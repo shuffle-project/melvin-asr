@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Microphone Interface</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #2d2b2c;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #toggle-button {
+            width: 150px;
+            height: 150px;
+            border: 15px solid #2d2b2c;
+            border-radius: 50%;
+            box-shadow: 12px 12px 22px #121112, -12px -12px 22px #484546;
+            background-color: #ffffff;
+            color: #2d2b2c;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        #toggle-button i {
+            margin-right: 10px;
+            font-size: 60px;
+        }
+        #transcription {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Microphone Interface</h1>
+    <button id="toggle-button" onclick="toggleMicrophone()">
+        <i class="fas fa-microphone"></i>
+        
+    </button>
+    <div id="transcription"></div>
+
+    <script>
+        let microphoneRunning = false;
+        let transcriptionInterval;
+
+        function toggleMicrophone() {
+            if (microphoneRunning) {
+                $.post('/stop_microphone', function(data) {
+                    $('#toggle-button i').removeClass('fas fa-microphone-slash').addClass('fas fa-microphone');
+                    $('#button-text').text('Start Microphone');
+                    microphoneRunning = false;
+                    clearInterval(transcriptionInterval);
+                    console.log(data.status);
+                }).fail(function(xhr, status, error) {
+                    console.error("Error stopping microphone:", xhr.responseText);
+                });
+            } else {
+                $.post('/start_microphone', function(data) {
+                    $('#toggle-button i').removeClass('fas fa-microphone').addClass('fas fa-microphone-slash');
+                    $('#button-text').text('Stop Microphone');
+                    microphoneRunning = true;
+                    transcriptionInterval = setInterval(getTranscription, 1000);
+                    console.log(data.status);
+                }).fail(function(xhr, status, error) {
+                    console.error("Error starting microphone:", xhr.responseText);
+                });
+            }
+        }
+
+        function getTranscription() {
+            $.get('/transcription', function(data) {
+                $('#transcription').text(data.partial);
+            }).fail(function(xhr, status, error) {
+                console.error("Error getting transcription:", xhr.responseText);
+            });
+        }
+    </script>
+</body>
+</html>
