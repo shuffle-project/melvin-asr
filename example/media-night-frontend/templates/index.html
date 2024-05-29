@@ -70,7 +70,7 @@
                     $('#toggle-button i').removeClass('fas fa-microphone').addClass('fas fa-microphone-slash');
                     $('#button-text').text('Stop Microphone');
                     microphoneRunning = true;
-                    transcriptionInterval = setInterval(getTranscription, 5000);
+                    transcriptionInterval = setInterval(getTranscription, 1000);
                     console.log(data.status);
                 }).fail(function(xhr, status, error) {
                     console.error("Error starting microphone:", xhr.responseText);
