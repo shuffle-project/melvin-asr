@@ -1,6 +1,9 @@
 """This module works as Interface for the access to the data folder."""
+import io
+import json
 import os
 from datetime import datetime
+from pydub import AudioSegment
 import time
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.config import CONFIG
@@ -15,6 +18,7 @@ class DataHandler:
         status_path: str = CONFIG["status_file_path"],
         audio_file_path: str = CONFIG["audio_file_path"],
         audio_file_format: str = CONFIG["audio_file_format"],
+        export_file_path: str = CONFIG["export_file_path"],
     ):
         self.log = Logger("DataHandler", True, Color.GREEN)
         self.root_path = os.getcwd()
@@ -24,6 +28,7 @@ class DataHandler:
         self.status_path = self.root_path + status_path
         self.audio_file_path = self.root_path + audio_file_path
         self.audio_file_format = audio_file_format
+        self.export_file_path = self.root_path + export_file_path
 
     def get_status_file_by_id(self, transcription_id: str) -> dict:
         """Returns the status file by the given transcription_id."""
@@ -181,3 +186,36 @@ class DataHandler:
             if f.endswith(CONFIG["audio_file_format"])
         ]
         return len(audio_files)
+
+    def export_wav_file(self, audio_chunk: bytes, base_name: str) -> str:
+        """Exports a WAV file from an audio chunk to the export folder with a given base name."""
+        file_name = f"{base_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
+        export_path = os.path.join(self.export_file_path, file_name)
+        os.makedirs(os.path.dirname(export_path), exist_ok=True)
+
+        # Assuming audio_chunk is raw audio data, create an AudioSegment
+        audio_segment = AudioSegment(
+            data=audio_chunk,
+            sample_width=2,  # Assuming 16-bit PCM
+            frame_rate=16000,
+            channels=1
+        )
+
+        # Export the AudioSegment as a WAV file
+        with open(export_path, "wb") as out_f:
+            audio_segment.export(out_f, format="wav")
+
+        self.log.print_log(f"WAV file exported: {export_path}")
+        return export_path
+
+    def export_dict_to_json_file(self, data: dict, base_name: str) -> str:
+        """Exports a dictionary to a JSON file in the export folder with a given base name."""
+        file_name = f"{base_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+        export_path = os.path.join(self.export_file_path, file_name)
+        os.makedirs(os.path.dirname(export_path), exist_ok=True)
+        
+        with open(export_path, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+        
+        self.log.print_log(f"JSON file exported: {export_path}")
+        return export_path

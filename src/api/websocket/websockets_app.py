@@ -2,10 +2,13 @@
 import asyncio
 import json
 import time
+import uuid
 import websockets
+from pydub import AudioSegment
 
 from src.config import CONFIG
 from src.api.websocket.websockets_settings import default_websocket_settings
+from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
 from src.helper.model_handler import ModelHandler
 from src.transcription.transcriber import Transcriber
@@ -53,6 +56,9 @@ class WebSocketServer:
         # indicates that the server is in use
         self.is_busy = False
 
+        # stores all final transcription objects
+        self.final_transcriptions = []
+
         # calculate the overall bytes of audio and transcribed bytes
         self.overall_transcribed_bytes = b""
         self.overall_audio_bytes = b""
@@ -73,11 +79,14 @@ class WebSocketServer:
         self.recently_added_chunk_cache = b""
         while True:
             try:
+                # message type: Union[str, bytes]
                 message = await websocket.recv()
                 if isinstance(message, bytes) is True:
                     self.chunk_cache += message
                     self.recently_added_chunk_cache += message
-                    self.overall_audio_bytes += message
+                    self.overall_audio_bytes = self.concatenate_audio_with_crossfade(
+                        self.overall_audio_bytes, message
+                    )
 
                     if len(self.chunk_cache) >= self.final_treshold:
                         LOGGER.print_log("********** NEW FINAL **********")
@@ -102,10 +111,17 @@ class WebSocketServer:
                             )
                         )
                         self.recently_added_chunk_cache = b""
-
-                else:
-                    LOGGER.print_log("Received message: {}".format(message))
-                    await websocket.send("wrong data type")
+                elif isinstance(message, str) is True:
+                    LOGGER.print_log(
+                        "Received control message (string): {}".format(message)
+                    )
+                    if "eof" in message:
+                        name = self.export_transcription_and_wav()
+                        await websocket.send(name)
+                        await websocket.close()
+                        LOGGER.print_log("Closed connection gracefully")
+                    else:
+                        await websocket.send("control message unknown")
 
             except websockets.exceptions.ConnectionClosedOK:
                 LOGGER.print_log("Client left")
@@ -152,8 +168,9 @@ class WebSocketServer:
                     )
 
                 text = text + segment["text"]
-            result = json.dumps({"result": result, "text": text}, indent=2)
-        await websocket.send(result)
+            result = {"result": result, "text": text}
+            self.final_transcriptions.append(result)
+        await websocket.send(json.dumps(result, indent=2))
         end_time = time.time()
         LOGGER.print_log(
             "Final Transcription took {:.2f} s".format(end_time - start_time)
@@ -236,3 +253,42 @@ class WebSocketServer:
                 self.partial_treshold / BYTES_PER_SECOND
             )
         )
+
+    def export_transcription_and_wav(self):
+        DATA_HANDLER = DataHandler()
+        name = uuid.uuid4().hex
+        DATA_HANDLER.export_wav_file(self.overall_audio_bytes, name)
+        DATA_HANDLER.export_dict_to_json_file(self.final_transcriptions, name)
+        return name
+
+    def concatenate_audio_with_crossfade(
+        self, audio_chunk1: bytes, audio_chunk2: bytes, crossfade_duration=10
+    ) -> bytes:
+        """
+        Concatenates two audio chunks with crossfade to avoid click sounds.
+
+        :param audio_chunk1: First audio chunk in bytes.
+        :param audio_chunk2: Second audio chunk in bytes.
+        :param crossfade_duration: Duration of the crossfade in milliseconds.
+        :return: Concatenated audio chunk in bytes.
+        """
+        # Convert the byte data to AudioSegment
+        segment1 = AudioSegment(
+            data=audio_chunk1,
+            sample_width=2,  # Assuming 16-bit PCM
+            frame_rate=16000,
+            channels=1,
+        )
+        segment2 = AudioSegment(
+            data=audio_chunk2,
+            sample_width=2,  # Assuming 16-bit PCM
+            frame_rate=16000,
+            channels=1,
+        )
+
+        # Check the length of segments to avoid crossfade errors, when starting the stream
+        if len(segment1) < crossfade_duration or len(segment2) < crossfade_duration:
+            crossfade_duration = min(len(segment1), len(segment2), crossfade_duration)
+
+        combined = segment1.append(segment2, crossfade=crossfade_duration)
+        return combined.raw_data
