@@ -67,7 +67,6 @@ class WebSocketServer:
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
-        print("echo started")
         self.overall_audio_bytes = b""
         self.overall_transcribed_bytes = b""
         self.chunk_cache = b""
@@ -128,6 +127,10 @@ class WebSocketServer:
             chunk_cache, settings=default_websocket_settings()
         )
         self.adjust_threshold_on_latency()
+        # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
+        overall_transcribed_seconds = (
+            len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
+        ) - (len(recent_cache) / BYTES_PER_SECOND)
         self.overall_transcribed_bytes += recent_cache
         if "segments" in data:
             result = []
@@ -140,8 +143,14 @@ class WebSocketServer:
                     conf = float("{:.6f}".format(float(word["probability"])))
                     word = word["word"].strip()
                     result.append(
-                        {"conf": conf, "start": start, "end": end, "word": word}
+                        {
+                            "conf": conf,
+                            "start": start + overall_transcribed_seconds,
+                            "end": end + overall_transcribed_seconds,
+                            "word": word,
+                        }
                     )
+
                 text = text + segment["text"]
             result = json.dumps({"result": result, "text": text}, indent=2)
         await websocket.send(result)
