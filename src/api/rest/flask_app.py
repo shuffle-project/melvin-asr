@@ -130,5 +130,27 @@ def create_app(api_keys=CONFIG["api_keys"]):
         except Exception as e:
             LOGGER.print_error(f"Error while POST /transcriptions: {e}")
         return make_response("Something went wrong", 500)
+    
+    @app.route("/export/transcript/<transcription_id>", methods=["GET"])
+    @require_api_key
+    def get_stream_transcript_export(transcription_id):
+        """API endpoint to get the transcription and wav of a stream"""
+        file = DATA_HANDLER.get_export_json_by_id(transcription_id)
+        if file:
+            return make_response(file, 200, {"Content-Type": "application/json"})
+        return make_response("Transcription ID not found", 404)
+    
+    @app.route("/export/audio/<transcription_id>", methods=["GET"])
+    @require_api_key
+    def get_stream_audio_export(transcription_id):
+        """API endpoint to get the transcription and wav of a stream"""
+        file = DATA_HANDLER.get_audio_file_by_id(transcription_id)
+        if file is not None:
+            response = make_response(file)
+            response.headers.set('Content-Type', 'audio/wav')
+            response.headers.set('Content-Disposition', 'attachment', filename=f"{transcription_id}.wav")
+            return response
+        return jsonify({"error": "File not found"}), 404
+
 
     return app

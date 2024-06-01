@@ -61,13 +61,9 @@ def send_file_http(file_path="./Scholz_in_kurz.wav", port=8393, key="your-key"):
                 transcipt_string = ""
                 if "segments" in transcipt:
                     for segment in transcipt["segments"]:
-                        transcipt_string += segment[4]
+                        transcipt_string += segment["text"]
 
-                if "And so my fellow Americans" in transcipt_string:
-                    print("Transcription succeeded.")
-                    return True
-                print("Transcription text is incorrect.")
-                print(response_dict["transcript"])
+                print(transcipt_string)
                 return False
 
         # Wait for 5 seconds before the next check

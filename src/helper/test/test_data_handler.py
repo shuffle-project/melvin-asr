@@ -3,6 +3,7 @@
 # ruff: noqa: F811
 # ruff: noqa: F401
 import datetime
+import json
 import os
 from pydub import AudioSegment
 from src.config import CONFIG
@@ -193,6 +194,7 @@ def test_get_number_of_audio_files(cleanup_data):
     DATA_HANDLER.delete_audio_file("example-file")
     assert DATA_HANDLER.get_number_of_audio_files() == 0
 
+
 def test_clean_up_audio_and_status_files(cleanup_data):
     """Tests cleaning up audio and status files."""
     DATA_HANDLER.write_status_file("example", {"test": "test"})
@@ -206,6 +208,7 @@ def test_clean_up_audio_and_status_files(cleanup_data):
     assert DATA_HANDLER.get_number_of_audio_files() == 0
     assert DATA_HANDLER.get_status_file_by_id("example") is None
 
+
 def test_clean_up_audio_and_status_files_do_keep(cleanup_data):
     """Tests cleaning up audio and status files."""
     DATA_HANDLER.write_status_file("example", {"test": "test"})
@@ -218,3 +221,54 @@ def test_clean_up_audio_and_status_files_do_keep(cleanup_data):
     DATA_HANDLER.clean_up_audio_and_status_files(1)
     assert DATA_HANDLER.get_number_of_audio_files() == 1
     assert DATA_HANDLER.get_status_file_by_id("example") is not None
+
+
+def test_export_wav_file_success(cleanup_data):
+    """Tests exporting a WAV file."""
+    example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
+    resampled_audio = example_audio_data.set_frame_rate(16000).set_channels(1)
+
+    # Get the raw data of the resampled audio
+    audio_chunk = resampled_audio.raw_data
+
+    export_path = DATA_HANDLER.export_wav_file(audio_chunk, "example-export")
+    assert os.path.isfile(export_path) is True
+    assert export_path.endswith(".wav")
+
+    # Verify the exported file can be loaded and has the correct properties
+    exported_audio = AudioSegment.from_wav(export_path)
+    assert exported_audio.frame_rate == 16000
+    assert exported_audio.channels == 1
+
+    # Cleanup
+    os.remove(export_path)
+
+def test_export_dict_to_json_file_success(cleanup_data):
+    """Tests exporting a dictionary to a JSON file."""
+    data = {
+        "result": [
+            {"conf": 0.428089, "start": 5.642375, "end": 6.582375, "word": "Okay,"},
+            {"conf": 0.711699, "start": 7.202375, "end": 7.642375, "word": "let's"},
+            {"conf": 0.984197, "start": 7.642375, "end": 7.882375, "word": "try"},
+            {"conf": 0.997035, "start": 7.882375, "end": 8.522375, "word": "again"},
+            {"conf": 0.279302, "start": 8.522375, "end": 9.422375, "word": "20,"},
+            {"conf": 0.864112, "start": 9.762375, "end": 9.762375, "word": "so"},
+            {"conf": 0.057683, "start": 9.762375, "end": 9.962375, "word": "der"},
+            {"conf": 0.382845, "start": 9.962375, "end": 10.282375, "word": "relativ"},
+            {"conf": 0.429512, "start": 10.282375, "end": 10.522375, "word": "schrei"},
+            {"conf": 0.78254, "start": 10.522375, "end": 10.862375, "word": "vorbei"},
+            {"conf": 0.943829, "start": 10.862375, "end": 11.202375, "word": "sein."},
+        ],
+        "text": " Okay, let's try again 20, so der relativ schrei vorbei sein.",
+    }
+    export_path = DATA_HANDLER.export_dict_to_json_file(data, "example-export")
+    assert os.path.isfile(export_path) is True
+    assert export_path.endswith(".json")
+
+    # Verify the content of the exported file
+    with open(export_path, "r") as json_file:
+        content = json.load(json_file)
+    assert content == data
+
+    # Cleanup
+    os.remove(export_path)

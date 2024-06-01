@@ -69,10 +69,10 @@ class TranscriptionSettings:
             "suppress_tokens": [-1],
             "without_timestamps": False,
             "max_initial_timestamp": 1,
-            "word_timestamps": False,
+            "word_timestamps": True,
             "prepend_punctuations": "\"'“¿([{-",
             "append_punctuations": "\"'.。,，!！?？:：”)]}、",
-            "vad_filter": False,
+            "vad_filter": True,
             "vad_parameters": None,
         }
 
