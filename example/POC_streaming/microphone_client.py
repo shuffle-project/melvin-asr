@@ -16,7 +16,7 @@ class SpeechListener:
 
         # Counter for sending EOF, to stop the server from listening
         self.eof_counter = 0
-        self.send_eof = 20
+        self.send_eof = 100
 
         self.recognizer = sr.Recognizer()
         self.stop_event = threading.Event()

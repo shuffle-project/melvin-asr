@@ -130,6 +130,15 @@ class DataHandler:
                     if (time.time() - file_time) / 3600 > keep_data_for_hours:
                         os.remove(file_path)
                         self.log.print_log(f"Deleted audio file {filename}")
+            for filename in os.listdir(self.export_file_path):
+                if filename.endswith(".json") or filename.endswith(CONFIG["audio_file_format"]):
+                    file_path = os.path.join(self.export_file_path, filename)
+                    file_time = os.path.getmtime(file_path)
+                    # 3600 seconds in an hour
+                    if (time.time() - file_time) / 3600 > keep_data_for_hours:
+                        os.remove(file_path)
+                        self.log.print_log(f"Deleted export file {filename}")
+
         except Exception as e:
             self.log.print_error(f"Error while cleaning up files: {str(e)}")
 
@@ -187,9 +196,9 @@ class DataHandler:
         ]
         return len(audio_files)
 
-    def export_wav_file(self, audio_chunk: bytes, base_name: str) -> str:
+    def export_wav_file(self, audio_chunk: bytes, name: str) -> str:
         """Exports a WAV file from an audio chunk to the export folder with a given base name."""
-        file_name = f"{base_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
+        file_name = f"{name}.wav"
         export_path = os.path.join(self.export_file_path, file_name)
         os.makedirs(os.path.dirname(export_path), exist_ok=True)
 
@@ -208,9 +217,9 @@ class DataHandler:
         self.log.print_log(f"WAV file exported: {export_path}")
         return export_path
 
-    def export_dict_to_json_file(self, data: dict, base_name: str) -> str:
+    def export_dict_to_json_file(self, data: dict, name: str) -> str:
         """Exports a dictionary to a JSON file in the export folder with a given base name."""
-        file_name = f"{base_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+        file_name = f"{name}.json"
         export_path = os.path.join(self.export_file_path, file_name)
         os.makedirs(os.path.dirname(export_path), exist_ok=True)
         
@@ -219,3 +228,23 @@ class DataHandler:
         
         self.log.print_log(f"JSON file exported: {export_path}")
         return export_path
+    
+    def get_export_json_by_id(self, transcription_id: str) -> dict:
+        """Returns the export json-file by the given transcription_id."""
+        file_name = f"{transcription_id}.json"
+        file_path = os.path.join(self.export_file_path + file_name)
+        data = self.file_handler.read_json(file_path)
+        if data:
+            return data
+        return None
+    
+    def get_audio_file_by_id(self, transcription_id: str) -> bytes:
+        """Returns the audio file data as bytes by the given transcription_id."""
+        file_name = f"{transcription_id}{self.audio_file_format}"
+        file_path = os.path.join(self.export_file_path, file_name)
+        if os.path.isfile(file_path):
+            audio = AudioSegment.from_file(file_path)
+            buffer = io.BytesIO()
+            audio.export(buffer, format="wav")
+            return buffer.getvalue()
+        return None
