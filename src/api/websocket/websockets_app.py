@@ -56,8 +56,9 @@ class WebSocketServer:
         # indicates that the server is in use
         self.is_busy = False
 
-        # stores all final transcription objects
+        # stores all final transcription objects and audio for export
         self.final_transcriptions = []
+        self.export_audio = b""
 
         # calculate the overall bytes of audio and transcribed bytes
         self.overall_transcribed_bytes = b""
@@ -84,8 +85,9 @@ class WebSocketServer:
                 if isinstance(message, bytes) is True:
                     self.chunk_cache += message
                     self.recently_added_chunk_cache += message
-                    self.overall_audio_bytes = self.concatenate_audio_with_crossfade(
-                        self.overall_audio_bytes, message
+                    self.overall_audio_bytes += message
+                    self.export_audio = self.concatenate_audio_with_crossfade(
+                        self.export_audio, message
                     )
 
                     if len(self.chunk_cache) >= self.final_treshold:
@@ -257,12 +259,12 @@ class WebSocketServer:
     def export_transcription_and_wav(self):
         DATA_HANDLER = DataHandler()
         name = uuid.uuid4().hex
-        DATA_HANDLER.export_wav_file(self.overall_audio_bytes, name)
+        DATA_HANDLER.export_wav_file(self.export_audio, name)
         DATA_HANDLER.export_dict_to_json_file(self.final_transcriptions, name)
         return name
 
     def concatenate_audio_with_crossfade(
-        self, audio_chunk1: bytes, audio_chunk2: bytes, crossfade_duration=10
+        self, audio_chunk1: bytes, audio_chunk2: bytes, crossfade_duration=20
     ) -> bytes:
         """
         Concatenates two audio chunks with crossfade to avoid click sounds.
