@@ -72,6 +72,37 @@ Example:
 GET /health
 ```
 
+## Streaming Export
+These streaming export endpoits provide finished streams audio and transcripts to be exported. 
+The transcription IDs of the stream are provided via the Websocket-API as soon as the "eof" message is send by the client, ending the stream.
+
+### /export/transcript/<transcription_id> Endpoint (GET)
+- **Description:** Retrieve the transcription in JSON format for a given transcription ID.
+- **Method:** GET
+- **URL:** `/export/transcript/<transcription_id>`
+- **Parameters:**
+  - `transcription_id`: ID of the transcription to retrieve.
+- **Response:** JSON file containing the transcription for the given ID.
+
+Example:
+```
+Header: key: shuffle2024
+GET /export/transcript/9a35a78e-9c65-4ff0-9a19-d2bb2adb11db
+```
+
+### /export/audio/<transcription_id> Endpoint (GET)
+- **Description:** Retrieve the audio file in WAV format for a given transcription ID.
+- **Method:** GET
+- **URL:** `/export/audio/<transcription_id>`
+- **Parameters:**
+  - `transcription_id`: ID of the transcription to retrieve.
+- **Response:** Audio file (WAV) for the given ID.
+
+Example:
+Header: key: shuffle2024
+GET /export/audio/9a35a78e-9c65-4ff0-9a19-d2bb2adb11db
+```
+
 ## Transcription Settings
 Software Configuration Options
 This documentation provides an overview of specific configuration options available in the software, along with their default values and purposes.
