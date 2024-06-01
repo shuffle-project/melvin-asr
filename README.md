@@ -2,8 +2,9 @@
 
 ASR-API is an application serving REST and WebSocket endpoints for the transcription of audio files. 
 
-1. A REST API based un HTTP requests that handles the transcription of files in an async workflow, enabling user to send an audio file in a first request and receive the transcription via a second request as soon as the transcript is ready. See [REST Documentation](docs/rest-api.md)
-1. A WebSocket API that does provide streaming capabilities. See [WebSocket Documentation](docs/websocket-api.md)
+**REST API**: The API is based on HTTP requests that handles the transcription of files in an async workflow, enabling user to send an audio file in a first request and receive the transcription via a second request as soon as the transcript is ready. See [REST Documentation](docs/rest-api.md)
+
+**WebSocket API**: The API does provide streaming capabilities. See [WebSocket Documentation](docs/websocket-api.md)
 
 ## Getting Started
 
