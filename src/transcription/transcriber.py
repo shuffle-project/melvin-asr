@@ -6,7 +6,7 @@ import wave
 from faster_whisper import WhisperModel
 from src.config import CONFIG
 from src.helper.logger import Logger, Color
-from src.transcription.segment_info_parser_streaming import parse_segments_and_info_to_dict
+from src.transcription.segment_info_parser import parse_segments_and_info_to_dict
 from src.transcription.transcription_settings import TranscriptionSettings
 
 LOGGER = Logger("Transcriber", True, Color.MAGENTA)
