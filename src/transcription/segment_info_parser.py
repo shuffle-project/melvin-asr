@@ -1,6 +1,7 @@
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
 import json
+import math
 
 
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
@@ -17,6 +18,24 @@ def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
 def parse_transcription_info_to_dict(info) -> dict:
     """Parses the transcription info to a dictionary"""
 
+    def filter_infinity_values(options):
+        """Filters out infinity values or replaces them with a string representation."""
+        json_list = json.loads(json.dumps(options))
+        # should return a list of values
+        if (not isinstance(json_list, list)):
+            print("parse_transcription_info_to_dict: options is not a list")
+            return options
+
+        filtered_options = []
+        for item in json_list:
+            if isinstance(item, float) and math.isinf(item):
+                filtered_options.append('Infinity' if item > 0 else '-Infinity')
+            elif isinstance(item, float) and math.isnan(item):
+                filtered_options.append('NaN')
+            else:
+                filtered_options.append(item)
+        return filtered_options 
+
     info_dict = {
         "language": info.language,
         "language_probability": info.language_probability,
@@ -24,18 +43,20 @@ def parse_transcription_info_to_dict(info) -> dict:
         "duration_after_vad": info.duration_after_vad,
         # do not include all_language_probs because it is too large
         # "all_language_probs": info.all_language_probs,
-        "transcription_options": info.transcription_options,
-        "vad_options": info.vad_options,
+        "transcription_options": filter_infinity_values(info.transcription_options),
+        "vad_options": filter_infinity_values(info.vad_options),
     }
     return info_dict
 
 
-def parse_segment_words_to_dict(words_array): # type words_array: [[]] -> [dict]
+def parse_segment_words_to_dict(words_array):  # type words_array: [[]] -> [dict]
     """Parses the transcription segment word to a dictionary"""
     new_word_array = []
-    if (words_array is None):
+    if words_array is None:
         return new_word_array
     for word_array in words_array:
+        if not isinstance(word_array[2], str):
+            continue  # Skip if word is not a string
         word_dict = {
             "start": word_array[0],
             "end": word_array[1],
@@ -46,11 +67,11 @@ def parse_segment_words_to_dict(words_array): # type words_array: [[]] -> [dict]
     return new_word_array
 
 
-def parse_transcription_segments_to_dict(segment): # type segment -> [dict]
+def parse_transcription_segments_to_dict(segment):  # type segment -> [dict]
     """Parses the transcription segment to a dictionary"""
     segments_array = json.loads(json.dumps(segment))
-    new_segments_array = []    
-    if (segment is None):
+    new_segments_array = []
+    if segment is None:
         return new_segments_array
     for segment_array in segments_array:
         segment_dict = {
