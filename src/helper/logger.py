@@ -36,12 +36,14 @@ class Logger:
         identifier: str,
         debug: bool = CONFIG["debug"],
         debug_color: Color = Color.BLUE,
+        pre_identifier: str = "",
         error_color: Color = Color.FAIL,
     ):
         """Constructor of the Logger class."""
         self.debug = debug
         self.identifier = identifier
         self.debug_color = debug_color
+        self.pre_identifier = pre_identifier
         self.error_color = error_color
 
     def print_log(self, message: str) -> None:
@@ -49,7 +51,7 @@ class Logger:
         if self.debug:
             print(
                 self.debug_color
-                + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {message}"
+                + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {self.pre_identifier + message}"
                 + Color.ENDC
             )
 
@@ -57,6 +59,6 @@ class Logger:
         """Prints an error message."""
         print(
             self.error_color
-            + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {message}"
+            + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {self.pre_identifier + message}"
             + Color.ENDC
         )
