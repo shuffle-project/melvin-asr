@@ -31,7 +31,7 @@ def time_it(func):
     return wrapper
 
 
-class Transcriber:
+class StreamTranscriber:
     """Class to handle the transcription process"""
 
     def __init__(self, model_name, device, compute_type):

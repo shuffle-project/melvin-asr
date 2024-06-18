@@ -74,6 +74,8 @@ class WebSocketServer:
             await asyncio.Future()  # run forever
 
     async def echo(self, websocket, path):
+        print("Client connected")
+        print(websocket)
         self.overall_audio_bytes = b""
         self.overall_transcribed_bytes = b""
         self.chunk_cache = b""
@@ -141,7 +143,7 @@ class WebSocketServer:
         """Function to transcribe a chunk of audio"""
         start_time = time.time()
         result: str = ""
-        data = self.transcriber.transcribe_audio_audio_chunk(
+        data = self.transcriber.transcribe_audio_chunk(
             chunk_cache, settings=default_websocket_settings()
         )
         self.adjust_threshold_on_latency()
@@ -184,7 +186,7 @@ class WebSocketServer:
         start_time = time.time()
         result: str = "Missing data"
 
-        data = self.transcriber.transcribe_audio_audio_chunk(
+        data = self.transcriber.transcribe_audio_chunk(
             chunk_cache, settings=default_websocket_settings()
         )
         self.adjust_threshold_on_latency()

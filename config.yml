@@ -16,12 +16,29 @@ api_keys:
 #   model: model_name
 #   compute_type: "int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
 
-stream_runner:
+stream_devices:
+  cpu:
+    active: True
+    model: tiny
+    threads: 1
+    num_workers: 2
+    worker_seats: 1
+
+  gpu:
+    active: False
+    model: large
+    device_ids: [0]
+    worker_seats: 1
+
+rest_runner:
   -   device: cpu
       model: tiny
       compute_type: int8
 
-rest_runner:
+  -   device: cpu
+      model: tiny
+      compute_type: int8
+
   -   device: cpu
       model: tiny
       compute_type: int8
