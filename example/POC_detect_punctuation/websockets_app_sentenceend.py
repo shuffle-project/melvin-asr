@@ -121,7 +121,7 @@ class WebSocketServer:
 
         index = round(cut_second * BYTES_PER_SECOND)
         final_sentence = self.chunk_cache[:index]
-        self.chunk_cache = self.chunk_cache[index + 1 :]
+        self.chunk_cache = self.chunk_cache[index:]
 
         data = self.transcriber.transcribe_audio_audio_chunk(
             final_sentence, settings=default_websocket_settings()
