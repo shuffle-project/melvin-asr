@@ -2,11 +2,13 @@
 import asyncio
 import websockets
 from src.api.websocket.stream import Stream
+from src.api.websocket.stream_transcriber import Transcriber
 from src.helper.logger import Logger
 
 
 class WebSocketServer:
     """Class to handle a WebSocket ASR server"""
+    Transcriber = Transcriber()
 
     async def __init__(self, host: str, port: int):
         self.logger = Logger("WebSocketServer", True, Logger.Color.BRIGHT_CYAN)
@@ -18,5 +20,4 @@ class WebSocketServer:
         """Function to handle a new client connection"""
         self.stream_counter += 1
         self.logger.print_log(f"New Stream Client connected. Stream ID: {self.stream_counter}")
-        Stream(self.stream_counter).echo(websocket=websocket, path=path)
-        
+        Stream(Transcriber, self.stream_counter).echo(websocket=websocket, path=path)
