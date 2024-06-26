@@ -17,9 +17,12 @@ api_keys:
 #   compute_type: "int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
 
 stream_runner:
-  -   device: cpu
-      model: tiny
-      compute_type: int8
+  # -   device: cpu
+  #     model: tiny
+  #     compute_type: int8
+  -   device: cuda
+      model: large
+      compute_type: float16
 
 rest_runner:
   -   device: cpu
