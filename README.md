@@ -99,7 +99,6 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 ## Acknowledgements
 
-- Flask: https://flask.palletsprojects.com/
-- FFmpeg: https://ffmpeg.org/
-- Waitress: https://flask.palletsprojects.com/en/3.0.x/deploying/waitress/
-- whisper.cpp: https://github.com/ggerganov/whisper.cpp
+- [Flask](https://flask.palletsprojects.com/)
+- [FFmpeg](https://ffmpeg.org/)
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
