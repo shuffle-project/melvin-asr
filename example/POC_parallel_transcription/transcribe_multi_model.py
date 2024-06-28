@@ -41,5 +41,5 @@ with concurrent.futures.ThreadPoolExecutor(10) as executor:
         results.append(result)
 
     for result in concurrent.futures.as_completed(results):
-        print(result.result())
+        print(result.result())  # this is required to wait for the function to conclude
         print("Done")

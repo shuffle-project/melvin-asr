@@ -1,7 +1,7 @@
 """This File contains tests for the parser functions."""
 import pytest
 
-from src.transcription.segment_info_parser import (
+from src.helper.segment_info_parser import (
     parse_segments_and_info_to_dict,
     parse_transcription_info_to_dict,
     parse_segment_words_to_dict,

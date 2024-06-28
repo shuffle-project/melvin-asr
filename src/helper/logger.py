@@ -1,7 +1,7 @@
 """ simple Logger to keep track of the program's progress """
 
 from datetime import datetime
-from src.config import CONFIG
+from src.helper.config import CONFIG
 
 class Color:
     """This class contains ANSI escape sequences for colored output."""

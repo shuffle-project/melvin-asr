@@ -49,12 +49,6 @@ def read_config(config_yml_path: str) -> dict:
         #   Audio file format to use
         "audio_file_format": get_config("audio_file_format", default=".wav"),
         #
-        # Domain Configuration
-        #   Time the rest models stays in RAM until beeing unloaded when unused
-        "rest_models_in_ram_in_seconds": get_config(
-            "rest_models_in_ram_in_seconds", default=20
-        ),
-        #
         # Cleanup Configuration
         #   Hours that status and audio files are kept
         "keep_data_for_hours": get_config("keep_data_for_hours", default=72),

@@ -7,13 +7,13 @@ from functools import wraps
 from pydub import AudioSegment
 from flask import Flask, jsonify, request, make_response
 from src.helper.logger import Color, Logger
-from src.config import CONFIG
+from src.helper.config import CONFIG
 from src.helper.types.transcription_status import (
     TranscriptionStatus,
 )
 from src.helper.data_handler import DataHandler
 
-LOGGER = Logger("FlaskApp", False, Color.GREEN)
+LOGGER = Logger("FlaskApp", False, Color.MAGENTA)
 DATA_HANDLER = DataHandler()
 
 

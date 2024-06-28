@@ -1,4 +1,4 @@
-""" Settings for the transcription module. """
+""" Function to handle settings for the transcription with faster-whisper. """
 
 # The settings are used to configure the transcription process by faster-whisper:
 

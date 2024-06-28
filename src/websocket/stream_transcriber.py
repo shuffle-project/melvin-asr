@@ -6,12 +6,10 @@ from typing import Callable, Union
 
 from faster_whisper import WhisperModel
 
-from src.config import CONFIG
+from src.helper.config import CONFIG
 from src.helper.logger import Logger, Color
 from src.transcription.segment_info_parser import parse_segments_and_info_to_dict
 from src.transcription.transcription_settings import TranscriptionSettings
-
-
 
 LOGGER = Logger("Transcriber", True, Color.MAGENTA)
 
@@ -27,7 +25,7 @@ class Transcriber:
 
         Args:
             model_name: Which Whisper model to use.
-            device: Which device to use. GPU or CPU.
+            device: Which device to use. cuda or CPU.
             device_index: Which device IDs to use. E.g. for 3 GPUs = [0,1,2]
             compute_type: Quantization of the Whisper model
             cpu_threads: Number of threads to use when running on CPU (4 by default)
@@ -47,6 +45,17 @@ class Transcriber:
 
         if self._load_model():
             self._log.print_log("Successfully initialized WhisperModel")
+
+    @classmethod
+    def for_gpu(cls, model_name: str, device_index: list):
+        return cls(model_name=model_name, device="cuda", device_index=device_index, compute_type="float16",
+                   cpu_threads=0,
+                   num_workers=1)
+
+    @classmethod
+    def for_cpu(cls, model_name: str, cpu_threads, num_workers):
+        return cls(model_name=model_name, device="cpu", device_index=[1], compute_type="int8", cpu_threads=cpu_threads,
+                   num_workers=num_workers)
 
     @staticmethod
     def _get_model_path(model_name: str) -> str:

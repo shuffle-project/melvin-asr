@@ -84,14 +84,14 @@ ruff format .
 ### Pytest
 
 To test our code we are writing tests utilizing the official Python recommendation: **pytest**. Each subfolder in `/src` has its own `/test` folder holding the testfiles. We are thriving to keep a coverage of 80% of our `/src` folder.
-Shared test functionality, which is used in multiple test files can be found in `src/test_base`.
+Shared test functionality, which is used in multiple test files can be found in `src/helper/test_base`.
 
 ## Deployment
 ASR-API is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in play. See [Deployment Documentation](docs/deployment.md)
 
 ## Code Integration
 
-We are maintaining our code following trunk based development. This means we are working on features branches, integrating into one trunk, the main branch. Please keep your side branches small, and bring them back t o main as soon as possible.
+We are maintaining our code following trunk based development. This means we are working on features branches, integrating into one trunk, the main branch. Please keep your side branches small, and bring them back to main as soon as possible.
 
 ## License
 

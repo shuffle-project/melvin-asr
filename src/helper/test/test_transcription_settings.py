@@ -3,8 +3,8 @@
 # ruff: noqa: F811
 # ruff: noqa: F401
 import os
-from src.config import CONFIG
-from src.transcription.transcription_settings import TranscriptionSettings
+from src.helper.config import CONFIG
+from src.helper.transcription_settings import TranscriptionSettings
 
 TranscriptionSettingsInstance = TranscriptionSettings()
 

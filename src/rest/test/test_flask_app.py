@@ -5,12 +5,12 @@
 import json
 import os
 import pytest
-from src.api.rest.flask_app import create_app
-from src.config import CONFIG
+from src.rest.flask_app import create_app
+from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.test_base.cleanup_data_fixture import cleanup_data
+from src.helper.test_base.cleanup_data_fixture import cleanup_data
 
-EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/test_base/example.wav"
+EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/helper/test_base/example.wav"
 EXAMPLE_AUTH_KEY = "example"
 
 DATA_HANDLER = DataHandler()

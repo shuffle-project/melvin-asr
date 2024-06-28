@@ -1,20 +1,28 @@
 import concurrent.futures
+import threading
 import time
 
 from faster_whisper import WhisperModel
 
-cpu_threads = 1
-num_workers = 1
+start_time_total = time.time()  # Record the start time
+print(f"Start: Active threads: {threading.active_count()}")
 
 model = WhisperModel(
-    "tiny",
-    device="cpu",
-    compute_type="int8",
-    num_workers=num_workers,
-    cpu_threads=cpu_threads,
+    "large",
+    device="cuda",
+    compute_type="float16",
+    device_index=[0,1,2]
 )
+print(f"Model: Active threads: {threading.active_count()}")
 
 files = [
+    "scholz_in_kurz.wav",
+    "scholz_in_kurz.wav",
+    "scholz_in_kurz.wav",
+    "scholz_in_kurz.wav",
+    "scholz_in_kurz.wav",
+    "scholz_in_kurz.wav",
+    "scholz_in_kurz.wav",
     "scholz_in_kurz.wav",
     "scholz_in_kurz.wav",
 ]
@@ -38,7 +46,12 @@ with concurrent.futures.ThreadPoolExecutor(10) as executor:
         print(f"Submitting {file}, Executor counter: {executor.counter}")
         result = executor.submit(transcribe_file, file, counter=executor.counter)
         results.append(result)
+        print(f"Active threads: {threading.active_count()}")
 
     for result in concurrent.futures.as_completed(results):
-        print(result.result())  # this is required to wait for the function to conclude
+        print(result.result()) # this is required to wait for the function to conclude
         print("Done")
+
+end_time_total = time.time()  # Record the end time
+elapsed_time_total = end_time_total - start_time_total  # Calculate elapsed time
+print(f"Total took {elapsed_time_total:.4f} seconds to execute.")

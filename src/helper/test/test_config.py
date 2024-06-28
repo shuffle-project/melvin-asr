@@ -4,10 +4,10 @@
 # ruff: noqa: F401
 
 import os
-from src.config import CONFIG, read_config
+from src.helper.config import CONFIG, read_config
 
-TEST_CONFIG_SUCCESS_PATH = os.getcwd() + "/src/test/test_config_success.yml"
-TEST_CONFIG_RAISE_PATH = os.getcwd() + "/src/test/test_config_raise.yml"
+TEST_CONFIG_SUCCESS_PATH = os.getcwd() + "/src/helper/test/test_config_success.yml"
+TEST_CONFIG_RAISE_PATH = os.getcwd() + "/src/helper/test/test_config_raise.yml"
 
 def test_read_config_success():
     """Tests reading a config.yml successfully."""
