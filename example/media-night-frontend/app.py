@@ -53,6 +53,26 @@ def get_transcription():
         return jsonify({"partial": "No transcription available"}), 404
     except (json.JSONDecodeError, KeyError):
         return jsonify({"partial": "Invalid transcription format"}), 400
+    
+@app.route('/transcription_full', methods=['GET'])
+def get_transcription2():
+    global full_text
+    print("get_transcription called")
+    try:
+        with open(TRANSCRIPTION_FILE, 'r') as f:
+            transcription = f.read()
+        data = json.loads(transcription)
+        if "text" in data:
+            full_text = data["text"]
+        else:
+            return jsonify({"full": "No valid transcription key found"}), 400
+        
+        return jsonify({"full": full_text})
+    except FileNotFoundError:
+        return jsonify({"full": "No transcription available"}), 404
+    except (json.JSONDecodeError, KeyError):
+        return jsonify({"full": "Invalid transcription format"}), 400
+    
 
 if __name__ == '__main__':
     app.run(debug=True)

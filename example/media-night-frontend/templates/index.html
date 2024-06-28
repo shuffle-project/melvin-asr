@@ -17,10 +17,25 @@
             height: 100vh;
             margin: 0;
         }
+        #transcription2-container, #transcription-container {
+            border: 2px solid #ffffff;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            background-color: #2d2b2c;
+        }
+        #transcription2-container {
+            height: 200px; /* fixed height to enable scrolling */
+            overflow-y: auto; /* enables vertical scrolling */
+        }
+        #toggle-button-container {
+            margin-bottom: 20px;
+        }
         #toggle-button {
-            width: 150px;
-            height: 150px;
-            border: 15px solid #2d2b2c;
+            width: 120px;
+            height: 120px;
+            border: 10px solid #2d2b2c;
             border-radius: 50%;
             box-shadow: 12px 12px 22px #121112, -12px -12px 22px #484546;
             background-color: #ffffff;
@@ -32,45 +47,68 @@
             align-items: center;
             font-size: 24px;
         }
-        #toggle-button i {
-            margin-right: 10px;
-            font-size: 60px;
+        #toggle-button:hover {
+            transform: scale(1.1); /* slight zoom on hover */
         }
-        #transcription {
-            margin-top: 20px;
+        #toggle-button i {
+            font-size: 50px;
+        }
+        #transcription, #transcription2 {
             font-size: 18px;
         }
+
     </style>
 </head>
 <body>
-    <h1>Microphone Interface</h1>
-    <button id="toggle-button" onclick="toggleMicrophone()">
-        <i class="fas fa-microphone"></i>
-        
-    </button>
-    <div id="transcription"></div>
+
+    <div id="transcription2-container">
+        <div id="transcription2"></div>
+    </div>
+
+    <div id="toggle-button-container">
+        <button id="toggle-button" onclick="toggleMicrophone()">
+            <i class="fas fa-microphone-slash"></i>
+        </button>
+    </div>
+
+    <div id="transcription-container">
+        <div id="transcription"></div>
+    </div>
+
+
+    <div class="container">
+        <div id="transcription2"></div>
+        <div id="transcription"></div>
+    </div>
 
     <script>
         let microphoneRunning = false;
         let transcriptionInterval;
+        let transcriptionInterval2;
+        let fullTranscription = '';
 
         function toggleMicrophone() {
             if (microphoneRunning) {
                 $.post('/stop_microphone', function(data) {
-                    $('#toggle-button i').removeClass('fas fa-microphone-slash').addClass('fas fa-microphone');
+                    $('#toggle-button i').removeClass('fas fa-microphone').addClass('fas fa-microphone-slash');
                     $('#button-text').text('Start Microphone');
                     microphoneRunning = false;
                     clearInterval(transcriptionInterval);
+                    clearInterval(transcriptionInterval2);
+                    $('#transcription').text('');
+                    $('#transcription2').text('');
+                    fullTranscription = '';
                     console.log(data.status);
                 }).fail(function(xhr, status, error) {
                     console.error("Error stopping microphone:", xhr.responseText);
                 });
             } else {
                 $.post('/start_microphone', function(data) {
-                    $('#toggle-button i').removeClass('fas fa-microphone').addClass('fas fa-microphone-slash');
+                    $('#toggle-button i').removeClass('fas fa-microphone-slash').addClass('fas fa-microphone');
                     $('#button-text').text('Stop Microphone');
                     microphoneRunning = true;
                     transcriptionInterval = setInterval(getTranscription, 1000);
+                    transcriptionInterval2 = setInterval(getTranscription2, 1000);
                     console.log(data.status);
                 }).fail(function(xhr, status, error) {
                     console.error("Error starting microphone:", xhr.responseText);
@@ -80,11 +118,27 @@
 
         function getTranscription() {
             $.get('/transcription', function(data) {
-                $('#transcription').text(data.partial);
+                partialText = data.partial
+                $('#transcription').text(partialText);
             }).fail(function(xhr, status, error) {
                 console.error("Error getting transcription:", xhr.responseText);
             });
         }
+
+        function getTranscription2() {
+            $.get('/transcription_full', function(data) {
+                if (fullTranscription.length > 100000) {
+                    fullTranscription = ''
+                }
+                fullTranscription += data.full;
+                $('#transcription2').text(fullTranscription.substring(0, 1000));
+                let container = document.getElementById('transcription2-container');
+                container.scrollTop = container.scrollHeight;
+            }).fail(function(xhr, status, error) {
+                console.error("Error getting transcription:", xhr.responseText);
+            });
+        }
+
     </script>
 </body>
 </html>
