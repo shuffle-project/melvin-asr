@@ -1,11 +1,11 @@
 import asyncio
 import json
 import time
+from typing import Callable
 import uuid
 import websockets
 from pydub import AudioSegment
-from src.api.websocket.websockets_settings import default_websocket_settings
-from src.api.websocket.stream_transcriber import Transcriber
+from src.websocket.websockets_settings import default_websocket_settings
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
 
@@ -23,18 +23,12 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 
 class Stream:
-    GET_WORKER_RETRY_TIME_SECONDS = 10
-    WAITING_MESSAGE = f"No transcription workers available. Retrying in {GET_WORKER_RETRY_TIME_SECONDS} seconds"
-
-    def __init__(self, transcriber: Transcriber, identifier: int):
-
-        self.logger = Logger("WebSocketServer", True, Color.BRIGHT_WHITE, "Stream " + identifier + " :")
+    def __init__(self, transcription_callable: Callable):
+        self.logger = Logger("Stream", True, Color.BRIGHT_WHITE)
+        self.transcription_callable = transcription_callable
 
         # Initialize the transcribe function, if seat is available
         # self.transcribe = StreamTranscriber.get_transcribe()
-
-        self.transcriber = transcriber
-        self.transcribe_worker = None
 
         # Cache for the last few chunks of audio
         self.recently_added_chunk_cache = b""
@@ -67,18 +61,6 @@ class Stream:
     # self.transcriber.return_worker()
 
     async def echo(self, websocket, path):
-
-        while not self.transcribe_worker:
-            """Try and get a worker to use the transcribe method"""
-            self.transcribe_worker = self.transcriber.get_worker()
-
-            if self.transcribe_worker:
-                break
-
-            self.logger.print_log(Stream.WAITING_MESSAGE)
-            await websocket.send(json.dumps(Stream.WAITING_MESSAGE))
-            time.sleep(Stream.GET_WORKER_RETRY_TIME_SECONDS)
-
         while True:
             try:
                 # message type: Union[str, bytes]
@@ -127,83 +109,96 @@ class Stream:
                     else:
                         await websocket.send("control message unknown")
 
-            except websockets.exceptions.ConnectionClosedOK:
+            except websockets.exceptions.ConnectionClosedOK as e:
                 self.logger.print_log("Client left")
+                await self.exit(str(e), websocket)
                 break
-            except websockets.exceptions.ConnectionClosedError:
+            except websockets.exceptions.ConnectionClosedError as e:
                 self.logger.print_error("Client left unexpectedly")
+                await self.exit(str(e), websocket)
                 break
             except Exception as e:
                 self.logger.print_error("Error while receiving message: {}".format(e))
+                await self.exit(str(e), websocket)
                 break
 
     async def transcribe_all_chunk_cache(
-            self, websocket, chunk_cache, recent_cache
+        self, websocket, chunk_cache, recent_cache
     ) -> str:
         """Function to transcribe a chunk of audio"""
-        start_time = time.time()
-        result: str = ""
-        data = self.transcriber.transcribe_audio_chunk(
-            chunk_cache, settings=default_websocket_settings()
-        )
-        self.adjust_threshold_on_latency()
-        # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
-        overall_transcribed_seconds = (
-                                              len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
-                                      ) - (len(recent_cache) / BYTES_PER_SECOND)
-        self.overall_transcribed_bytes += recent_cache
-        if "segments" in data:
-            result = []
-            text = ""
-            for segment in data["segments"]:
-                for word in segment["words"]:
-                    # make float with 6 digits after point
-                    start = float("{:.6f}".format(float(word["start"])))
-                    end = float("{:.6f}".format(float(word["end"])))
-                    conf = float("{:.6f}".format(float(word["probability"])))
-                    word = word["word"].strip()
-                    result.append(
-                        {
-                            "conf": conf,
-                            "start": start + overall_transcribed_seconds,
-                            "end": end + overall_transcribed_seconds,
-                            "word": word,
-                        }
-                    )
+        try:
+            start_time = time.time()
+            result: str = ""
+            data = self.transcription_callable(
+                chunk_cache, settings=default_websocket_settings()
+            )
+            self.adjust_threshold_on_latency()
+            # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
+            overall_transcribed_seconds = (
+                len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
+            ) - (len(recent_cache) / BYTES_PER_SECOND)
+            self.overall_transcribed_bytes += recent_cache
+            if "segments" in data:
+                result = []
+                text = ""
+                for segment in data["segments"]:
+                    for word in segment["words"]:
+                        # make float with 6 digits after point
+                        start = float("{:.6f}".format(float(word["start"])))
+                        end = float("{:.6f}".format(float(word["end"])))
+                        conf = float("{:.6f}".format(float(word["probability"])))
+                        word = word["word"].strip()
+                        result.append(
+                            {
+                                "conf": conf,
+                                "start": start + overall_transcribed_seconds,
+                                "end": end + overall_transcribed_seconds,
+                                "word": word,
+                            }
+                        )
 
-                text = text + segment["text"]
-            result = {"result": result, "text": text}
-            self.final_transcriptions.append(result)
-        await websocket.send(json.dumps(result, indent=2))
-        end_time = time.time()
-        self.logger.print_log(
-            "Final Transcription took {:.2f} s".format(end_time - start_time)
-        )
+                    text = text + segment["text"]
+                result = {"result": result, "text": text}
+                self.final_transcriptions.append(result)
+            await websocket.send(json.dumps(result, indent=2))
+            end_time = time.time()
+            self.logger.print_log(
+                "Final Transcription took {:.2f} s".format(end_time - start_time)
+            )
+        except Exception as e:
+            self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
+            await self.exit(str(e), websocket)
 
     async def transcribe_chunk_partial(
-            self, websocket, chunk_cache, recent_cache
+        self, websocket, chunk_cache, recent_cache
     ) -> str:
-        start_time = time.time()
-        result: str = "Missing data"
+        try:
+            start_time = time.time()
+            result: str = "Missing data"
 
-        data = self.transcriber.transcribe_audio_chunk(
-            chunk_cache, settings=default_websocket_settings()
-        )
-        self.adjust_threshold_on_latency()
-        self.overall_transcribed_bytes += recent_cache
-        if "segments" in data:
-            text = ""
-            for segment in data["segments"]:
-                text += segment["text"]
-            result = json.dumps({"partial": text}, indent=2)
-        else:
-            self.logger.print_error("Transcription Data is empty, no segments found")
-        await websocket.send(result)
+            data = self.transcription_callable(
+                chunk_cache, settings=default_websocket_settings()
+            )
+            self.adjust_threshold_on_latency()
+            self.overall_transcribed_bytes += recent_cache
+            if "segments" in data:
+                text = ""
+                for segment in data["segments"]:
+                    text += segment["text"]
+                result = json.dumps({"partial": text}, indent=2)
+            else:
+                self.logger.print_error(
+                    "Transcription Data is empty, no segments found"
+                )
+            await websocket.send(result)
 
-        end_time = time.time()
-        self.logger.print_log(
-            "Partial transcription took {:.2f} s".format(end_time - start_time)
-        )
+            end_time = time.time()
+            self.logger.print_log(
+                "Partial transcription took {:.2f} s".format(end_time - start_time)
+            )
+        except Exception as e:
+            self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
+            await self.exit(str(e), websocket)
 
     def adjust_threshold_on_latency(self):
         """Adjusts the partial threshold based on the latency"""
@@ -219,8 +214,8 @@ class Stream:
 
         # we need to exclude the partial threshold from the calculation, because the if the threshold is reached, the latency is always bad
         seconds_difference_received_transcribed_exclude_partial = (
-                seconds_difference_received_transcribed
-                - self.partial_treshold / BYTES_PER_SECOND
+            seconds_difference_received_transcribed
+            - self.partial_treshold / BYTES_PER_SECOND
         )
         self.logger.print_log(
             "Difference received, excluding Partial threshold: {}".format(
@@ -230,19 +225,21 @@ class Stream:
 
         # FINAL TRANSCRIPTION TIMEOUT is out definition of bad latency
         if (
-                seconds_difference_received_transcribed_exclude_partial
-                > FINAL_TRANSCRIPTION_TIMEOUT - 2
+            seconds_difference_received_transcribed_exclude_partial
+            > FINAL_TRANSCRIPTION_TIMEOUT - 2
         ):
             self.logger.print_log("Latency is too high, increasing partial threshold")
             self.partial_treshold = self.partial_treshold * 1.5
             if self.partial_treshold > self.final_treshold:
                 self.partial_treshold = self.final_treshold
                 # this is a bad case, maximum threshold
-                self.logger.print_error("Partial threshold is now equal to final threshold")
+                self.logger.print_error(
+                    "Partial threshold is now equal to final threshold"
+                )
 
         if (
-                seconds_difference_received_transcribed_exclude_partial
-                < FINAL_TRANSCRIPTION_TIMEOUT / 6
+            seconds_difference_received_transcribed_exclude_partial
+            < FINAL_TRANSCRIPTION_TIMEOUT / 6
         ):
             self.logger.print_log("Latency is low, decreasing partial threshold")
             self.partial_treshold = self.partial_treshold * 0.75
@@ -266,7 +263,7 @@ class Stream:
         return name
 
     def concatenate_audio_with_crossfade(
-            self, audio_chunk1: bytes, audio_chunk2: bytes, crossfade_duration=20
+        self, audio_chunk1: bytes, audio_chunk2: bytes, crossfade_duration=20
     ) -> bytes:
         """
         Concatenates two audio chunks with crossfade to avoid click sounds.
@@ -296,3 +293,11 @@ class Stream:
 
         combined = segment1.append(segment2, crossfade=crossfade_duration)
         return combined.raw_data
+
+    async def exit(self, message: str, websocket):
+        """Exits the stream and returns the worker."""
+        self.logger.print_error(f"Exiting the stream for an Exception: {message}")
+        self.transcription_callable(audio_chunk=b"", settings=None, quit=True)
+        await websocket.send("Connection closed, error occurred.")
+        await websocket.close()
+        del self

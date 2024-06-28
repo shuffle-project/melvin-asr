@@ -29,7 +29,7 @@ def run_rest_api(port, host) -> dict:
 
 def run_flask_app(port, host):
     """Starts the flask app for production."""
-    log.print_log(f"starting Flask app prod on '{host}:{port}'")
+    log.print_log(f"Starting Flask app prod on '{host}:{port}'")
     app = create_app()
     waitress.serve(app, port=port, url_scheme="https", host=host)
 

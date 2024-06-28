@@ -11,21 +11,33 @@ api_keys:
 # Runner Configuration
 # The max. count of runners for rest_runner is 10
 # The max. count of runners for stream_runner is 1
-# Example:
-# identifier:
-#   device: "cpu" or "cuda"
-#   model: model_name
-#   compute_type: "int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
 
-stream_runner:
-  -   device: cpu
-      model: tiny
-      compute_type: int8
+websocket_stream:
+  cpu:
+    active: True
+    model: tiny
+    cpu_threads: 4
+    worker_seats: 1
+
+  cuda:
+    active: False
+    model: tiny
+    device_index: 0
+    worker_seats: 1
 
 rest_runner:
+      # device: "cpu" or "cuda"
   -   device: cpu
-      model: tiny
+      # model: tiny, small, medium, large, large-v3 (https://huggingface.co/Systran)
+      model: large-v3
+      # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
       compute_type: int8
-  -   device: cpu
-      model: tiny
-      compute_type: int8
+      # device_index: Only for Cuda, device_index is the index of the GPU, see CLI "nvidia-smi"
+      device_index: 0
+      # num_workers: Only for CPU, in our setup it should always be 1 or 2
+      num_workers: 1
+      # cpu_threads: Only for CPU, depends on the type of CPU, try out different values to find the best one
+        # for 128 cores, use 8/16
+        # for 64 cores, use 4/8
+        # for 32 cores, use 2/4
+      cpu_threads: 4

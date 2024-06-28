@@ -28,7 +28,7 @@ def read_config(config_yml_path: str) -> dict:
         "debug": get_config("debug"),
         "api_keys": get_config("api_keys"),
         "rest_runner": get_config("rest_runner"),
-        "stream_runner": get_config("stream_runner"),
+        "websocket_stream": get_config("websocket_stream"),
         # Networking Configuration
         #   Port that the REST API will listen on
         "rest_port": int(get_config("rest_port", default="8393")),
