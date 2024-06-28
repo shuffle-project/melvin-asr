@@ -2,6 +2,7 @@
 import io
 import os
 import wave
+from typing import Callable, Union
 
 from faster_whisper import WhisperModel
 
@@ -10,17 +11,19 @@ from src.helper.logger import Logger, Color
 from src.transcription.segment_info_parser import parse_segments_and_info_to_dict
 from src.transcription.transcription_settings import TranscriptionSettings
 
+
+
 LOGGER = Logger("Transcriber", True, Color.MAGENTA)
 
 
 class Transcriber:
-    def __init__(self, model_name: str, device, device_index: list, compute_type: str, cpu_threads: int,
+    def __init__(self, model_name: str, device: str, device_index: list, compute_type: str, cpu_threads: int,
                  num_workers: int, ):
         """
-        This class converts audio to text. You should use this by initializing a Transcriber once and then ask it to get
-        it's transcribe method. If there is a free worker available, you will get the transcribe method and can
-        call it as often as you want. If you're done with all transcription tasks, hand back your worker resource
-        by calling return_worker.
+        This class converts audio to text. You should use it by initializing a Transcriber once and then ask to get
+        a transcribe worker method via getWorker(). If there is a free worker available, you will get the transcribe
+        method and can call it as often as you want. If you're done with all transcription tasks,
+        hand back your worker resource by calling return_worker().
 
         Args:
             model_name: Which Whisper model to use.
@@ -119,7 +122,7 @@ class Transcriber:
         segments, info = model.transcribe(audio, **settings)
         return parse_segments_and_info_to_dict(segments, info)
 
-    def get_worker(self):
+    def get_worker(self) -> Union[None or Callable]:
         """
         Function to get the transcribe method, if workers are available
         Returns: callable transcribe method or None

@@ -31,7 +31,7 @@ class Stream:
         self.logger = Logger("WebSocketServer", True, Color.BRIGHT_WHITE, "Stream " + identifier + " :")
 
         # Initialize the transcribe function, if seat is available
-        # self.transcibe = StreamTranscriber.get_transcribe()
+        # self.transcribe = StreamTranscriber.get_transcribe()
 
         self.transcriber = transcriber
         self.transcribe_worker = None
