@@ -19,15 +19,16 @@ class WebSocketServer:
     gpu_transcriber: Transcriber = None
     cpu_transcriber: Transcriber = None
 
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, config: dict = CONFIG):
+        self.should_stop = False
         self.log = Logger("WebSocketServer", True, Color.CYAN)
         self.host = host
         self.port = port
 
         # Setup the GPU and CPU Transcribers
-        self.gpu_config = CONFIG["websocket_stream"]["cuda"]
+        self.gpu_config = config["websocket_stream"]["cuda"]
         self.log.print_log(f"GPU Config: {self.gpu_config}")
-        self.cpu_config = CONFIG["websocket_stream"]["cpu"]
+        self.cpu_config = config["websocket_stream"]["cpu"]
         self.log.print_log(f"CPU Config: {self.cpu_config}")
         self.stream_counter_cpu = 0
         self.stream_counter_gpu = 0
@@ -64,8 +65,13 @@ class WebSocketServer:
             self.log.print_log("GPU Stream Transcriber is active")
 
     async def start_server(self):
+        self.should_stop = False
         async with websockets.serve(self.handle_new_client, self.host, self.port):
-            await asyncio.Future()  # run forever
+            while not self.should_stop:
+                await asyncio.sleep(1)  # Check every second if the server should stop
+    
+    def stop_server(self):
+        self.should_stop = True
 
     async def handle_new_client(self, websocket, path):
         """Function to handle a new client connection"""

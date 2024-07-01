@@ -103,8 +103,7 @@ class Stream:
                         name = self.export_transcription_and_wav()
                         await websocket.send(name)
                         await websocket.close()
-                        self.transcriber.return_worker()  # TODO: we should move this to the __del__ instance method
-                        self.logger.print_log("Closed connection gracefully")
+                        await self.exit(str("Closed connection gracefully with eof"), websocket)
                     else:
                         await websocket.send("control message unknown")
 
