@@ -10,7 +10,7 @@ from src.helper.model_handler import ModelHandler
 from src.helper.segment_info_parser import parse_segments_and_info_to_dict
 from src.helper.transcription_settings import TranscriptionSettings
 
-LOGGER = Logger("Stream Transcriber", True, Color.CYAN)
+LOGGER = Logger("Stream Transcriber", False, Color.CYAN)
 
 
 class Transcriber:
@@ -49,7 +49,6 @@ class Transcriber:
         self._cpu_threads = cpu_threads
         self._num_workers = num_workers
         self._model: WhisperModel = self._load_model()
-
         self._availableWorkers = worker_seats
 
     @classmethod
@@ -102,9 +101,6 @@ class Transcriber:
         if quit:
             self.return_worker()
 
-        self._log.print_log(
-            "Transcribing audio chunk of length: " + str(len(audio_chunk))
-        )
         result = "ERROR"
         with io.BytesIO() as wav_io:
             with wave.open(wav_io, "wb") as wav_file:

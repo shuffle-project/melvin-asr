@@ -22,9 +22,11 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 
 class Stream:
-    def __init__(self, transcription_callable: Callable):
-        self.logger = Logger("Stream", True, Color.BRIGHT_WHITE)
+    def __init__(self, transcription_callable: Callable, id: int):
+        self.logger = Logger(f"Stream{id}", True, Color.CYAN)
         self.transcription_callable = transcription_callable
+        self.id = id
+        self.close_stream = False
 
         # Initialize the transcribe function, if seat is available
         # self.transcribe = StreamTranscriber.get_transcribe()
@@ -59,8 +61,8 @@ class Stream:
     # rather than in the echo method
     # self.transcriber.return_worker()
 
-    async def echo(self, websocket, path):
-        while True:
+    async def echo(self, websocket, path) -> None:
+        while self.close_stream is False:
             try:
                 # message type: Union[str, bytes]
                 message = await websocket.recv()
@@ -73,7 +75,11 @@ class Stream:
                     )
 
                     if len(self.chunk_cache) >= self.final_treshold:
-                        self.logger.print_log("********** NEW FINAL **********")
+                        self.logger.print_log(
+                            "NEW FINAL: length of chunk cache: {}".format(
+                                len(self.chunk_cache)
+                            )
+                        )
                         asyncio.ensure_future(
                             self.transcribe_all_chunk_cache(
                                 websocket,
@@ -85,7 +91,11 @@ class Stream:
                         self.chunk_cache = b""
 
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
-                        self.logger.print_log("********** NEW PARTIAL **********")
+                        self.logger.print_log(
+                            "NEW PARTIAL: length of chunk cache: {}".format(
+                                len(self.recently_added_chunk_cache)
+                            )
+                        )
                         # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
                         asyncio.ensure_future(
                             self.transcribe_chunk_partial(
@@ -103,22 +113,22 @@ class Stream:
                         name = self.export_transcription_and_wav()
                         await websocket.send(name)
                         await websocket.close()
-                        await self.exit(str("Closed connection gracefully with eof"), websocket)
+                        self.logger.print_log("eof received")
+                        break
                     else:
                         await websocket.send("control message unknown")
 
-            except websockets.exceptions.ConnectionClosedOK as e:
-                self.logger.print_log("Client left")
-                await self.exit(str(e), websocket)
+            except websockets.exceptions.ConnectionClosedOK:
+                self.logger("Client left")
                 break
-            except websockets.exceptions.ConnectionClosedError as e:
-                self.logger.print_error("Client left unexpectedly")
-                await self.exit(str(e), websocket)
+            except websockets.exceptions.ConnectionClosedError:
+                self.logger("Client left unexpectedly")
                 break
             except Exception as e:
-                self.logger.print_error("Error while receiving message: {}".format(e))
-                await self.exit(str(e), websocket)
+                self.logger("Error while receiving message: {}".format(e))
                 break
+
+        self.exit("unknown reason")
 
     async def transcribe_all_chunk_cache(
         self, websocket, chunk_cache, recent_cache
@@ -163,7 +173,7 @@ class Stream:
             )
         except Exception as e:
             self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
-            await self.exit(str(e), websocket)
+            self.close_stream = True
 
     async def transcribe_chunk_partial(
         self, websocket, chunk_cache, recent_cache
@@ -192,7 +202,7 @@ class Stream:
             )
         except Exception as e:
             self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
-            await self.exit(str(e), websocket)
+            self.close_stream = True
 
     def adjust_threshold_on_latency(self):
         """Adjusts the partial threshold based on the latency"""
@@ -201,20 +211,13 @@ class Stream:
         # Calculate the latency of the connection
         seconds_difference_received_transcribed = seconds_received - seconds_transcribed
         self.logger.print_log(
-            "Difference received transcribed: {}".format(
-                seconds_difference_received_transcribed
-            )
+            f"Latency: {seconds_difference_received_transcribed} s, Partial Threshhold {self.partial_treshold / BYTES_PER_SECOND}"
         )
 
         # we need to exclude the partial threshold from the calculation, because the if the threshold is reached, the latency is always bad
         seconds_difference_received_transcribed_exclude_partial = (
             seconds_difference_received_transcribed
             - self.partial_treshold / BYTES_PER_SECOND
-        )
-        self.logger.print_log(
-            "Difference received, excluding Partial threshold: {}".format(
-                seconds_difference_received_transcribed_exclude_partial
-            )
         )
 
         # FINAL TRANSCRIPTION TIMEOUT is out definition of bad latency
@@ -227,27 +230,15 @@ class Stream:
             if self.partial_treshold > self.final_treshold:
                 self.partial_treshold = self.final_treshold
                 # this is a bad case, maximum threshold
-                self.logger.print_error(
-                    "Partial threshold is now equal to final threshold"
-                )
 
         if (
             seconds_difference_received_transcribed_exclude_partial
             < FINAL_TRANSCRIPTION_TIMEOUT / 6
         ):
-            self.logger.print_log("Latency is low, decreasing partial threshold")
             self.partial_treshold = self.partial_treshold * 0.75
             if self.partial_treshold < BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT:
                 self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
-                self.logger.print_log(
-                    "Partial threshold is now equal to the default threshold"
-                )
-
-        self.logger.print_log(
-            "Partial threshold is now: {}".format(
-                self.partial_treshold / BYTES_PER_SECOND
-            )
-        )
+                # Partial threshold is now equal to the default threshold
 
     def export_transcription_and_wav(self):
         DATA_HANDLER = DataHandler()
@@ -287,11 +278,8 @@ class Stream:
 
         combined = segment1.append(segment2, crossfade=crossfade_duration)
         return combined.raw_data
-
-    async def exit(self, message: str, websocket):
-        """Exits the stream and returns the worker."""
-        self.logger.print_error(f"Exiting the stream for an Exception: {message}")
+    
+    def exit(self, message: str = "Closing Stream"):
+        self.close_stream = True
+        self.logger.print_log("returning stream seat...")
         self.transcription_callable(audio_chunk=b"", quit=True)
-        await websocket.send("Connection closed, error occurred.")
-        await websocket.close()
-        del self

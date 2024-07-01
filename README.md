@@ -54,14 +54,17 @@ The `config.local.yml` is used for local development.
 
 Please make sure to set the required options:
 
-### Required Configuration
-
-1. *debug* - Actives debug more for logging
-2. *api_keys* - Set the key that are used to access the REST API.
-3. *stream_runner* - Defined the models running to provide the websocket transcription (*currently only one is supported!*)
-4. *rest_runner*- Defined the models running to provide the http transcription
+### Configuration
 
 See the config-files for more information.
+
+The following options are important:
+
+1. *debug* - Actives debug more for logging
+1. *api_keys* - Set the key that are used to access the REST API.
+1. *transcription_default* - Faster-whisper transcriptions settings passed to all transcription workflows of the system. Set all settings available for faster-whisper.
+1. *websocket_stream* - Defined the models for CPU and CUDA GPUs running to provide the websocket stream endpoint. Disable GPU is you do not have a CUDA GPU installed!
+1. *rest_runner*- Defined the models running to provide the http transcription
 
 ## Testing
 

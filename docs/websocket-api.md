@@ -13,12 +13,21 @@ This documentation provides a concise guide on connecting to the WebSocket serve
 This is how the workflow for a client does look like:
 
 1. Connect to the WebSocket server.
-1. Capture Audio in chunks of 0.1 - 1 seconds and send them to the server continuously. You do not need to wait for a message as response.
+1. Capture Audio in chunks of 0.1 - 1 seconds and send them to the server continuously. You do not need to wait for a message in response.
 1. Receive Transcriptions from the server:
     - Partial Transcriptions: Sent periodically based on server’s latency adjustments, part of the next final.
     - Final Transcriptions: Sent after a set duration, providing a good quality transcript of the current context.
 1. Send “eof” when audio capture is complete to finalize and export the transcription.
 1. Close Connection.
+1. Get the audio file and transcript of you stream via the REST APIs `export` endpoints. See [REST Documentation](docs/rest-api.md).
+
+### Multi Client Workflow
+
+The WebSocket server is built to handle multiple clients simultaneously on both CPU and GPU models. The following points describe the behavior to expect when multiple clients are added to the stream.
+
+- The `worker_seats`options in the `config.yml` files does configure how many clients are allowed to enter a stream. If there are no available seats, the websocket connection to client will not be closed, instead the server sends a reminder every 10 seconds that indicates a waiting status of the client. If a seat becomes available, it will be given to the client. Currently there is no queue for the clients.
+- If the client gets a worker seat, it is not obvious if it is a CPU or GPU seat, the handling is always the same for both types.
+- Currenlty streaming with CPU is only possible with a `tiny` faster-whisper model. The CPU option should only be used as a fallback or testing option as the quality is bad.
 
 ## Message Options
 
