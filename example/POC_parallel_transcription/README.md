@@ -1,23 +1,40 @@
 # Parallel Transcription
 
-Currently we are using multiple WhisperModel classes multithreading in our code to transcribe audio files in parallel, in this POC we want to test if the option "num_workers" is an valid option for parallel transcription. We also want to see how the "cpu_threads" argument does change the way the transcription performs.
+We used multiple WhisperModel classes (The Class provided by faster-whisper package) with multithreading in our code to transcribe audio files in parallel. In parallel means transcribing multiple files at the same time using one ASR-API Docker container. In this proof of concept (POC), we aim to find the best option to transcribe multiple files in parallel for CPU and Cuda workloads.
 
-Looking at this topic, we want to make sure that the performance of one instance is as good as two or more model instances (Instances of the class WhisperModel of the faster-whisper package), or event better.
-Points we want to analyse are formulated below:
+For CPU, we need to determine whether to use a single WhisperModel class from the faster-whisper package in the code or multiple instances. Additionally, we want to test two parameters of the WhisperModel class: the “num_workers” option, which may be a valid choice for parallel transcription, when using one instance and the “cpu_threads” argument, to see how it affects transcription performance.
 
-See the scripts `transcribe_multi_model.py` & `transcribe_one_model.py` for better understanding.
+For GPU, we need to determine whether to use a single WhisperModel class in the code or multiple instances as well. Besides that, we want to see how the performance will work out when transcribing multiple files on one GPU at a time.
 
-## Data
+The points we want to analyze are outlined below:
+
+See the scripts in this directory and the data for better understanding.
+
+## CPU
+
+### Data
 
 To make the decision based on data, we created PDF files of our findings in the `./data` folder. Please have a look for deeper insights.
 
-## Does num_workers enable multiples transcription processes in parallel?
+### How is the performance of one WhisperModel instance compared to multiple instances
+
+The performance seems pretty close - in case the other parameters are also matching.
+
+1. One WhisperModel instance, using 1 Thread and having 2 num_workers as argument, using 2 cores - the transcription time is ~15 sec.
+1. Two WhisperModel instances, using 1 Thread and having 1 num_workers as argument, using 2 cores - the transcription time is ~16 sec.
+
+Conclusion: The option num_workers seems to do the same as multiple instances.
+
+See `./data` for more data.
+
+### Does the num_workers option enable multiples transcription processes in parallel?
 
 Yes, even without the options set to a number > 1, it is possible to use one WhisperModel instance to run multiple transcription processes in parallel.
-The performance seems to improve if a reasonable amount of workers is passed as argument.
+The performance seems to improve if a reasonable amount of workers is passed as argument. Best solution seems to pass the same num_workers as files are transcribed in parallel.
+
 See `https://github.com/SYSTRAN/faster-whisper/issues/100`for more information.
 
-### Is it only queueing the file for transcription?
+### Is faster_whisper queueing the file for transcription or are they running in "real" parallel?
 
 The files are transcribed in parallel, this is the output of the `transcribe_one_model.py` script.
 The time it takes makes it obvious.
@@ -31,16 +48,7 @@ counter 2 took 14.0474 seconds to execute.
 counter 1 took 17.9560 seconds to execute.
 ```
 
-### How is the performance compared to multiple Models
-
-When taking a close look, the performance seems pretty close - in case the other parameters are also matching.
-
-1. One WhisperModel instance, using 1 Thread and having 2 num_workers as argument, using 2 cores - the transcription time is ~15 sec.
-1. Two WhisperModel instances, using 1 Thread and having 1 num_workers as argument, using 2 cores - the transcription time is ~16 sec.
-
-See `./data` for more data.
-
-## Is the CPU-Thread option working?
+### Is the CPU-Thread option working?
 
 Yes, the "cpu_treads" argument is limiting the cores used in all tests. As obvious in the `./data`, there is another reasonable number of threads for each processor that works best. E.g. the M2 chip is working best on 1 or 2 core, while the Epyc is working best on 8 or 16 threads.
 
@@ -48,20 +56,38 @@ The argmuent does limit the usage for one worker, multiple workers are each usin
 
 When working with multiple instances of the WhisperModel class, the argmuent does limit the usage of one instance.
 
-## Is the Model running on multiple GPU-devices?
+## GPU
 
-??
+### Is the Model running on multiple GPU-devices?
 
-### Is it possible to run multiple workers (e.g. 6) on multiple GPUs (e.g. 3)
+Yes, there is the "device_index" option to pass multiple Cuda cards at the same time as an array.
 
-??
+### Is it possible to run multiple workers (e.g. 6) on multiple GPUs (e.g. 3) ?
+
+It is possible to run multiple transcriptions in parallel on one GPU. The performance will be reasonably slower and the process does happen at the same time.
+
+### How do Multiple WhisperModel instances perform compared to one instance?
+
+When comparing the numbers, we used the scripts in this folder ending with “gpu.” Since this was not a scientific research study, the numbers are derived from a small sample.
+
+In short: It does not make a significant difference. We tried instantiating a class for each file, for each GPU, and one for all files and all GPUs together. All transcription times were generated using comparable audio files and settings.
+
+When comparing one model for 3 GPUs and 3 files to transcribe, with one model per GPU (3 models), the times look like:
+
+23.3, 23.5, 24.1 seconds for multi-model compared to 18.1, 24.6, 28.0 seconds (times for each transcription process of each file, large model).
+
+When comparing one model for 1 GPU and 3 files to transcribe, with one model per file (3 models) on one GPU, the times look like:
+
+8.6, 8.8, 9.1 seconds for multi-model compared to 8.6, 8.1, 8.8 seconds (times for each transcription process of each file, tiny model).
+
+After all, we decided that the differences were too close to see a real benefit from one of the methods. Therefore, going with one model only seems like a reasonable choice because it requires less work.
 
 ## More learnings
 
 - When working with multiple WhisperModel instances, the initialization must happen with a sligth time between one another or a race condition will throw an error.
-- It does not matter if you are instanciation multiple WhisperModel classes or one, the model is only one time in the RAM.
-- As the multi and one WhisperModel instance approach are working pretty similar, it seems like we do not need to handle this part of the transcription process ourselfs. Working with once instance seems the easier and evenly "good" way.
-- It is important to set the "cpu_treads" argument correctly, for the best case, of each CPU. This should be a config setting for ASR-API.
+- It does not matter if you are instanciation multiple WhisperModel classes or one, the model is only one time in the RAM. Only tested for CPU!
+- As the multi and one WhisperModel instance approach are working pretty similar, it seems like we do not need to handle this part of the transcription process ourselfs. Working with once instance seems the easier and evenly "good" way. There is no way to use one model for CPU and GPU.
+- It is important to set the "cpu_treads" argument correctly, for the best case, of each CPU. This should be a config setting for ASR-API. E.g. M2-CPU is 2 Threads and a 128 core CPU is 8 threads.
 - Setting the "num_workers" argmuent to the amount of parallel transcription we want to run, seems like a good way of doing things. The results are always one of the best. Setting more workers does not affect the time it takes, but blocks more CPU power. Using less does affect the time it takes.
 
 ## Arguments faster-whisper WhisperModel

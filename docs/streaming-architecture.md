@@ -1,6 +1,6 @@
 # Real Time Streaming Transcription Architecture
 
-In this file we discuss and evaluate ways for building a real-time streaming solution.
+In this file we discuss ways for building a real-time streaming solution.
 
 ## Transcription Workflow
 
