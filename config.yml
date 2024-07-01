@@ -7,6 +7,13 @@ api_keys:
   - "api_key_1"
   - "api_key_2"
 
+# Transcription Configuration, defaults set for websocket_stream and rest_runner
+transcription_default:
+  # all valid faster-whisper transcription settings are allowed here
+  # see "src/helper/transcription_settings.py"
+  vad_filter: True
+  condition_on_previous_text: False
+
 # Runner Configuration
 # The max. count of runners for rest_runner is 10
 # The max. count of runners for stream_runner is 1
@@ -17,12 +24,16 @@ websocket_stream:
     model: tiny
     cpu_threads: 1
     worker_seats: 1
+    vad_filter: True
+    condition_on_previous_text: False
 
   cuda:
     active: False
     model: large
     device_index: [0]
     worker_seats: 1
+    vad_filter: True
+    condition_on_previous_text: False
 
 rest_runner:
       # device: "cpu" or "cuda"
@@ -40,3 +51,5 @@ rest_runner:
         # for 64 cores, use 4/8
         # for 32 cores, use 2/4
       cpu_threads: 4
+      vad_filter: True
+      condition_on_previous_text: False

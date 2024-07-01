@@ -44,6 +44,9 @@
 #   - vad_parameters: Dictionary of Silero VAD parameters or VadOptions class (see available
 #     parameters and default values in the class VadOptions).
 
+from src.helper.config import CONFIG
+
+
 class TranscriptionSettings:
     """Settings for the transcription module."""
 
@@ -75,6 +78,7 @@ class TranscriptionSettings:
             "vad_filter": True,
             "vad_parameters": None,
         }
+        self.apply_config_defaults()
 
     def get_and_update_settings(self, settings: dict = None) -> dict:
         """Returns the updated configuration."""
@@ -88,3 +92,10 @@ class TranscriptionSettings:
                 updated_config[key] = value
 
         return updated_config
+
+    def apply_config_defaults(self) -> None:
+        """Apply the default settings from global config."""
+        config = CONFIG["transcription_default"]
+        for key, value in self.default_settings.items():
+            if key in config:
+                self.default_settings[key] = config[key]

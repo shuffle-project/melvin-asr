@@ -8,6 +8,15 @@ api_keys:
   - "api_key_1"
   - "api_key_2"
 
+# Transcription Configuration, defaults set for websocket_stream and rest_runner
+transcription_default:
+  # all valid faster-whisper transcription settings are allowed here
+  # see "src/helper/transcription_settings.py"
+  vad_filter: True
+  condition_on_previous_text: False
+  word_timestamps: False
+  language: "en"
+
 # Runner Configuration
 # The max. count of runners for rest_runner is 10
 # The max. count of runners for stream_runner is 1

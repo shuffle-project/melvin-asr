@@ -56,6 +56,8 @@ def read_config(config_yml_path: str) -> dict:
         "cleanup_schedule_in_minutes": get_config(
             "cleanup_schedule_in_minutes", default=10
         ),
+        # Transcription default Configuration
+        "transcription_default": get_config("transcription_default"),
     }
 
 

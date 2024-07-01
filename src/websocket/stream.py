@@ -5,7 +5,6 @@ from typing import Callable
 import uuid
 import websockets
 from pydub import AudioSegment
-from src.websocket.websockets_settings import default_websocket_settings
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
 
@@ -129,9 +128,7 @@ class Stream:
         try:
             start_time = time.time()
             result: str = ""
-            data = self.transcription_callable(
-                chunk_cache, settings=default_websocket_settings()
-            )
+            data = self.transcription_callable(chunk_cache)
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (
@@ -176,9 +173,7 @@ class Stream:
             start_time = time.time()
             result: str = "Missing data"
 
-            data = self.transcription_callable(
-                chunk_cache, settings=default_websocket_settings()
-            )
+            data = self.transcription_callable(chunk_cache)
             self.adjust_threshold_on_latency()
             self.overall_transcribed_bytes += recent_cache
             if "segments" in data:
@@ -297,7 +292,7 @@ class Stream:
     async def exit(self, message: str, websocket):
         """Exits the stream and returns the worker."""
         self.logger.print_error(f"Exiting the stream for an Exception: {message}")
-        self.transcription_callable(audio_chunk=b"", settings=None, quit=True)
+        self.transcription_callable(audio_chunk=b"", quit=True)
         await websocket.send("Connection closed, error occurred.")
         await websocket.close()
         del self
