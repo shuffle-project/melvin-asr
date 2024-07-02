@@ -1,7 +1,6 @@
 """ Module to handle the transcription process """
 import io
 import wave
-from typing import Callable
 
 from faster_whisper import WhisperModel
 
@@ -16,7 +15,6 @@ LOGGER = Logger("Stream Transcriber", False, Color.CYAN)
 class Transcriber:
     def __init__(
         self,
-        worker_seats: int,
         model_name: str,
         device: str,
         compute_type: str,
@@ -26,12 +24,9 @@ class Transcriber:
     ):
         """
         This class converts audio to text. You should use it by initializing a Transcriber once and then ask to get
-        a transcribe worker method via getWorker(). If there is a free worker available, you will get the transcribe
-        method and can call it as often as you want. If you're done with all transcription tasks,
-        hand back your worker resource by calling return_worker().
+        a transcribe worker method via getWorker().
 
         Args:
-            worker_seats: Number of workers available
             model_name: Which Whisper model to use.
             device: Which device to use. cuda or CPU.
             device_index: Which device IDs to use. E.g. for 3 GPUs = [0,1,2]
@@ -50,9 +45,8 @@ class Transcriber:
         self._model: WhisperModel = self._load_model()
 
     @classmethod
-    def for_gpu(cls, worker_seats: int, model_name: str, device_index: list):
+    def for_gpu(cls, model_name: str, device_index: list):
         return cls(
-            worker_seats=worker_seats,
             model_name=model_name,
             device="cuda",
             compute_type="float16",
@@ -62,9 +56,8 @@ class Transcriber:
         )
 
     @classmethod
-    def for_cpu(cls, worker_seats: int, model_name: str, cpu_threads, num_workers):
+    def for_cpu(cls, model_name: str, cpu_threads, num_workers):
         return cls(
-            worker_seats=worker_seats,
             model_name=model_name,
             device="cpu",
             device_index=0,
