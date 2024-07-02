@@ -1,8 +1,6 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify
 import subprocess
 import json
-import threading
-import time
 
 app = Flask(__name__)
 microphone_process = None
@@ -75,4 +73,4 @@ def get_transcription2():
     
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="localhost", port=5001, debug=True)
