@@ -32,14 +32,8 @@ class Stream:
         # Cache for the last few chunks of audio
         self.recently_added_chunk_cache = b""
 
-        # Cache for the transcribed partials since the last final
-        self.partials_transcribed_since_last_final = b""
-
         # Cache for the chunks since the last final
         self.chunk_cache = b""
-
-        # indicates that the server is in use
-        self.is_busy = False
 
         # stores all final transcription objects and audio for export
         self.final_transcriptions = []

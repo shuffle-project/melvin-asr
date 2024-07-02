@@ -51,7 +51,7 @@ def test_websocket_server_initialization():
 def test_websocket_server_transcribers(mock_for_cpu):
     server = WebSocketServer("localhost", 8080, MOCK_CONFIG)
     mock_for_cpu.assert_called_once_with(
-        worker_seats=1, model_name="tiny", cpu_threads=1, num_workers=1
+       model_name="tiny", cpu_threads=1, num_workers=1
     )
     assert server.cpu_transcriber is not None
 
