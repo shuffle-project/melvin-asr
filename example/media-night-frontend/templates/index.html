@@ -17,6 +17,7 @@
             height: 100vh;
             margin: 0;
         }
+
         #transcription2-container, #transcription-container {
             border: 2px solid #ffffff;
             padding: 20px;
@@ -36,6 +37,7 @@
             width: 120px;
             height: 120px;
             border: 10px solid #2d2b2c;
+
             border-radius: 50%;
             box-shadow: 12px 12px 22px #121112, -12px -12px 22px #484546;
             background-color: #ffffff;
@@ -47,6 +49,7 @@
             align-items: center;
             font-size: 24px;
         }
+
         #toggle-button:hover {
             transform: scale(1.1); /* slight zoom on hover */
         }
@@ -87,9 +90,11 @@
         let transcriptionInterval2;
         let fullTranscription = '';
 
+
         function toggleMicrophone() {
             if (microphoneRunning) {
                 $.post('/stop_microphone', function(data) {
+
                     $('#toggle-button i').removeClass('fas fa-microphone').addClass('fas fa-microphone-slash');
                     $('#button-text').text('Start Microphone');
                     microphoneRunning = false;
@@ -98,6 +103,7 @@
                     $('#transcription').text('');
                     $('#transcription2').text('');
                     fullTranscription = '';
+
                     console.log(data.status);
                 }).fail(function(xhr, status, error) {
                     console.error("Error stopping microphone:", xhr.responseText);

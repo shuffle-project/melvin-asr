@@ -1,46 +1,39 @@
-""" Entry point for the API """
+""" Entry point for the application """
 import multiprocessing
 import os
 import signal
-from src.helper.logger import Color, Logger
-from src.api.rest.run import run_flask_app_prod
-from src.api.websocket.run import run_websocket_app
-from src.config import CONFIG
-from src.transcription.run import run_file_transcriber
+from src.helper.logger import Logger
+from src.helper.config import CONFIG
+from src.rest.run import run_rest_api
+from src.websocket.run import run_websocket_api
 
-LOGGER = Logger("app.py", True, Color.GREEN)
+LOGGER = Logger("app.py", True)
 
 
 def run(port, websocket_port, host):
     """start flask & websockets apps"""
-    transcription_runner = multiprocessing.Process(
-        target=run_file_transcriber,
-        args=(),
-    )
     websocket_server = multiprocessing.Process(
-        target=run_websocket_app,
+        target=run_websocket_api,
         args=(
             websocket_port,
             host,
         ),
     )
     flask_server = multiprocessing.Process(
-        target=run_flask_app_prod,
+        target=run_rest_api,
         args=(
             port,
             host,
         ),
     )
-    transcription_runner.start()
     websocket_server.start()
     flask_server.start()
-    transcription_runner.join()
     websocket_server.join()
     flask_server.join()
 
 
 if __name__ == "__main__":
-    LOGGER.print_log(CONFIG)
+    LOGGER.print_log(str(CONFIG))
     try:
         run(CONFIG["rest_port"], CONFIG["websocket_port"], CONFIG["host"])
     except KeyboardInterrupt:

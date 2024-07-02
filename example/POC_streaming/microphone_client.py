@@ -9,11 +9,15 @@ import websockets
 # Capture continuously in seconds
 AUDIO_FILE_LENGTH = 0.5
 
-
 class SpeechListener:
     """Listens to the microphone and sends the audio data to the websocket server."""
 
     def __init__(self):
+
+        # Counter for sending EOF, to stop the server from listening
+        self.eof_counter = 0
+        self.send_eof = 100
+
         self.recognizer = sr.Recognizer()
         self.stop_event = threading.Event()
         self.audio_queue = queue.Queue()
@@ -26,7 +30,10 @@ class SpeechListener:
         """Sends the input file to the WebSocket server and prints responses."""
         try:
             data = self.audio_queue.get(timeout=AUDIO_FILE_LENGTH/10)
+            if self.eof_counter == self.send_eof:
+                data = "eof"
             await websocket.send(data)
+            self.eof_counter = self.eof_counter + 1
         except queue.Empty:
             # print("Queue is empty.")
             return

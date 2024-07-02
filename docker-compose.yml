@@ -2,7 +2,7 @@ version: '3'
 
 services:
   asr-api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: asr-api
@@ -13,12 +13,12 @@ services:
     ports:
       - "8393:8393"
       - "8394:8394"
-    
+
     # Use the following part to utilize GPU 
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ "0" ]
+              capabilities: [ gpu ]

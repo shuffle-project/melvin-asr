@@ -53,7 +53,7 @@ def get_transcription():
         return jsonify({"partial": "No transcription available"}), 404
     except (json.JSONDecodeError, KeyError):
         return jsonify({"partial": "Invalid transcription format"}), 400
-    
+
 @app.route('/transcription_full', methods=['GET'])
 def get_transcription2():
     global full_text
