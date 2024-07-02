@@ -1,6 +1,5 @@
 """Module to handle the WebSocket server"""
 import asyncio
-import time
 import websockets
 from src.helper.config import CONFIG
 from src.websocket.stream import Stream
@@ -19,6 +18,9 @@ class WebSocketServer:
 
     gpu_transcriber: Transcriber = None
     cpu_transcriber: Transcriber = None
+
+    gpu_worker_seats: int = 0  # Counts the available GPU worker seats, If there 2 seats and 2 clients are connected, the variable will be 0
+    cpu_worker_seats: int = 0  # Counts the available CPU worker seats, If there 2 seats and 2 clients are connected, the variable will be 0
 
     stream_counter: int = 0
 
@@ -43,11 +45,13 @@ class WebSocketServer:
                 self.log.print_log("GPU Config is not set correctly")
                 raise ValueError("GPU Config is not set correctly")
             self.gpu_transcriber = Transcriber.for_gpu(
-                worker_seats=self.gpu_config["worker_seats"],
                 model_name=self.gpu_config["model"],
                 device_index=self.gpu_config["device_index"],
             )
-            self.log.print_log("GPU Stream Transcriber is active")
+            self.gpu_worker_seats = self.gpu_config["worker_seats"]
+            self.log.print_log(
+                f"GPU Stream Transcriber is active, Worker Seats: {self.gpu_worker_seats}"
+            )
 
         if self.cpu_config["active"]:
             if (
@@ -58,12 +62,14 @@ class WebSocketServer:
                 self.log.print_log("CPU Config is not set correctly")
                 raise ValueError("CPU Config is not set correctly")
             self.cpu_transcriber = Transcriber.for_cpu(
-                worker_seats=self.cpu_config["worker_seats"],
                 model_name=self.cpu_config["model"],
                 cpu_threads=self.cpu_config["cpu_threads"],
                 num_workers=self.cpu_config["worker_seats"],
             )
-            self.log.print_log("GPU Stream Transcriber is active")
+            self.cpu_worker_seats = self.cpu_config["worker_seats"]
+            self.log.print_log(
+                f"CPU Stream Transcriber is active, Worker Seats: {self.cpu_worker_seats}"
+            )
 
     async def start_server(self):
         self.should_stop = False
@@ -85,26 +91,39 @@ class WebSocketServer:
 
         searching = True
         while searching:
-            if (
-                self.gpu_transcriber is not None
-                and self.gpu_transcriber._worker_available()
-            ):
+            if self.gpu_transcriber is not None and self.gpu_worker_seats > 0:
+                self.gpu_worker_seats -= 1
                 self.log.print_log(f"Client {id} is using GPU worker")
                 searching = False
                 transcribe_method = self.gpu_transcriber.get_worker()
-                await Stream(transcription_callable=transcribe_method, id=id).echo(
-                    websocket=websocket, path=path
-                )
-            elif (
-                self.cpu_transcriber is not None
-                and self.cpu_transcriber._worker_available()
-            ):
+                try:
+                    await Stream(transcription_callable=transcribe_method, id=id).echo(
+                        websocket=websocket, path=path
+                    )
+                except Exception as e:
+                    self.log.print_error(
+                        f"Client {id} disconnected with an exception while using a worker: {e}"
+                    )
+                finally:
+                    self.gpu_worker_seats += 1
+                    self.log.print_log(f"Client {id} returned GPU worker")
+
+            elif self.cpu_transcriber is not None and self.cpu_worker_seats > 0:
+                self.cpu_worker_seats -= 1
                 self.log.print_log(f"Client {id} is using CPU worker")
                 searching = False
                 transcribe_method = self.cpu_transcriber.get_worker()
-                await Stream(transcription_callable=transcribe_method, id=id).echo(
-                    websocket=websocket, path=path
-                )
+                try:
+                    await Stream(transcription_callable=transcribe_method, id=id).echo(
+                        websocket=websocket, path=path
+                    )
+                except Exception as e:
+                    self.log.print_log(
+                        f"Client {id} disconnected with an exception while using a worker: {e}"
+                    )
+                finally:
+                    self.cpu_worker_seats += 1
+                    self.log.print_log(f"Client {id} returned CPU worker")
 
             if searching:
                 try:
@@ -114,6 +133,7 @@ class WebSocketServer:
                         f"Client {id} disconnected while waiting for a worker"
                     )
 
-                print(WAITING_MESSAGE)
+                self.log.print_log(
+                    f"Client {id} is waiting for a worker,\navailable seats for GPU: {self.gpu_worker_seats}, CPU: {self.cpu_worker_seats},\nconfigured seats for GPU: {self.gpu_config['worker_seats']}, CPU: {self.cpu_config['worker_seats']}"
+                )
                 await asyncio.sleep(GET_WORKER_RETRY_TIME_SECONDS)
-                print("retrying...")

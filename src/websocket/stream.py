@@ -23,7 +23,8 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 class Stream:
     def __init__(self, transcription_callable: Callable, id: int):
-        self.logger = Logger(f"Stream{id}", True, Color.CYAN)
+
+        self.logger = Logger(f"Stream{id}", True, Color.random())
         self.transcription_callable = transcription_callable
         self.id = id
         self.close_stream = False
@@ -114,21 +115,19 @@ class Stream:
                         await websocket.send(name)
                         await websocket.close()
                         self.logger.print_log("eof received")
-                        break
+                        self.close_stream = True
                     else:
                         await websocket.send("control message unknown")
 
             except websockets.exceptions.ConnectionClosedOK:
                 self.logger("Client left")
-                break
+                self.close_stream = True
             except websockets.exceptions.ConnectionClosedError:
                 self.logger("Client left unexpectedly")
-                break
+                self.close_stream = True
             except Exception as e:
                 self.logger("Error while receiving message: {}".format(e))
-                break
-
-        self.exit("unknown reason")
+                self.close_stream = True
 
     async def transcribe_all_chunk_cache(
         self, websocket, chunk_cache, recent_cache
@@ -278,8 +277,4 @@ class Stream:
 
         combined = segment1.append(segment2, crossfade=crossfade_duration)
         return combined.raw_data
-    
-    def exit(self, message: str = "Closing Stream"):
-        self.close_stream = True
-        self.logger.print_log("returning stream seat...")
-        self.transcription_callable(audio_chunk=b"", quit=True)
+

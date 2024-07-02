@@ -41,7 +41,6 @@ class Transcriber:
         """
 
         self._log = LOGGER
-        self._worker_seats = worker_seats
         self._model_name = model_name
         self._device = device
         self._device_index = device_index
@@ -49,7 +48,6 @@ class Transcriber:
         self._cpu_threads = cpu_threads
         self._num_workers = num_workers
         self._model: WhisperModel = self._load_model()
-        self._availableWorkers = worker_seats
 
     @classmethod
     def for_gpu(cls, worker_seats: int, model_name: str, device_index: list):
@@ -118,28 +116,3 @@ class Transcriber:
         settings = TranscriptionSettings().get_and_update_settings()
         segments, info = model.transcribe(audio, **settings)
         return parse_segments_and_info_to_dict(segments, info)
-
-    def get_worker(self) -> Callable:
-        """
-        Function to get the transcribe method, if workers are available
-        Returns: callable transcribe method or None
-        """
-        if self._worker_available():
-            self._availableWorkers = self._availableWorkers - 1
-            return self._transcribe
-        else:
-            return None
-
-    def return_worker(self):
-        """
-        Call this only to signalize that you are freeing a worker resource and won't call the transcribe method again.
-        Returns:
-
-        """
-        self._availableWorkers = self._availableWorkers + 1
-        pass
-
-    def _worker_available(self) -> bool:
-        if self._availableWorkers > 0:
-            return True
-        return False

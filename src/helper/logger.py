@@ -1,6 +1,7 @@
 """ simple Logger to keep track of the program's progress """
 
 from datetime import datetime
+import random
 from src.helper.config import CONFIG
 
 class Color:
@@ -26,6 +27,19 @@ class Color:
     BRIGHT_MAGENTA = "\033[95m"
     BRIGHT_CYAN = "\033[96m"
     BRIGHT_WHITE = "\033[97m"
+
+    @staticmethod
+    def random():
+        """Returns a random color."""
+        return [
+            Color.RED,
+            Color.GREEN,
+            Color.YELLOW,
+            Color.BLUE,
+            Color.MAGENTA,
+            Color.CYAN,
+            Color.WHITE,
+        ][random.randint(0, 6)]
 
 
 class Logger:
