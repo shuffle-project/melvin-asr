@@ -86,7 +86,7 @@ class WebSocketServer:
         self.stream_counter += 1
         id = self.stream_counter
         self.log.print_log(
-            f"New client connected: {websocket.remote_address}, Stream ID: {id}"
+            f"New client connected: {websocket.remote_address}, Stream ID: {id}\navailable seats for GPU: {self.gpu_worker_seats}, CPU: {self.cpu_worker_seats},\nconfigured seats for GPU: {self.gpu_config['worker_seats']}, CPU: {self.cpu_config['worker_seats']}"
         )
 
         searching = True
