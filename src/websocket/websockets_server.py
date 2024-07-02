@@ -95,9 +95,8 @@ class WebSocketServer:
                 self.gpu_worker_seats -= 1
                 self.log.print_log(f"Client {id} is using GPU worker")
                 searching = False
-                transcribe_method = self.gpu_transcriber.get_worker()
                 try:
-                    await Stream(transcription_callable=transcribe_method, id=id).echo(
+                    await Stream(transcriber=self.gpu_transcriber, id=id).echo(
                         websocket=websocket, path=path
                     )
                 except Exception as e:
@@ -112,9 +111,8 @@ class WebSocketServer:
                 self.cpu_worker_seats -= 1
                 self.log.print_log(f"Client {id} is using CPU worker")
                 searching = False
-                transcribe_method = self.cpu_transcriber.get_worker()
                 try:
-                    await Stream(transcription_callable=transcribe_method, id=id).echo(
+                    await Stream(transcriber=self.cpu_transcriber, id=id).echo(
                         websocket=websocket, path=path
                     )
                 except Exception as e:

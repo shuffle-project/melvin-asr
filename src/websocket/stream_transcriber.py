@@ -23,8 +23,7 @@ class Transcriber:
         num_workers: int,
     ):
         """
-        This class converts audio to text. You should use it by initializing a Transcriber once and then ask to get
-        a transcribe worker method via getWorker().
+        This class converts audio to text. You should use it by initializing a Transcriber once and then pass it to all streams that you want to transcribe at.
 
         Args:
             model_name: Which Whisper model to use.
@@ -82,15 +81,11 @@ class Transcriber:
     def _transcribe(
         self,
         audio_chunk: bytes,
-        quit: bool = False,
     ) -> dict:
         """Function to run the transcription process"""
         sample_rate = 16000
         num_channels = 1
         sampwidth = 2
-
-        if quit:
-            self.return_worker()
 
         result = "ERROR"
         with io.BytesIO() as wav_io:

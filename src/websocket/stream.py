@@ -1,12 +1,12 @@
 import asyncio
 import json
 import time
-from typing import Callable
 import uuid
 import websockets
 from pydub import AudioSegment
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
+from src.websocket.stream_transcriber import Transcriber
 
 # To Calculate the seconds of audio in a chunk of 16000 Hz, 2 bytes per sample and 1 channel (as typically used in Whisper):
 # 16000 Hz * 2 bytes * 1 channel = 32000 bytes per second
@@ -22,15 +22,12 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 
 class Stream:
-    def __init__(self, transcription_callable: Callable, id: int):
+    def __init__(self, transcriber: Transcriber, id: int):
 
         self.logger = Logger(f"Stream{id}", True, Color.random())
-        self.transcription_callable = transcription_callable
+        self.transcriber = transcriber
         self.id = id
         self.close_stream = False
-
-        # Initialize the transcribe function, if seat is available
-        # self.transcribe = StreamTranscriber.get_transcribe()
 
         # Cache for the last few chunks of audio
         self.recently_added_chunk_cache = b""
@@ -56,11 +53,6 @@ class Stream:
         # If the cache is larger than the threshold, we transcribe
         self.final_treshold = BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
         self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
-
-    # def __del__(self):
-    # We should delete the stream object if it is no longer in use and return the worker here
-    # rather than in the echo method
-    # self.transcriber.return_worker()
 
     async def echo(self, websocket, path) -> None:
         while self.close_stream is False:
@@ -136,7 +128,7 @@ class Stream:
         try:
             start_time = time.time()
             result: str = ""
-            data = self.transcription_callable(chunk_cache)
+            data = self.transcriber._transcribe(chunk_cache)
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (
@@ -181,7 +173,7 @@ class Stream:
             start_time = time.time()
             result: str = "Missing data"
 
-            data = self.transcription_callable(chunk_cache)
+            data = self.transcriber._transcribe(chunk_cache)
             self.adjust_threshold_on_latency()
             self.overall_transcribed_bytes += recent_cache
             if "segments" in data:
