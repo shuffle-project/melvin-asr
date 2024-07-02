@@ -8,7 +8,7 @@ In this file we discuss and evaluate ways for building a real-time streaming sol
 
 - **Typical Streaming Interface**: Cloud providers typically print partials (incomplete segments) while transcribing a sentence. As soon as the sentence is completed (complete segment), a final is printed
 
-https://docs.aws.amazon.com/transcribe/latest/dg/streaming-partial-results.html
+<https://docs.aws.amazon.com/transcribe/latest/dg/streaming-partial-results.html>
 
 - **Context recognition, cutting doublicated texts**:
   > The  
@@ -23,12 +23,12 @@ https://docs.aws.amazon.com/transcribe/latest/dg/streaming-partial-results.html
   > The Amazon is the largest rainforest on the planet.
 
 There are streaming solutions trying to cut text duplicates out of the partials, to make it easier for the reader.
-e.g. https://ufallab.ms.mff.cuni.cz/~machacek/pre-prints/AACL23-2.11.2023-Turning-Whisper-oral.pdf
+e.g. <https://ufallab.ms.mff.cuni.cz/~machacek/pre-prints/AACL23-2.11.2023-Turning-Whisper-oral.pdf>
 This does require a good understanding for the context and is not useful if the sentence is not completed.
 
 ### Length of finals and partial printing
 
-We decided to create an interface close to cloud providers: https://docs.aws.amazon.com/transcribe/latest/dg/streaming-partial-results.html
+We decided to create an interface close to cloud providers: <https://docs.aws.amazon.com/transcribe/latest/dg/streaming-partial-results.html>
 We want partials that build up sentences (logical seperated segemnets).
 Each Partial should not get bigger than 15 sec.
 After a logic seperated segment is recognized, a final should be printed.
@@ -79,7 +79,7 @@ We did not follow the idea further because of missing packages/libraries impleme
 We want to find out if we can detect logical seperation of contexts in our audio bytes using VAD.
 This could help to find out when a partial is a logic context that is ready to be send as final.
 
-- SileroVAD? https://github.com/snakers4/silero-vad?tab=readme-ov-file
+- SileroVAD? <https://github.com/snakers4/silero-vad?tab=readme-ov-file>
 
 **Whisper VAD**
 Whisper VAD does run VAD automatically before running the transcription on the audio chunk. This does not help with context recognition but it does increase the transcription time. MacBook M2 on 1 second chunks at a tiny model: From 0,7-0,8sec transcription time to 0.5-0.6 transcription time.
@@ -90,13 +90,9 @@ We want to track the performance and latency of the stream by measuring the time
 
 => This is the foundation to improve and measure latency.
 
-
-
 ## Model Setup
 
 ### Num-workers
-
-
 
 ## Server Setup
 
