@@ -1,0 +1,1811 @@
+[
+    {
+        "result": [
+            {
+                "conf": 0.960449,
+                "start": 7.0600000000000005,
+                "end": 7.58,
+                "word": "Ich"
+            },
+            {
+                "conf": 0.999512,
+                "start": 7.58,
+                "end": 7.98,
+                "word": "rufe"
+            },
+            {
+                "conf": 0.990234,
+                "start": 7.98,
+                "end": 8.14,
+                "word": "nun"
+            },
+            {
+                "conf": 0.875488,
+                "start": 8.14,
+                "end": 8.6,
+                "word": "auf"
+            },
+            {
+                "conf": 0.573242,
+                "start": 8.6,
+                "end": 9.120000000000001,
+                "word": "den"
+            },
+            {
+                "conf": 0.986938,
+                "start": 9.120000000000001,
+                "end": 9.98,
+                "word": "Tagesordnungspunkt."
+            }
+        ],
+        "text": " Ich rufe nun auf den Tagesordnungspunkt."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.384033,
+                "start": 10.0,
+                "end": 10.38,
+                "word": "Punkt"
+            },
+            {
+                "conf": 0.79541,
+                "start": 10.38,
+                "end": 11.120000000000001,
+                "word": "2."
+            },
+            {
+                "conf": 0.990723,
+                "start": 12.0,
+                "end": 12.72,
+                "word": "Abgabe"
+            },
+            {
+                "conf": 0.999512,
+                "start": 12.72,
+                "end": 12.92,
+                "word": "einer"
+            },
+            {
+                "conf": 0.999512,
+                "start": 12.92,
+                "end": 14.1,
+                "word": "Regierungserkl\u00e4rung"
+            },
+            {
+                "conf": 1.0,
+                "start": 14.1,
+                "end": 14.3,
+                "word": "durch"
+            },
+            {
+                "conf": 1.0,
+                "start": 14.3,
+                "end": 14.5,
+                "word": "den"
+            },
+            {
+                "conf": 0.999878,
+                "start": 14.5,
+                "end": 15.440000000000001,
+                "word": "Bundeskanzler"
+            },
+            {
+                "conf": 0.999512,
+                "start": 15.440000000000001,
+                "end": 15.620000000000001,
+                "word": "zum"
+            },
+            {
+                "conf": 0.581421,
+                "start": 15.620000000000001,
+                "end": 15.98,
+                "word": "Europ\u00e4ischen"
+            }
+        ],
+        "text": " Punkt 2. Abgabe einer Regierungserkl\u00e4rung durch den Bundeskanzler zum Europ\u00e4ischen"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.712646,
+                "start": 16.0,
+                "end": 16.32,
+                "word": "Europ\u00e4ischen"
+            },
+            {
+                "conf": 0.961426,
+                "start": 16.32,
+                "end": 16.56,
+                "word": "Rat"
+            },
+            {
+                "conf": 0.941406,
+                "start": 16.56,
+                "end": 16.88,
+                "word": "am"
+            },
+            {
+                "conf": 0.966309,
+                "start": 16.88,
+                "end": 17.34,
+                "word": "21."
+            },
+            {
+                "conf": 0.988281,
+                "start": 17.76,
+                "end": 17.9,
+                "word": "und"
+            },
+            {
+                "conf": 0.998535,
+                "start": 17.9,
+                "end": 18.38,
+                "word": "22."
+            },
+            {
+                "conf": 0.996094,
+                "start": 18.68,
+                "end": 19.2,
+                "word": "M\u00e4rz"
+            },
+            {
+                "conf": 0.994141,
+                "start": 19.2,
+                "end": 19.82,
+                "word": "2024."
+            },
+            {
+                "conf": 0.990723,
+                "start": 21.08,
+                "end": 21.82,
+                "word": "Hierzu"
+            },
+            {
+                "conf": 0.537109,
+                "start": 21.82,
+                "end": 21.96,
+                "word": "liegen"
+            },
+            {
+                "conf": 0.390625,
+                "start": 21.96,
+                "end": 21.98,
+                "word": "die"
+            }
+        ],
+        "text": " Europ\u00e4ischen Rat am 21. und 22. M\u00e4rz 2024. Hierzu liegen die"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.203613,
+                "start": 22.0,
+                "end": 22.3,
+                "word": "zwei"
+            },
+            {
+                "conf": 0.993896,
+                "start": 22.3,
+                "end": 24.2,
+                "word": "Entschlie\u00dfungsantr\u00e4ge"
+            },
+            {
+                "conf": 0.989746,
+                "start": 24.2,
+                "end": 24.48,
+                "word": "vor."
+            },
+            {
+                "conf": 0.994629,
+                "start": 24.62,
+                "end": 25.08,
+                "word": "F\u00fcr"
+            },
+            {
+                "conf": 0.99707,
+                "start": 25.08,
+                "end": 25.240000000000002,
+                "word": "die"
+            },
+            {
+                "conf": 0.999186,
+                "start": 25.240000000000002,
+                "end": 25.98,
+                "word": "Aussprache"
+            },
+            {
+                "conf": 0.987305,
+                "start": 25.98,
+                "end": 26.22,
+                "word": "im"
+            },
+            {
+                "conf": 0.997396,
+                "start": 26.22,
+                "end": 26.86,
+                "word": "Anschluss"
+            },
+            {
+                "conf": 0.997559,
+                "start": 26.86,
+                "end": 26.96,
+                "word": "an"
+            },
+            {
+                "conf": 0.998047,
+                "start": 26.96,
+                "end": 27.06,
+                "word": "die"
+            },
+            {
+                "conf": 0.993359,
+                "start": 27.06,
+                "end": 27.98,
+                "word": "Regierungserkl\u00e4rung"
+            }
+        ],
+        "text": " zwei Entschlie\u00dfungsantr\u00e4ge vor. F\u00fcr die Aussprache im Anschluss an die Regierungserkl\u00e4rung"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.444092,
+                "start": 28.0,
+                "end": 28.32,
+                "word": "wurde"
+            },
+            {
+                "conf": 0.994141,
+                "start": 28.32,
+                "end": 28.52,
+                "word": "eine"
+            },
+            {
+                "conf": 0.999756,
+                "start": 28.52,
+                "end": 28.9,
+                "word": "Dauer"
+            },
+            {
+                "conf": 0.999512,
+                "start": 28.9,
+                "end": 29.1,
+                "word": "von"
+            },
+            {
+                "conf": 0.996094,
+                "start": 29.1,
+                "end": 29.46,
+                "word": "90"
+            },
+            {
+                "conf": 0.99707,
+                "start": 29.46,
+                "end": 29.8,
+                "word": "Minuten"
+            },
+            {
+                "conf": 0.998047,
+                "start": 29.8,
+                "end": 30.6,
+                "word": "vereinbart."
+            },
+            {
+                "conf": 0.994629,
+                "start": 31.56,
+                "end": 32.26,
+                "word": "Das"
+            },
+            {
+                "conf": 1.0,
+                "start": 32.26,
+                "end": 32.66,
+                "word": "Wort"
+            },
+            {
+                "conf": 0.989258,
+                "start": 32.66,
+                "end": 33.12,
+                "word": "zur"
+            },
+            {
+                "conf": 0.995605,
+                "start": 33.12,
+                "end": 33.66,
+                "word": "Abgabe"
+            },
+            {
+                "conf": 0.997559,
+                "start": 33.66,
+                "end": 33.78,
+                "word": "einer"
+            },
+            {
+                "conf": 0.775065,
+                "start": 33.78,
+                "end": 33.980000000000004,
+                "word": "Redezeit"
+            }
+        ],
+        "text": " wurde eine Dauer von 90 Minuten vereinbart. Das Wort zur Abgabe einer Redezeit"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.918359,
+                "start": 34.0,
+                "end": 34.92,
+                "word": "Regierungserkl\u00e4rung"
+            },
+            {
+                "conf": 0.981445,
+                "start": 34.92,
+                "end": 35.04,
+                "word": "hat"
+            },
+            {
+                "conf": 0.992188,
+                "start": 35.04,
+                "end": 35.34,
+                "word": "der"
+            },
+            {
+                "conf": 0.999634,
+                "start": 35.34,
+                "end": 36.22,
+                "word": "Bundeskanzler"
+            },
+            {
+                "conf": 0.485352,
+                "start": 36.22,
+                "end": 36.4,
+                "word": "Herr"
+            },
+            {
+                "conf": 0.999023,
+                "start": 36.4,
+                "end": 36.66,
+                "word": "Olaf"
+            },
+            {
+                "conf": 0.999756,
+                "start": 36.66,
+                "end": 37.16,
+                "word": "Scholz."
+            }
+        ],
+        "text": " Regierungserkl\u00e4rung hat der Bundeskanzler Herr Olaf Scholz."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.238159,
+                "start": 40.11,
+                "end": 40.63,
+                "word": "Amen."
+            }
+        ],
+        "text": " Amen."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.996582,
+                "start": 46.94,
+                "end": 47.38,
+                "word": "Sehr"
+            },
+            {
+                "conf": 0.999756,
+                "start": 47.38,
+                "end": 47.64,
+                "word": "geehrte"
+            },
+            {
+                "conf": 1.0,
+                "start": 47.64,
+                "end": 47.76,
+                "word": "Frau"
+            },
+            {
+                "conf": 1.0,
+                "start": 47.76,
+                "end": 48.46,
+                "word": "Pr\u00e4sidentin!"
+            },
+            {
+                "conf": 1.0,
+                "start": 48.46,
+                "end": 48.66,
+                "word": "Meine"
+            },
+            {
+                "conf": 1.0,
+                "start": 48.66,
+                "end": 49.4,
+                "word": "Damen"
+            },
+            {
+                "conf": 1.0,
+                "start": 49.4,
+                "end": 49.56,
+                "word": "und"
+            },
+            {
+                "conf": 0.999512,
+                "start": 49.56,
+                "end": 49.68,
+                "word": "Herren"
+            },
+            {
+                "conf": 0.99707,
+                "start": 49.68,
+                "end": 50.0,
+                "word": "Kollegen!"
+            }
+        ],
+        "text": " Sehr geehrte Frau Pr\u00e4sidentin! Meine Damen und Herren Kollegen!"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.11676,
+                "start": 52.0,
+                "end": 52.16,
+                "word": "kommt"
+            },
+            {
+                "conf": 0.958496,
+                "start": 52.16,
+                "end": 52.36,
+                "word": "zusammen"
+            },
+            {
+                "conf": 0.980957,
+                "start": 52.36,
+                "end": 52.62,
+                "word": "zum"
+            },
+            {
+                "conf": 0.997314,
+                "start": 52.62,
+                "end": 53.16,
+                "word": "Europ\u00e4ischen"
+            },
+            {
+                "conf": 0.997559,
+                "start": 53.16,
+                "end": 53.42,
+                "word": "Rat,"
+            },
+            {
+                "conf": 0.991211,
+                "start": 53.58,
+                "end": 53.66,
+                "word": "und"
+            },
+            {
+                "conf": 0.998047,
+                "start": 53.66,
+                "end": 53.78,
+                "word": "das"
+            },
+            {
+                "conf": 0.879395,
+                "start": 53.78,
+                "end": 54.26,
+                "word": "nat\u00fcrlich"
+            },
+            {
+                "conf": 0.999512,
+                "start": 54.26,
+                "end": 54.56,
+                "word": "in"
+            },
+            {
+                "conf": 0.999512,
+                "start": 54.56,
+                "end": 54.72,
+                "word": "einer"
+            },
+            {
+                "conf": 0.999512,
+                "start": 54.72,
+                "end": 54.96,
+                "word": "ganz"
+            },
+            {
+                "conf": 0.999756,
+                "start": 54.96,
+                "end": 55.58,
+                "word": "besonderen"
+            },
+            {
+                "conf": 0.999512,
+                "start": 55.58,
+                "end": 55.94,
+                "word": "Situation,"
+            },
+            {
+                "conf": 0.835449,
+                "start": 56.26,
+                "end": 57.12,
+                "word": "einer"
+            },
+            {
+                "conf": 0.999512,
+                "start": 57.12,
+                "end": 57.64,
+                "word": "Situation,"
+            },
+            {
+                "conf": 0.991699,
+                "start": 57.7,
+                "end": 57.9,
+                "word": "die,"
+            }
+        ],
+        "text": " kommt zusammen zum Europ\u00e4ischen Rat, und das nat\u00fcrlich in einer ganz besonderen Situation, einer Situation, die,"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.486328,
+                "start": 58.0,
+                "end": 58.2,
+                "word": "aber"
+            },
+            {
+                "conf": 0.941895,
+                "start": 58.2,
+                "end": 58.42,
+                "word": "sich"
+            },
+            {
+                "conf": 0.607422,
+                "start": 58.42,
+                "end": 59.2,
+                "word": "ver\u00e4ndert"
+            },
+            {
+                "conf": 0.98877,
+                "start": 59.2,
+                "end": 59.62,
+                "word": "hat"
+            },
+            {
+                "conf": 0.984863,
+                "start": 59.62,
+                "end": 59.92,
+                "word": "gegen\u00fcber"
+            },
+            {
+                "conf": 0.991211,
+                "start": 59.92,
+                "end": 60.4,
+                "word": "den"
+            },
+            {
+                "conf": 0.992432,
+                "start": 60.4,
+                "end": 62.04,
+                "word": "Erfahrungen,"
+            },
+            {
+                "conf": 0.999512,
+                "start": 62.06,
+                "end": 62.18,
+                "word": "die"
+            },
+            {
+                "conf": 0.999512,
+                "start": 62.18,
+                "end": 62.32,
+                "word": "wir"
+            },
+            {
+                "conf": 0.992188,
+                "start": 62.32,
+                "end": 62.82,
+                "word": "noch"
+            },
+            {
+                "conf": 0.999512,
+                "start": 62.82,
+                "end": 62.94,
+                "word": "vor"
+            },
+            {
+                "conf": 0.999512,
+                "start": 62.94,
+                "end": 63.28,
+                "word": "einigen"
+            },
+            {
+                "conf": 0.999512,
+                "start": 63.28,
+                "end": 63.46,
+                "word": "Jahren"
+            },
+            {
+                "conf": 0.990234,
+                "start": 63.46,
+                "end": 63.74,
+                "word": "gemacht"
+            },
+            {
+                "conf": 0.978516,
+                "start": 63.74,
+                "end": 63.96,
+                "word": "haben."
+            }
+        ],
+        "text": " aber sich ver\u00e4ndert hat gegen\u00fcber den Erfahrungen, die wir noch vor einigen Jahren gemacht haben."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.895508,
+                "start": 64.3,
+                "end": 64.72,
+                "word": "Wir"
+            },
+            {
+                "conf": 0.999023,
+                "start": 64.72,
+                "end": 65.0,
+                "word": "erinnern"
+            },
+            {
+                "conf": 0.999512,
+                "start": 65.0,
+                "end": 65.12,
+                "word": "uns"
+            },
+            {
+                "conf": 0.964844,
+                "start": 65.12,
+                "end": 65.36,
+                "word": "noch,"
+            },
+            {
+                "conf": 0.995605,
+                "start": 65.44,
+                "end": 65.54,
+                "word": "da"
+            },
+            {
+                "conf": 0.998047,
+                "start": 65.54,
+                "end": 65.7,
+                "word": "war"
+            },
+            {
+                "conf": 0.993652,
+                "start": 65.7,
+                "end": 65.82,
+                "word": "der"
+            },
+            {
+                "conf": 0.99707,
+                "start": 65.82,
+                "end": 66.12,
+                "word": "Brexit."
+            },
+            {
+                "conf": 0.999512,
+                "start": 66.46,
+                "end": 66.86,
+                "word": "Wir"
+            },
+            {
+                "conf": 1.0,
+                "start": 66.86,
+                "end": 67.06,
+                "word": "erinnern"
+            },
+            {
+                "conf": 0.999512,
+                "start": 67.06,
+                "end": 67.22,
+                "word": "uns"
+            },
+            {
+                "conf": 0.998535,
+                "start": 67.22,
+                "end": 67.36,
+                "word": "an"
+            },
+            {
+                "conf": 1.0,
+                "start": 67.36,
+                "end": 67.48,
+                "word": "die"
+            },
+            {
+                "conf": 0.999023,
+                "start": 67.48,
+                "end": 67.68,
+                "word": "gro\u00dfen"
+            },
+            {
+                "conf": 0.999674,
+                "start": 67.68,
+                "end": 68.5,
+                "word": "Schwierigkeiten,"
+            },
+            {
+                "conf": 0.999512,
+                "start": 68.5,
+                "end": 68.76,
+                "word": "die"
+            },
+            {
+                "conf": 0.997559,
+                "start": 68.76,
+                "end": 68.82,
+                "word": "am"
+            },
+            {
+                "conf": 1.0,
+                "start": 68.82,
+                "end": 69.14,
+                "word": "Anfang"
+            },
+            {
+                "conf": 0.999023,
+                "start": 69.14,
+                "end": 69.34,
+                "word": "der"
+            },
+            {
+                "conf": 0.911621,
+                "start": 69.34,
+                "end": 69.64,
+                "word": "Corona"
+            },
+            {
+                "conf": 0.951904,
+                "start": 69.64,
+                "end": 69.96,
+                "word": "-Pandemie"
+            }
+        ],
+        "text": " Wir erinnern uns noch, da war der Brexit. Wir erinnern uns an die gro\u00dfen Schwierigkeiten, die am Anfang der Corona-Pandemie"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.808105,
+                "start": 70.0,
+                "end": 70.74,
+                "word": "herrschten."
+            },
+            {
+                "conf": 0.893066,
+                "start": 70.74,
+                "end": 71.2,
+                "word": "Und"
+            },
+            {
+                "conf": 0.995117,
+                "start": 71.2,
+                "end": 71.38,
+                "word": "viele"
+            },
+            {
+                "conf": 0.980469,
+                "start": 71.38,
+                "end": 71.64,
+                "word": "hatten"
+            },
+            {
+                "conf": 0.993652,
+                "start": 71.64,
+                "end": 71.82,
+                "word": "zu"
+            },
+            {
+                "conf": 0.992188,
+                "start": 71.82,
+                "end": 71.96,
+                "word": "der"
+            },
+            {
+                "conf": 0.996094,
+                "start": 71.96,
+                "end": 72.26,
+                "word": "Zeit"
+            },
+            {
+                "conf": 0.993652,
+                "start": 72.26,
+                "end": 72.78,
+                "word": "nicht"
+            },
+            {
+                "conf": 0.994141,
+                "start": 72.78,
+                "end": 73.02,
+                "word": "darauf"
+            },
+            {
+                "conf": 0.989746,
+                "start": 73.02,
+                "end": 73.36,
+                "word": "gegeben,"
+            },
+            {
+                "conf": 0.996094,
+                "start": 73.56,
+                "end": 73.76,
+                "word": "dass"
+            },
+            {
+                "conf": 0.990723,
+                "start": 73.76,
+                "end": 73.9,
+                "word": "die"
+            },
+            {
+                "conf": 0.976725,
+                "start": 73.9,
+                "end": 74.38,
+                "word": "Europ\u00e4ische"
+            },
+            {
+                "conf": 0.999512,
+                "start": 74.38,
+                "end": 74.68,
+                "word": "Union"
+            },
+            {
+                "conf": 0.996582,
+                "start": 74.68,
+                "end": 75.22,
+                "word": "sich"
+            },
+            {
+                "conf": 0.993896,
+                "start": 75.22,
+                "end": 75.74,
+                "word": "st\u00e4rken"
+            },
+            {
+                "conf": 0.550781,
+                "start": 75.74,
+                "end": 75.86,
+                "word": "und"
+            }
+        ],
+        "text": " herrschten. Und viele hatten zu der Zeit nicht darauf gegeben, dass die Europ\u00e4ische Union sich st\u00e4rken und"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.902832,
+                "start": 76.0,
+                "end": 76.6,
+                "word": "weiterentwickeln"
+            },
+            {
+                "conf": 0.879395,
+                "start": 76.6,
+                "end": 76.9,
+                "word": "w\u00fcrde,"
+            },
+            {
+                "conf": 0.942871,
+                "start": 76.98,
+                "end": 77.44,
+                "word": "dass"
+            },
+            {
+                "conf": 0.996582,
+                "start": 77.44,
+                "end": 77.58,
+                "word": "sie"
+            },
+            {
+                "conf": 0.986816,
+                "start": 77.58,
+                "end": 77.74,
+                "word": "auch"
+            },
+            {
+                "conf": 0.997803,
+                "start": 77.74,
+                "end": 78.14,
+                "word": "wachsen"
+            },
+            {
+                "conf": 0.99707,
+                "start": 78.14,
+                "end": 78.42,
+                "word": "w\u00fcrde."
+            },
+            {
+                "conf": 0.987793,
+                "start": 78.54,
+                "end": 78.96,
+                "word": "Aber"
+            },
+            {
+                "conf": 0.999023,
+                "start": 78.96,
+                "end": 79.22,
+                "word": "genau"
+            },
+            {
+                "conf": 0.999023,
+                "start": 79.22,
+                "end": 79.78,
+                "word": "das"
+            },
+            {
+                "conf": 0.999512,
+                "start": 79.78,
+                "end": 80.12,
+                "word": "ist"
+            },
+            {
+                "conf": 0.999023,
+                "start": 80.12,
+                "end": 80.3,
+                "word": "jetzt"
+            },
+            {
+                "conf": 0.999023,
+                "start": 80.3,
+                "end": 80.72,
+                "word": "passiert."
+            },
+            {
+                "conf": 0.99707,
+                "start": 81.02,
+                "end": 81.6,
+                "word": "Wir"
+            },
+            {
+                "conf": 0.998535,
+                "start": 81.6,
+                "end": 81.82,
+                "word": "haben"
+            }
+        ],
+        "text": " weiterentwickeln w\u00fcrde, dass sie auch wachsen w\u00fcrde. Aber genau das ist jetzt passiert. Wir haben"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.515625,
+                "start": 82.0,
+                "end": 82.28,
+                "word": "bei"
+            },
+            {
+                "conf": 0.998535,
+                "start": 82.28,
+                "end": 82.5,
+                "word": "vielen"
+            },
+            {
+                "conf": 0.999023,
+                "start": 82.5,
+                "end": 83.42,
+                "word": "Herausforderungen"
+            },
+            {
+                "conf": 0.991211,
+                "start": 83.42,
+                "end": 83.94,
+                "word": "gestanden."
+            },
+            {
+                "conf": 0.99707,
+                "start": 84.08,
+                "end": 84.24,
+                "word": "Wir"
+            },
+            {
+                "conf": 1.0,
+                "start": 84.24,
+                "end": 84.4,
+                "word": "haben"
+            },
+            {
+                "conf": 0.453613,
+                "start": 84.4,
+                "end": 84.52,
+                "word": "das"
+            },
+            {
+                "conf": 0.992676,
+                "start": 84.52,
+                "end": 84.82,
+                "word": "gemacht,"
+            },
+            {
+                "conf": 0.995605,
+                "start": 84.98,
+                "end": 85.36,
+                "word": "wenn"
+            },
+            {
+                "conf": 1.0,
+                "start": 85.36,
+                "end": 85.46,
+                "word": "es"
+            },
+            {
+                "conf": 0.999512,
+                "start": 85.46,
+                "end": 85.66,
+                "word": "darum"
+            },
+            {
+                "conf": 0.998535,
+                "start": 85.66,
+                "end": 85.86,
+                "word": "ging,"
+            },
+            {
+                "conf": 0.998047,
+                "start": 85.98,
+                "end": 86.06,
+                "word": "den"
+            },
+            {
+                "conf": 0.999349,
+                "start": 86.06,
+                "end": 86.7,
+                "word": "wirtschaftlichen"
+            },
+            {
+                "conf": 0.998861,
+                "start": 86.7,
+                "end": 87.42,
+                "word": "Wiederaufbau"
+            },
+            {
+                "conf": 0.97998,
+                "start": 87.42,
+                "end": 87.58,
+                "word": "zu"
+            },
+            {
+                "conf": 0.997314,
+                "start": 87.58,
+                "end": 87.9,
+                "word": "organisieren."
+            }
+        ],
+        "text": " bei vielen Herausforderungen gestanden. Wir haben das gemacht, wenn es darum ging, den wirtschaftlichen Wiederaufbau zu organisieren."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.355225,
+                "start": 7.162375,
+                "end": 7.562375,
+                "word": "Dann"
+            },
+            {
+                "conf": 0.998047,
+                "start": 7.562375,
+                "end": 7.782375,
+                "word": "ist"
+            },
+            {
+                "conf": 0.993652,
+                "start": 7.782375,
+                "end": 7.942375,
+                "word": "das"
+            },
+            {
+                "conf": 0.999023,
+                "start": 7.942375,
+                "end": 8.122375,
+                "word": "eine"
+            },
+            {
+                "conf": 0.999512,
+                "start": 8.122375,
+                "end": 8.582375,
+                "word": "Gefahr"
+            },
+            {
+                "conf": 0.999023,
+                "start": 8.582375,
+                "end": 8.762375,
+                "word": "f\u00fcr"
+            },
+            {
+                "conf": 0.991211,
+                "start": 8.762375,
+                "end": 9.162375,
+                "word": "die"
+            },
+            {
+                "conf": 0.999756,
+                "start": 9.162375,
+                "end": 9.842375,
+                "word": "Demokratie"
+            },
+            {
+                "conf": 0.998535,
+                "start": 9.842375,
+                "end": 9.982375000000001,
+                "word": "und"
+            },
+            {
+                "conf": 0.998535,
+                "start": 9.982375000000001,
+                "end": 10.142375000000001,
+                "word": "den"
+            },
+            {
+                "conf": 0.999756,
+                "start": 10.142375000000001,
+                "end": 10.862375,
+                "word": "Zusammenhalt."
+            }
+        ],
+        "text": " Dann ist das eine Gefahr f\u00fcr die Demokratie und den Zusammenhalt."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.492188,
+                "start": 11.786999999999999,
+                "end": 12.286999999999999,
+                "word": "ein"
+            },
+            {
+                "conf": 0.996582,
+                "start": 12.286999999999999,
+                "end": 12.507,
+                "word": "Teil"
+            },
+            {
+                "conf": 0.999023,
+                "start": 12.507,
+                "end": 12.747,
+                "word": "der"
+            },
+            {
+                "conf": 0.986572,
+                "start": 12.747,
+                "end": 13.226999999999999,
+                "word": "B\u00fcrgerinnen"
+            },
+            {
+                "conf": 0.999512,
+                "start": 13.226999999999999,
+                "end": 13.286999999999999,
+                "word": "und"
+            },
+            {
+                "conf": 0.999512,
+                "start": 13.286999999999999,
+                "end": 13.587,
+                "word": "B\u00fcrger,"
+            },
+            {
+                "conf": 0.992188,
+                "start": 13.747,
+                "end": 14.786999999999999,
+                "word": "25"
+            },
+            {
+                "conf": 0.87793,
+                "start": 14.786999999999999,
+                "end": 15.347,
+                "word": "Prozent"
+            },
+            {
+                "conf": 0.998535,
+                "start": 15.347,
+                "end": 16.046999999999997,
+                "word": "derjenigen,"
+            },
+            {
+                "conf": 1.0,
+                "start": 16.067,
+                "end": 16.227,
+                "word": "die"
+            },
+            {
+                "conf": 1.0,
+                "start": 16.227,
+                "end": 16.346999999999998,
+                "word": "hier"
+            },
+            {
+                "conf": 0.999023,
+                "start": 16.346999999999998,
+                "end": 16.686999999999998,
+                "word": "leben,"
+            },
+            {
+                "conf": 0.979004,
+                "start": 16.826999999999998,
+                "end": 17.407,
+                "word": "diejenigen"
+            },
+            {
+                "conf": 0.987793,
+                "start": 17.407,
+                "end": 17.727,
+                "word": "sind"
+            },
+            {
+                "conf": 0.928223,
+                "start": 17.727,
+                "end": 17.987,
+                "word": "gegen"
+            }
+        ],
+        "text": " ein Teil der B\u00fcrgerinnen und B\u00fcrger, 25 Prozent derjenigen, die hier leben, diejenigen sind gegen"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.708008,
+                "start": 18.171625,
+                "end": 18.751624999999997,
+                "word": "gehetzt"
+            },
+            {
+                "conf": 0.993164,
+                "start": 18.751624999999997,
+                "end": 19.011625,
+                "word": "wird,"
+            },
+            {
+                "conf": 0.990723,
+                "start": 19.091625,
+                "end": 19.351625,
+                "word": "dann"
+            },
+            {
+                "conf": 0.998047,
+                "start": 19.351625,
+                "end": 19.571624999999997,
+                "word": "ist"
+            },
+            {
+                "conf": 0.991211,
+                "start": 19.571624999999997,
+                "end": 19.751624999999997,
+                "word": "das"
+            },
+            {
+                "conf": 0.998047,
+                "start": 19.751624999999997,
+                "end": 19.951625,
+                "word": "f\u00fcr"
+            },
+            {
+                "conf": 0.974121,
+                "start": 19.951625,
+                "end": 20.611625,
+                "word": "Zusammenhalt"
+            },
+            {
+                "conf": 0.994141,
+                "start": 20.611625,
+                "end": 20.731624999999998,
+                "word": "und"
+            },
+            {
+                "conf": 0.997314,
+                "start": 20.731624999999998,
+                "end": 21.331625,
+                "word": "Demokratie"
+            },
+            {
+                "conf": 0.995605,
+                "start": 21.331625,
+                "end": 21.471625,
+                "word": "eine"
+            },
+            {
+                "conf": 0.999023,
+                "start": 21.471625,
+                "end": 22.291625,
+                "word": "Herausforderung."
+            },
+            {
+                "conf": 0.962402,
+                "start": 22.311625,
+                "end": 22.651625,
+                "word": "Wir"
+            },
+            {
+                "conf": 0.994141,
+                "start": 22.651625,
+                "end": 23.031625,
+                "word": "werden"
+            },
+            {
+                "conf": 0.991211,
+                "start": 23.031625,
+                "end": 23.231624999999998,
+                "word": "das"
+            },
+            {
+                "conf": 0.854492,
+                "start": 23.231624999999998,
+                "end": 23.451625,
+                "word": "nicht"
+            },
+            {
+                "conf": 0.621826,
+                "start": 23.451625,
+                "end": 23.831625,
+                "word": "hinnehmen."
+            }
+        ],
+        "text": " gehetzt wird, dann ist das f\u00fcr Zusammenhalt und Demokratie eine Herausforderung. Wir werden das nicht hinnehmen."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.504883,
+                "start": 29.33625,
+                "end": 29.79625,
+                "word": "Das"
+            },
+            {
+                "conf": 0.850586,
+                "start": 29.79625,
+                "end": 29.87625,
+                "word": "Ergebnis"
+            },
+            {
+                "conf": 0.975098,
+                "start": 29.87625,
+                "end": 30.15625,
+                "word": "ist"
+            },
+            {
+                "conf": 0.82959,
+                "start": 30.15625,
+                "end": 30.436249999999998,
+                "word": "also"
+            },
+            {
+                "conf": 0.952148,
+                "start": 30.436249999999998,
+                "end": 30.576249999999998,
+                "word": "ein"
+            },
+            {
+                "conf": 0.469543,
+                "start": 30.576249999999998,
+                "end": 30.916249999999998,
+                "word": "Stichwort."
+            }
+        ],
+        "text": " Das Ergebnis ist also ein Stichwort."
+    },
+    {
+        "result": [
+            {
+                "conf": 0.2323,
+                "start": 31.620874999999998,
+                "end": 32.060874999999996,
+                "word": "Und"
+            },
+            {
+                "conf": 0.893066,
+                "start": 32.060874999999996,
+                "end": 32.240874999999996,
+                "word": "es"
+            },
+            {
+                "conf": 0.993652,
+                "start": 32.240874999999996,
+                "end": 32.500875,
+                "word": "zeigt"
+            },
+            {
+                "conf": 0.913574,
+                "start": 32.500875,
+                "end": 32.740874999999996,
+                "word": "eben,"
+            },
+            {
+                "conf": 0.981445,
+                "start": 32.840875,
+                "end": 32.880874999999996,
+                "word": "wie"
+            },
+            {
+                "conf": 0.989258,
+                "start": 32.880874999999996,
+                "end": 32.940875,
+                "word": "ich"
+            },
+            {
+                "conf": 0.930176,
+                "start": 32.940875,
+                "end": 33.280874999999995,
+                "word": "eingangs"
+            },
+            {
+                "conf": 0.991699,
+                "start": 33.280874999999995,
+                "end": 33.400875,
+                "word": "schon"
+            },
+            {
+                "conf": 0.998535,
+                "start": 33.400875,
+                "end": 33.680875,
+                "word": "gesagt"
+            },
+            {
+                "conf": 0.895996,
+                "start": 33.680875,
+                "end": 33.940875,
+                "word": "habe,"
+            },
+            {
+                "conf": 0.972656,
+                "start": 34.040875,
+                "end": 34.400875,
+                "word": "dass"
+            },
+            {
+                "conf": 0.965332,
+                "start": 34.400875,
+                "end": 34.560874999999996,
+                "word": "ganz"
+            },
+            {
+                "conf": 0.997314,
+                "start": 34.560874999999996,
+                "end": 35.180875,
+                "word": "offenbar"
+            },
+            {
+                "conf": 0.977783,
+                "start": 35.180875,
+                "end": 35.620875,
+                "word": "angesichts"
+            },
+            {
+                "conf": 0.868652,
+                "start": 35.620875,
+                "end": 35.760875,
+                "word": "all"
+            },
+            {
+                "conf": 0.991211,
+                "start": 35.760875,
+                "end": 35.920874999999995,
+                "word": "der"
+            },
+            {
+                "conf": 0.991699,
+                "start": 35.920874999999995,
+                "end": 36.060874999999996,
+                "word": "vielen"
+            },
+            {
+                "conf": 0.982666,
+                "start": 36.060874999999996,
+                "end": 36.500875,
+                "word": "Krisen"
+            },
+            {
+                "conf": 0.668457,
+                "start": 36.500875,
+                "end": 36.660875,
+                "word": "vielen"
+            },
+            {
+                "conf": 0.858398,
+                "start": 36.660875,
+                "end": 36.880874999999996,
+                "word": "die"
+            },
+            {
+                "conf": 0.985514,
+                "start": 36.880874999999996,
+                "end": 37.300875,
+                "word": "Zuversicht"
+            }
+        ],
+        "text": " Und es zeigt eben, wie ich eingangs schon gesagt habe, dass ganz offenbar angesichts all der vielen Krisen vielen die Zuversicht"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.250977,
+                "start": 37.325500000000005,
+                "end": 37.465500000000006,
+                "word": "sich"
+            },
+            {
+                "conf": 0.818522,
+                "start": 37.465500000000006,
+                "end": 37.9055,
+                "word": "abhanden"
+            },
+            {
+                "conf": 0.962402,
+                "start": 37.9055,
+                "end": 38.045500000000004,
+                "word": "gekommen"
+            },
+            {
+                "conf": 0.989746,
+                "start": 38.045500000000004,
+                "end": 38.465500000000006,
+                "word": "ist."
+            },
+            {
+                "conf": 0.752441,
+                "start": 38.6255,
+                "end": 39.02550000000001,
+                "word": "Und"
+            },
+            {
+                "conf": 0.998047,
+                "start": 39.02550000000001,
+                "end": 39.285500000000006,
+                "word": "deshalb"
+            },
+            {
+                "conf": 0.998047,
+                "start": 39.285500000000006,
+                "end": 39.4855,
+                "word": "ist"
+            },
+            {
+                "conf": 0.896484,
+                "start": 39.4855,
+                "end": 39.605500000000006,
+                "word": "auch"
+            },
+            {
+                "conf": 0.998535,
+                "start": 39.605500000000006,
+                "end": 39.865500000000004,
+                "word": "klar,"
+            },
+            {
+                "conf": 0.999268,
+                "start": 39.965500000000006,
+                "end": 40.4855,
+                "word": "worum"
+            },
+            {
+                "conf": 0.999512,
+                "start": 40.4855,
+                "end": 40.56550000000001,
+                "word": "es"
+            },
+            {
+                "conf": 0.997559,
+                "start": 40.56550000000001,
+                "end": 40.785500000000006,
+                "word": "geht,"
+            },
+            {
+                "conf": 0.980957,
+                "start": 40.9055,
+                "end": 41.225500000000004,
+                "word": "bei"
+            },
+            {
+                "conf": 0.999512,
+                "start": 41.225500000000004,
+                "end": 41.42550000000001,
+                "word": "dem,"
+            },
+            {
+                "conf": 1.0,
+                "start": 41.42550000000001,
+                "end": 41.5855,
+                "word": "was"
+            },
+            {
+                "conf": 0.999512,
+                "start": 41.5855,
+                "end": 41.685500000000005,
+                "word": "wir"
+            },
+            {
+                "conf": 0.999023,
+                "start": 41.685500000000005,
+                "end": 41.88550000000001,
+                "word": "heute"
+            },
+            {
+                "conf": 0.999023,
+                "start": 41.88550000000001,
+                "end": 42.42550000000001,
+                "word": "besprechen,"
+            },
+            {
+                "conf": 0.999023,
+                "start": 42.42550000000001,
+                "end": 42.6255,
+                "word": "aber"
+            },
+            {
+                "conf": 1.0,
+                "start": 42.6255,
+                "end": 42.74550000000001,
+                "word": "auch"
+            },
+            {
+                "conf": 0.992676,
+                "start": 42.74550000000001,
+                "end": 42.88550000000001,
+                "word": "bei"
+            },
+            {
+                "conf": 0.999512,
+                "start": 42.88550000000001,
+                "end": 43.1255,
+                "word": "dem,"
+            },
+            {
+                "conf": 0.999512,
+                "start": 43.1255,
+                "end": 43.325500000000005,
+                "word": "was"
+            },
+            {
+                "conf": 0.996094,
+                "start": 43.325500000000005,
+                "end": 43.4455,
+                "word": "wir"
+            }
+        ],
+        "text": " sich abhanden gekommen ist. Und deshalb ist auch klar, worum es geht, bei dem, was wir heute besprechen, aber auch bei dem, was wir"
+    },
+    {
+        "result": [
+            {
+                "conf": 0.798828,
+                "start": 43.710125000000005,
+                "end": 44.23012500000001,
+                "word": "jetzt"
+            },
+            {
+                "conf": 0.608887,
+                "start": 44.23012500000001,
+                "end": 44.370125,
+                "word": "in"
+            },
+            {
+                "conf": 0.998535,
+                "start": 44.370125,
+                "end": 44.63012500000001,
+                "word": "diesem"
+            },
+            {
+                "conf": 0.996582,
+                "start": 44.63012500000001,
+                "end": 44.830125,
+                "word": "Jahr"
+            },
+            {
+                "conf": 0.996094,
+                "start": 44.830125,
+                "end": 44.95012500000001,
+                "word": "und"
+            },
+            {
+                "conf": 0.747559,
+                "start": 44.95012500000001,
+                "end": 45.070125000000004,
+                "word": "in"
+            },
+            {
+                "conf": 0.997559,
+                "start": 45.070125000000004,
+                "end": 45.170125000000006,
+                "word": "den"
+            },
+            {
+                "conf": 0.999512,
+                "start": 45.170125000000006,
+                "end": 45.330125,
+                "word": "n\u00e4chsten"
+            },
+            {
+                "conf": 0.99707,
+                "start": 45.330125,
+                "end": 45.570125000000004,
+                "word": "Jahren"
+            },
+            {
+                "conf": 0.990234,
+                "start": 45.570125000000004,
+                "end": 45.710125000000005,
+                "word": "zu"
+            },
+            {
+                "conf": 1.0,
+                "start": 45.710125000000005,
+                "end": 45.930125000000004,
+                "word": "tun"
+            },
+            {
+                "conf": 0.994141,
+                "start": 45.930125000000004,
+                "end": 46.170125000000006,
+                "word": "haben."
+            },
+            {
+                "conf": 0.998535,
+                "start": 46.290125,
+                "end": 46.690125,
+                "word": "Wir"
+            },
+            {
+                "conf": 0.999512,
+                "start": 46.690125,
+                "end": 47.070125000000004,
+                "word": "m\u00fcssen"
+            },
+            {
+                "conf": 0.999512,
+                "start": 47.070125000000004,
+                "end": 47.350125000000006,
+                "word": "daf\u00fcr"
+            },
+            {
+                "conf": 0.999512,
+                "start": 47.350125000000006,
+                "end": 47.730125,
+                "word": "sorgen,"
+            },
+            {
+                "conf": 0.999512,
+                "start": 47.77012500000001,
+                "end": 47.890125000000005,
+                "word": "dass"
+            },
+            {
+                "conf": 0.992839,
+                "start": 47.890125000000005,
+                "end": 48.610125000000004,
+                "word": "Zuversicht"
+            },
+            {
+                "conf": 0.955566,
+                "start": 48.610125000000004,
+                "end": 49.09012500000001,
+                "word": "wieder"
+            },
+            {
+                "conf": 0.98584,
+                "start": 49.09012500000001,
+                "end": 49.510125,
+                "word": "w\u00e4chst"
+            },
+            {
+                "conf": 0.981445,
+                "start": 49.510125,
+                "end": 49.650125,
+                "word": "in"
+            },
+            {
+                "conf": 0.999512,
+                "start": 49.650125,
+                "end": 49.890125000000005,
+                "word": "Deutschland."
+            }
+        ],
+        "text": " jetzt in diesem Jahr und in den n\u00e4chsten Jahren zu tun haben. Wir m\u00fcssen daf\u00fcr sorgen, dass Zuversicht wieder w\u00e4chst in Deutschland."
+    }
+]
