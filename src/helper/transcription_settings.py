@@ -88,7 +88,6 @@ class TranscriptionSettings:
             if key in updated_config:
                 updated_config[key] = value
 
-        print ("Updated config: ", updated_config)
         return updated_config
 
     def apply_config_defaults(self) -> None:

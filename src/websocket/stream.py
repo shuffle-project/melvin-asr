@@ -23,7 +23,6 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int):
-
         self.logger = Logger(f"Stream{id}", True, Color.random())
         self.transcriber = transcriber
         self.id = id
@@ -153,7 +152,7 @@ class Stream:
 
                     text = text + segment["text"]
                     self.last_final = text
-                    print("Last final: ", self.last_final)
+
                 result = {"result": result, "text": text}
                 self.final_transcriptions.append(result)
             await websocket.send(json.dumps(result, indent=2))
@@ -268,4 +267,3 @@ class Stream:
 
         combined = segment1.append(segment2, crossfade=crossfade_duration)
         return combined.raw_data
-
