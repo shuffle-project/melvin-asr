@@ -96,9 +96,9 @@ class Transcriber:
                 wav_file.setframerate(sample_rate)
                 wav_file.writeframes(audio_chunk)
             wav_io.seek(0)
-            settings = TranscriptionSettings().get_and_update_settings()
-            segments, info = self._model.transcribe(
-                wav_io, initial_prompt=prompt, **settings
+            settings = TranscriptionSettings().get_and_update_settings(
+                {"initial_prompt": prompt}
             )
+            segments, info = self._model.transcribe(wav_io, **settings)
             result = parse_segments_and_info_to_dict(segments, info)
         return result
