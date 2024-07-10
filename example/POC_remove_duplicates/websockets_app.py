@@ -193,7 +193,7 @@ class WebSocketServer:
 
 if __name__ == "__main__":
     try:
-        server = WebSocketServer("1234")
+        server = WebSocketServer("8394")
         asyncio.run(server.main())
     except KeyboardInterrupt as e:
         print("interrupted by user")

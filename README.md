@@ -1,6 +1,6 @@
 # ASR-API
 
-ASR-API is an application serving REST and WebSocket endpoints for the transcription of audio files. 
+ASR-API is an application serving REST and WebSocket endpoints for the transcription of audio files.
 
 **REST API**: The API is based on HTTP requests that handles the transcription of files in an async workflow, enabling user to send an audio file in a first request and receive the transcription via a second request as soon as the transcript is ready. See [REST Documentation](docs/rest-api.md)
 
@@ -13,13 +13,16 @@ ASR-API is an application serving REST and WebSocket endpoints for the transcrip
    ```bash
    git clone https://github.com/shuffle-project/asr-api.git
    ```
-2. Build and run the app using Docker Compose from the root directory:
+
+1. Build and run the app using Docker Compose from the root directory:
+
    ```bash
    docker-compose up
-   ``` 
-5. Access the REST-API in your web browser at http://localhost:8393 or using an HTTP client like curl or Postman.
-5. Access the Websocket-API at http://localhost:8394 using a websocket client. This is build upon python's websockets package.
-6. To stop the API, press Ctrl+C in the terminal where the docker-compose up command is running.
+   ```
+
+1. Access the REST-API in your web browser at <http://localhost:8393> or using an HTTP client like curl or Postman.
+1. Access the Websocket-API at <http://localhost:8394> using a websocket client. This is build upon python's websockets package.
+1. To stop the API, press Ctrl+C in the terminal where the docker-compose up command is running.
 
 ## Local Development
 
@@ -36,18 +39,21 @@ Before you begin, ensure you have installed the following tools:
 - ffmpeg
 
 ### Install dependencies
+
 ```bash
 pip install -r ./requirements.txt
 ```
 
 ### Run the app
+
 Locally for a development environment the websocket and the flask api are started seperatly.
 
 ```bash
 python ./app.py
-``` 
+```
 
 ## Configuration
+
 The configuration of the ASR-API is done in the `config.yml` and `config.local.yml` file. These files are read by the `src/config.py` module, which is providing configurations to the service logic.
 
 The `config.local.yml` is used for local development.
@@ -67,13 +73,13 @@ See the config-files for more information.
 
 ### Ruff
 
-VS Code Extension: https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff
+VS Code Extension: <https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff>
 
-Linting is done with Ruff (https://github.com/astral-sh/ruff) for all `*.py` files checked in to Git.
+Linting is done with Ruff (<https://github.com/astral-sh/ruff>) for all `*.py` files checked in to Git.
 
 ```bash
 ruff check .    
-``` 
+```
 
 Ruff allows formatting as well.
 
@@ -87,6 +93,7 @@ To test our code we are writing tests utilizing the official Python recommendati
 Shared test functionality, which is used in multiple test files can be found in `src/test_base`.
 
 ## Deployment
+
 ASR-API is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in play. See [Deployment Documentation](docs/deployment.md)
 
 ## Code Integration
