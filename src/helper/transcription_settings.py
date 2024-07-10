@@ -83,14 +83,12 @@ class TranscriptionSettings:
     def get_and_update_settings(self, settings: dict = None) -> dict:
         """Returns the updated configuration."""
 
-        if settings is None:
-            return self.default_settings
-
         updated_config = self.default_settings.copy()
         for key, value in settings.items():
             if key in updated_config:
                 updated_config[key] = value
 
+        print ("Updated config: ", updated_config)
         return updated_config
 
     def apply_config_defaults(self) -> None:
