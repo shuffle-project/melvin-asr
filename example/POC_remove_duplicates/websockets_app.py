@@ -117,7 +117,9 @@ class WebSocketServer:
         start_time = time.time()
         result: str = ""
         data = self.transcriber.transcribe_audio_audio_chunk(
-            chunk_cache, self.last_final, settings=default_websocket_settings()
+            chunk_cache,
+            "Last words of the audio: " + self.last_final,
+            settings=default_websocket_settings(),
         )
         print(self.last_final)
         # self.adjust_threshold_on_latency()
@@ -172,7 +174,7 @@ class WebSocketServer:
         words1 = last_final.split()
         words2 = current_final.split()
 
-        # Nimm die letzten 3 Wörter von text1 und die ersten 5 Wörter von text2
+        # Nimm die letzten 2 Wörter von text1 und die ersten 2 Wörter von text2
         last_five_words_text1 = words1[-2:]
         first_five_words_text2 = words2[:2]
 
