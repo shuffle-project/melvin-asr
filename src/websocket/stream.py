@@ -35,6 +35,9 @@ class Stream:
         # Cache for the chunks since the last final
         self.chunk_cache = b""
 
+        # Last final-test to check for duplicates and create prompts
+        self.last_final = ""
+
         # stores all final transcription objects and audio for export
         self.final_transcriptions = []
         self.export_audio = b""
@@ -122,7 +125,7 @@ class Stream:
         try:
             start_time = time.time()
             result: str = ""
-            data = self.transcriber._transcribe(chunk_cache)
+            data = self.transcriber._transcribe(chunk_cache, self.last_final)
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (
@@ -149,6 +152,8 @@ class Stream:
                         )
 
                     text = text + segment["text"]
+                    self.last_final = text
+                    print("Last final: ", self.last_final)
                 result = {"result": result, "text": text}
                 self.final_transcriptions.append(result)
             await websocket.send(json.dumps(result, indent=2))
