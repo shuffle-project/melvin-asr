@@ -6,6 +6,7 @@ import websockets
 from pydub import AudioSegment
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
+from src.websocket.final_context_detector import FinalContextDetector
 from src.websocket.stream_transcriber import Transcriber
 
 # To Calculate the seconds of audio in a chunk of 16000 Hz, 2 bytes per sample and 1 channel (as typically used in Whisper):
@@ -34,8 +35,9 @@ class Stream:
         # Cache for the chunks since the last final
         self.chunk_cache = b""
 
-        # Last final-test to check for duplicates and create prompts
-        self.last_final = ""
+        # Last final bytes and text to check for duplicates and create prompts
+        self.last_final_result_object = None
+        self.last_final_bytes = b""
 
         # stores all final transcription objects and audio for export
         self.final_transcriptions = []
@@ -124,7 +126,8 @@ class Stream:
         try:
             start_time = time.time()
             result: str = ""
-            data = self.transcriber._transcribe(chunk_cache, self.last_final)
+            bytes_to_transcribe = self.last_final_bytes + chunk_cache
+            data = self.transcriber._transcribe(bytes_to_transcribe, "")
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (
@@ -133,7 +136,6 @@ class Stream:
             self.overall_transcribed_bytes += recent_cache
             if "segments" in data:
                 result = []
-                text = ""
                 for segment in data["segments"]:
                     for word in segment["words"]:
                         # make float with 6 digits after point
@@ -150,16 +152,21 @@ class Stream:
                             }
                         )
 
-                    text = text + segment["text"]
-                    self.last_final = text
+                # returnResultText type {"result": result, "text": text}
+                returnResultText = FinalContextDetector().remove_first_final_words(
+                    self.last_final_result_object, result, FINAL_TRANSCRIPTION_TIMEOUT
+                )
 
-                result = {"result": result, "text": text}
-                self.final_transcriptions.append(result)
-            await websocket.send(json.dumps(result, indent=2))
+                # Save text and bytes for later use
+                self.last_final_result_object = returnResultText
+                self.last_final_bytes = b""
+                self.final_transcriptions.append(returnResultText)
+            await websocket.send(json.dumps(returnResultText, indent=2))
             end_time = time.time()
             self.logger.print_log(
                 "Final Transcription took {:.2f} s".format(end_time - start_time)
             )
+
         except Exception as e:
             self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
             self.close_stream = True
