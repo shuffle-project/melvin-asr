@@ -1,2 +1,0 @@
-vosk==0.3.45
-faster-whisper==0.10.0

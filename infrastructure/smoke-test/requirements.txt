@@ -1,2 +1,0 @@
-pydub==0.25.1
-websockets==12.0

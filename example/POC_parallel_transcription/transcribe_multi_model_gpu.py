@@ -7,9 +7,9 @@ from faster_whisper import WhisperModel
 start_time_total = time.time()  # Record the start time
 
 files = [
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
 ]
 
 
