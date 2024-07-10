@@ -1,7 +1,7 @@
 """Model handler class to handle the models and storage of the models."""
 import os
 from faster_whisper.utils import download_model
-from src.config import CONFIG
+from src.helper.config import CONFIG
 from src.helper.logger import Logger
 
 

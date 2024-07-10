@@ -60,14 +60,17 @@ The `config.local.yml` is used for local development.
 
 Please make sure to set the required options:
 
-### Required Configuration
-
-1. *debug* - Actives debug more for logging
-2. *api_keys* - Set the key that are used to access the REST API.
-3. *stream_runner* - Defined the models running to provide the websocket transcription (*currently only one is supported!*)
-4. *rest_runner*- Defined the models running to provide the http transcription
+### Configuration
 
 See the config-files for more information.
+
+The following options are important:
+
+1. *debug* - Actives debug more for logging
+1. *api_keys* - Set the key that are used to access the REST API.
+1. *transcription_default* - Faster-whisper transcriptions settings passed to all transcription workflows of the system. Set all settings available for faster-whisper.
+1. *websocket_stream* - Defined the models for CPU and CUDA GPUs running to provide the websocket stream endpoint. Disable GPU is you do not have a CUDA GPU installed!
+1. *rest_runner*- Defined the models running to provide the http transcription
 
 ## Testing
 
@@ -90,7 +93,7 @@ ruff format .
 ### Pytest
 
 To test our code we are writing tests utilizing the official Python recommendation: **pytest**. Each subfolder in `/src` has its own `/test` folder holding the testfiles. We are thriving to keep a coverage of 80% of our `/src` folder.
-Shared test functionality, which is used in multiple test files can be found in `src/test_base`.
+Shared test functionality, which is used in multiple test files can be found in `src/helper/test_base`.
 
 ## Deployment
 
@@ -98,7 +101,7 @@ ASR-API is delivered and deployed as a docker container. Depending on the usage 
 
 ## Code Integration
 
-We are maintaining our code following trunk based development. This means we are working on features branches, integrating into one trunk, the main branch. Please keep your side branches small, and bring them back t o main as soon as possible.
+We are maintaining our code following trunk based development. This means we are working on features branches, integrating into one trunk, the main branch. Please keep your side branches small, and bring them back to main as soon as possible.
 
 ## License
 
@@ -106,7 +109,6 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 ## Acknowledgements
 
-- Flask: https://flask.palletsprojects.com/
-- FFmpeg: https://ffmpeg.org/
-- Waitress: https://flask.palletsprojects.com/en/3.0.x/deploying/waitress/
-- whisper.cpp: https://github.com/ggerganov/whisper.cpp
+- [Flask](https://flask.palletsprojects.com/)
+- [FFmpeg](https://ffmpeg.org/)
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)

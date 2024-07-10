@@ -13,7 +13,7 @@ BYTES_PER_SECOND = 32000
 
 # We want to print a final transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a final transcription
-FINAL_TRANSCRIPTION_TIMEOUT = 6
+FINAL_TRANSCRIPTION_TIMEOUT = 120
 
 # We want to print a partial transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a partial transcription
@@ -72,26 +72,13 @@ class WebSocketServer:
                     self.recently_added_chunk_cache += message
                     self.overall_audio_bytes += message
 
-                    if len(self.chunk_cache) >= self.final_treshold:
-                        print("********** NEW FINAL **********")
-                        asyncio.ensure_future(
-                            self.transcribe_all_chunk_cache(
-                                websocket,
-                                self.chunk_cache,
-                                self.recently_added_chunk_cache,
-                            )
-                        )
-                        self.recently_added_chunk_cache = b""
-                        self.chunk_cache = b""
-
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
                         print("********** NEW PARTIAL **********")
                         # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
                         asyncio.ensure_future(
-                            self.transcribe_chunk_partial(
+                            self.transcribe_sentences(
                                 websocket,
                                 self.chunk_cache,
-                                self.recently_added_chunk_cache,
                             )
                         )
                         self.recently_added_chunk_cache = b""
@@ -110,20 +97,46 @@ class WebSocketServer:
                 print("Error while receiving message: {}".format(e))
                 break
 
-    async def transcribe_all_chunk_cache(
-        self, websocket, chunk_cache, recent_cache
-    ) -> str:
-        """Function to transcribe a chunk of audio"""
-        start_time = time.time()
-        result: str = ""
+    async def transcribe_sentences(self, websocket, chunk_cache):
         data = self.transcriber.transcribe_audio_audio_chunk(
             chunk_cache,
             "Last words of the audio: " + self.last_final,
             settings=default_websocket_settings(),
         )
+<<<<<<<< HEAD:example/POC_remove_duplicates/websockets_app.py
         print(self.last_final)
         # self.adjust_threshold_on_latency()
         self.overall_transcribed_bytes += recent_cache
+========
+        if "segments" not in data:
+            raise NameError()
+
+        cut_second = 0
+        text = ""
+        for segment in data["segments"]:
+            text = text + segment["text"]
+
+        if self.contains_sentence_ending_punctuation(text) is False:
+            result = json.dumps({"partial": text}, indent=2)
+            await websocket.send(result)
+            return
+
+        for segment in data["segments"]:
+            for word in segment["words"]:
+                if self.contains_sentence_ending_punctuation(word["word"]):
+                    # print(word["word"])
+                    cut_second = float("{:.6f}".format(float(word["end"])))
+                    # print(cut_second)
+                    break
+
+        index = round(cut_second * BYTES_PER_SECOND)
+        final_sentence = self.chunk_cache[:index]
+        self.chunk_cache = self.chunk_cache[index:]
+
+        data = self.transcriber.transcribe_audio_audio_chunk(
+            final_sentence, settings=default_websocket_settings()
+        )
+>>>>>>>> main:example/POC_detect_punctuation/websockets_app_sentenceend.py
         if "segments" in data:
             result = []
             text = ""
@@ -138,19 +151,24 @@ class WebSocketServer:
                         {"conf": conf, "start": start, "end": end, "word": word}
                     )
                 text = text + segment["text"]
+<<<<<<<< HEAD:example/POC_remove_duplicates/websockets_app.py
                 clean_final = self.remove_duplicates(self.last_final, text)
             result = json.dumps({"result": result, "text": clean_final}, indent=2)
         await websocket.send(result)
         self.last_final = text
         end_time = time.time()
         print("Final Transcription took {:.2f} s".format(end_time - start_time))
+========
+                print(text)
+            result = json.dumps({"result": result, "text": text}, indent=2)
+        await websocket.send(result)
+>>>>>>>> main:example/POC_detect_punctuation/websockets_app_sentenceend.py
 
-    async def transcribe_chunk_partial(
-        self, websocket, chunk_cache, recent_cache
-    ) -> str:
-        start_time = time.time()
-        result: str = "Missing data"
+    def contains_sentence_ending_punctuation(websocket, s):
+        sentence_endings = {".", "!", "?"}
+        return any(char in sentence_endings for char in s)
 
+<<<<<<<< HEAD:example/POC_remove_duplicates/websockets_app.py
         prompt = ""
         data = self.transcriber.transcribe_audio_audio_chunk(
             chunk_cache, prompt, settings=default_websocket_settings()
@@ -190,6 +208,8 @@ class WebSocketServer:
         # Erstelle den neuen Text2 String
         return " ".join(unique_text2)
 
+========
+>>>>>>>> main:example/POC_detect_punctuation/websockets_app_sentenceend.py
 
 if __name__ == "__main__":
     try:

@@ -6,9 +6,9 @@ from datetime import datetime
 from pydub import AudioSegment
 import time
 from src.helper.types.transcription_status import TranscriptionStatus
-from src.config import CONFIG
+from src.helper.config import CONFIG
 from src.helper.file_handler import FileHandler
-from src.helper.logger import Color, Logger
+from src.helper.logger import Logger
 
 class DataHandler:
     """This class handles the data folder."""
@@ -20,9 +20,8 @@ class DataHandler:
         audio_file_format: str = CONFIG["audio_file_format"],
         export_file_path: str = CONFIG["export_file_path"],
     ):
-        self.log = Logger("DataHandler", True, Color.GREEN)
+        self.log = Logger("DataHandler", True)
         self.root_path = os.getcwd()
-        self.data_folder = os.path.join(self.root_path, "data")
         self.file_handler = FileHandler()
 
         self.status_path = self.root_path + status_path

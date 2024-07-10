@@ -1,7 +1,6 @@
 """Module to handle the WebSocket server"""
 import asyncio
 import json
-import time
 import websockets
 
 from websockets_settings import default_websocket_settings
