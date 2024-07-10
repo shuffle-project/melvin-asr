@@ -7,8 +7,8 @@ cpu_threads = 1
 num_workers = 1
 
 files = [
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
+    "audio.wav",
+    "audio.wav",
 ]
 
 

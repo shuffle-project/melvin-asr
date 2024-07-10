@@ -1,24 +1,11 @@
 
 # Deployment
 
-## Deployment Testing
-
-### Integration Tests
+## Integration Tests
 
 To improve our code quality, we are linting and unit-testing each Pull Request adding new code to main.
 This includes a test of the unit-test coverage for our our `/src` folder of 80%.
 See `.github/workflows/test.yml`.
-
-### Smoke Tests
-
-To make sure that new code is working, there are 2 smoke tests, one for the rest endpoint and one for the websockets endpoint.
-See `/infrastrcture/smoke-test`.
-
-**rest.py**
-Call `python rest.py {port} {auth_key}` to test the REST endpoints.
-
-**websocket.py**
-Call `python websocket.py {port}` to test the Websockets endpoints.
 
 ## Deploy Process
 
@@ -28,16 +15,9 @@ Steps in Deployment:
 
 1. **Build Docker images**: We are building a container using the Dockerfile in the root directory of the repository.
 
-2. **Publish Docker images**: After the build process, both images are published to the GitHub packages registry of the [Shuffle-project](https://github.com/orgs/shuffle-project/).
+1. **Publish Docker images**: After the build process, both images are published to the GitHub packages registry of the [Shuffle-project](https://github.com/orgs/shuffle-project/).
 
-3. **Deployment**: This step requires manual work in case you want to deploy the container standalone. It is typically deployed as a service of a compose of multiple services.
-Once the container is packed and published to the registry, the `docker-compose.yml` and the `/infrastructure` script need to copied to the Shuffle server.
-
-4. **Starting Docker Compose**: After the deployment pipeline copied all files, the startup of the new containers is handled manually. Use Docker Compose to shut the current containers down and start the new ones. The commands are `docker compose down` and `docker compose up`. In case the Containers are not working, keep the old images to rollback the service.
-
-5. **Smoke Tests**: As described in the section above, there are smoke tests for the REST-API and the Websocket-API of the ASR-API service. Run both against the newly running containers to make sure everything is up and running. Rollback in case there are any troubles. The REST-Endpoints `/` and `/health` can be used for an health-check as well.
-
-6. **Config.yml**: The ASR-API is configured in the `config.yml` file. In order to spin up the docker container using docker compose, make sure the config file is availible in the `docker-compose.yml`'s directory
+1. **Deployment**: After the docker image has been published, use it in your compose stack to setup ASR-API in your project. Make sure to create a `config.yml` file for your needs and copy it to the root directory of the project inside the container.
 
 ## Docker & Docker Compose
 

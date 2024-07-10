@@ -9,9 +9,9 @@ start_time_total = time.time()  # Record the start time
 def run_transcription_one_gpu(gpu_index: int):
 
     files = [
-        "scholz_in_kurz.wav",
-        "scholz_in_kurz.wav",
-        "scholz_in_kurz.wav",
+        "audio.wav",
+        "audio.wav",
+        "audio.wav",
     ]
 
     def transcribe_file(file_path, counter):

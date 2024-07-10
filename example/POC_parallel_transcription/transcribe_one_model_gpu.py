@@ -16,15 +16,15 @@ model = WhisperModel(
 print(f"Model: Active threads: {threading.active_count()}")
 
 files = [
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
-    "scholz_in_kurz.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
+    "audio.wav",
 ]
 
 
