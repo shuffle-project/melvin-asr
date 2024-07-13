@@ -64,7 +64,7 @@ This allows us to make sure that the stream is not falling behind to much, when 
 
 ## Context Recognition
 
-The main issue of live-streaming transcripts is the requirement to cut the audio stream to smaller audio chunks in order to guarantee a low latency for the user. This is caused by the whisper model which does allow transcription of one file at a time, not an incoming stream with split up context. When cutting at the wrong place, its hard for the whisper model to transcribe a logical text because there may be missing context.
+The main issue of live-streaming transcripts is the requirement to cut the audio stream to smaller audio chunks in order to guarantee a low latency for the user. This is caused by the whisper model which does allow transcription of one file at a time, not an incoming stream with split up context. When cutting at the wrong place, its hard for the whisper model to transcribe a logical text because there may be missing context. This causes a high WER (Word Error Rate) between two finals.
 
 ### Detect Punctuation
 
@@ -83,6 +83,15 @@ We did not follow this idea further because of the problems described below.
 Another idea to get more context for the transcripts was to use the Levenshtein distance for connecting two finals. For that, we wanted to pass the last audio second of the previous final to the new one to extend the context and use the Levenshtein distance to remove the overlapping part in the new final.
 
 We did not follow the idea further because of missing packages/libraries implementing the Levenshtein distance in the scope of the project.
+
+### Prompting & Cross final context
+
+We had the problem that even with the large model, the transitions between two finals are often problematic, as words are cut off or the context is no longer given due to the separation of the audio track. This often resulted in a poor word error rate at this point.
+We were able to successfully solve this problem with the Whisper Model's prompting option.
+
+It is possible to give the model an audio track that contains an already known part, for example that of the previous final, and then pass the text-results of the previous final to the prompt, whereby the model automatically removes the duplicated results and only returns the new words and results of the current final. In this way, we can use better context and solve the problems with the transition between two finals without implementig a dedicated logic.
+
+The prompt we are using is: `"Beginning of transcription:" + <Text of the previous final>`
 
 ## VAD
 
