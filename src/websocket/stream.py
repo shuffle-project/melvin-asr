@@ -133,7 +133,7 @@ class Stream:
             overall_transcribed_seconds = (
                 len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
             ) - (len(recent_cache) / BYTES_PER_SECOND)
-            self.overall_transcribed_bytes += recent_cache
+            print("overall_transcribed_seconds: ", overall_transcribed_seconds)
             if "segments" in data:
                 result = []
                 for segment in data["segments"]:
