@@ -1,7 +1,11 @@
 # config.yml
 # This file is used to configure the service for a production stage in a Docker container
+
+# Active debug more for debug logging
 debug: True
+# Host URL
 host: "0.0.0.0"
+# Set the key that are used to access the REST API.
 api_keys: 
   - "shuffle2024"
   - "api_key_1"

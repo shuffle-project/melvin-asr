@@ -8,6 +8,17 @@ ASR-API is an application serving REST and WebSocket endpoints for the transcrip
 
 ## Getting Started
 
+### Prerequisites
+
+Before you begin, ensure you have installed the following tools:
+
+- Python 3.10
+- Docker & Docker Compose
+- Visual Studio Code
+- ffmpeg
+
+### Run docker compose
+
 1. Clone this repository to your local machine:
 
    ```bash
@@ -20,23 +31,12 @@ ASR-API is an application serving REST and WebSocket endpoints for the transcrip
    docker-compose up
    ```
 
-1. Access the REST-API in your web browser at <http://localhost:8393> or using an HTTP client like curl or Postman.
-1. Access the Websocket-API at <http://localhost:8394> using a websocket client. This is build upon python's websockets package.
-1. To stop the API, press Ctrl+C in the terminal where the docker-compose up command is running.
+1. Access the REST-API at <http://localhost:8393>
+1. Access the Websocket-API at <http://localhost:8394>. This is build upon python's websockets package.
 
 ## Local Development
 
 Besides the local Docker Compose stack, there is an option to run both services directory on your local machine.
-
-### Prerequisites
-
-Before you begin, ensure you have installed the following tools:
-
-- Python 3.10
-- Docker
-- Docker Compose
-- Visual Studio Code
-- ffmpeg
 
 ### Install dependencies
 
@@ -44,56 +44,30 @@ Before you begin, ensure you have installed the following tools:
 pip install -r ./requirements.txt
 ```
 
-### Run the app
+### Run locally
 
 Locally for a development environment the websocket and the flask api are started seperatly.
 
 ```bash
-python ./app.py
+python app.py
 ```
+
+## Research
+
+To optimize ASR-API there have been multiple Proof-of-concepts to find out which solutions are working most efficiently. Take a look at the following pages:
+
+- [Parallel transcription utilizing one and multiple Whisper models](docs/research/parallel_transcription/parallel_transcription.md)
+- [Optimizing the streaming architecture](docs/research/streaming_architecture.md)
 
 ## Configuration
 
-The configuration of the ASR-API is done in the `config.yml` and `config.local.yml` file. These files are read by the `src/config.py` module, which is providing configurations to the service logic.
+The configuration of the ASR-API is done in the `config.yml` and `config.local.yml` file. The `config.local.yml` is used for local development, `config.yml` for Docker.
 
-The `config.local.yml` is used for local development.
+These files are read by the `src/helper/config.py` module, which is providing configurations to the service logic.
 
-Please make sure to set the required options:
+## Linting & Testing
 
-### Configuration
-
-See the config-files for more information.
-
-The following options are important:
-
-1. *debug* - Actives debug more for logging
-1. *api_keys* - Set the key that are used to access the REST API.
-1. *transcription_default* - Faster-whisper transcriptions settings passed to all transcription workflows of the system. Set all settings available for faster-whisper.
-1. *websocket_stream* - Defined the models for CPU and CUDA GPUs running to provide the websocket stream endpoint. Disable GPU is you do not have a CUDA GPU installed!
-1. *rest_runner*- Defined the models running to provide the http transcription
-
-## Testing
-
-### Ruff
-
-VS Code Extension: <https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff>
-
-Linting is done with Ruff (<https://github.com/astral-sh/ruff>) for all `*.py` files checked in to Git.
-
-```bash
-ruff check .    
-```
-
-Ruff allows formatting as well.
-
-```bash
-ruff format . 
-```
-
-### Pytest
-
-To test our code we are writing tests utilizing the official Python recommendation: **pytest**. Each subfolder in `/src` has its own `/test` folder holding the testfiles. We are thriving to keep a coverage of 80% of our `/src` folder.
-Shared test functionality, which is used in multiple test files can be found in `src/helper/test_base`.
+ASR-API uses Ruff for linting and formating code, Pytest for Unit tests. See [Test Documentation](docs/test.md)
 
 ## Deployment
 
