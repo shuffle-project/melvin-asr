@@ -36,7 +36,7 @@ class Stream:
         self.chunk_cache = b""
 
         # Last final bytes and text to check for duplicates and create prompts
-        self.last_final_result_object = None
+        self.last_final_result_object = { "text": "", "result": []} # requires empty objects to avoid errors at start
         self.last_final_bytes = b""
 
         # stores all final transcription objects and audio for export
@@ -65,6 +65,7 @@ class Stream:
                         self.export_audio, message
                     )
 
+                    # Final will be created
                     if len(self.chunk_cache) >= self.final_treshold:
                         self.logger.print_log(
                             "NEW FINAL: length of chunk cache: {}".format(
@@ -81,6 +82,7 @@ class Stream:
                         self.recently_added_chunk_cache = b""
                         self.chunk_cache = b""
 
+                    # Partial will be created
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
                         self.logger.print_log(
                             "NEW PARTIAL: length of chunk cache: {}".format(
@@ -127,7 +129,8 @@ class Stream:
             start_time = time.time()
             result: str = ""
             bytes_to_transcribe = self.last_final_bytes + chunk_cache
-            data = self.transcriber._transcribe(bytes_to_transcribe, "")
+            data = self.transcriber._transcribe(bytes_to_transcribe, "Beginning of transcription:" + self.last_final_result_object["text"])
+            self.overall_transcribed_bytes += recent_cache
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (

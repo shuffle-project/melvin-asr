@@ -34,6 +34,7 @@ class FinalContextDetector:
 
         for i in range(len(result)):
             if result[i]["start"] >= expected_timestamp_first_recent_result_word:
+                print("result where cut is made: ", result[i])
                 result[:i]
                 break
 
