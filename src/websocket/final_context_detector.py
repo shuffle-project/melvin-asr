@@ -6,6 +6,7 @@ import re
 
 
 class FinalContextDetector:
+    # returns type & type of last_final_result & type_of_result {"result": result, "text": text}
     # type of result:
     # {
     #   "conf": conf,
@@ -13,17 +14,17 @@ class FinalContextDetector:
     #   "end": end + overall_transcribed_seconds,
     #   "word": word,
     # }[]
-    # returns type & type of last_final_result {"result": result, "text": text}
     def remove_first_final_words(
-        self, last_final_result: object, result: dict, length_of_finals_in_sec: int
+        self, last_final_result: object, result: object, length_of_finals_in_sec: int
     ) -> object:
         if (last_final_result is None) or (len(last_final_result["result"]) == 0):
             return result
 
+        result_words = result["result"]
 
-        print("result before it has been cut: ", result)
-        print("result before it has been cut text: ", [x["word"] for x in result])
-        last_recent_result_timestamp = result[-1]["end"]
+        print("result before it has been cut: ", result_words)
+        print("result before it has been cut text: ", result["text"])
+        last_recent_result_timestamp = result_words[-1]["end"]
         last_recent_result_timestamp = round(last_recent_result_timestamp+0.49) #rounding up helps to find the last recent final word
         
         expected_timestamp_first_recent_result_word = (
@@ -32,18 +33,18 @@ class FinalContextDetector:
 
         print ("expected_timestamp_first_recent_result_word: ", expected_timestamp_first_recent_result_word)
 
-        for i in range(len(result)):
-            if result[i]["start"] >= expected_timestamp_first_recent_result_word:
-                print("result where cut is made: ", result[i])
-                result[:i]
+        for i in range(len(result_words)):
+            if result_words[i]["start"] >= expected_timestamp_first_recent_result_word:
+                print("result where cut is made: ", result_words[i])
+                result_words[:i]
                 break
 
-        print("result after it has been cut: ", result)
-        print("result after it has been cut text: ", [x["word"] for x in result])
+        print("result_words after it has been cut: ", result_words)
+        print("result after_words it has been cut text: ", [x["word"] for x in result_words])
         print("last_result: ", last_final_result)
         print("last_result text: ", [x["word"] for x in last_final_result])
 
-        return result
+        return {"result": result_words, "text": [x["word"] for x in result_words]}
 
     def common_prefix(self, a: list[str], b: list[str]) -> list[str]:
         i = 0

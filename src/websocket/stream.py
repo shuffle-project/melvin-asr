@@ -138,7 +138,7 @@ class Stream:
             ) - (len(recent_cache) / BYTES_PER_SECOND)
             print("overall_transcribed_seconds: ", overall_transcribed_seconds)
             if "segments" in data:
-                result = []
+                result_words = []
                 for segment in data["segments"]:
                     for word in segment["words"]:
                         # make float with 6 digits after point
@@ -146,7 +146,7 @@ class Stream:
                         end = float("{:.6f}".format(float(word["end"])))
                         conf = float("{:.6f}".format(float(word["probability"])))
                         word = word["word"].strip()
-                        result.append(
+                        result_words.append(
                             {
                                 "conf": conf,
                                 "start": start + overall_transcribed_seconds,
@@ -154,6 +154,7 @@ class Stream:
                                 "word": word,
                             }
                         )
+                        result = json.dumps({"result": result_words, "text": [x["word"] for x in result_words]}, indent=2)
 
                 # returnResultText type {"result": result, "text": text}
                 returnResultText = FinalContextDetector().remove_first_final_words(
