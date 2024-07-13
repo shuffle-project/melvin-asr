@@ -200,10 +200,8 @@ class Stream:
             start_time = time.time()
             result: str = "Missing data"
 
-            bytes_to_transcribe = self.last_final_bytes + chunk_cache
             data = self.transcriber._transcribe(
-                bytes_to_transcribe,
-                "Beginning of transcription:" + self.last_final_result_object["text"],
+                chunk_cache,
             )
             self.adjust_threshold_on_latency()
             self.overall_transcribed_bytes += recent_cache
