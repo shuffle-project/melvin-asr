@@ -3,6 +3,7 @@ import json
 import time
 import uuid
 import websockets
+import traceback
 from pydub import AudioSegment
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
@@ -36,7 +37,10 @@ class Stream:
         self.chunk_cache = b""
 
         # Last final bytes and text to check for duplicates and create prompts
-        self.last_final_result_object = { "text": "", "result": []} # requires empty objects to avoid errors at start
+        self.last_final_result_object = {
+            "text": "",
+            "result": [],
+        }  # requires empty objects to avoid errors at start
         self.last_final_bytes = b""
 
         # stores all final transcription objects and audio for export
@@ -117,8 +121,10 @@ class Stream:
             except websockets.exceptions.ConnectionClosedError:
                 self.logger("Client left unexpectedly")
                 self.close_stream = True
-            except Exception as e:
-                self.logger("Error while receiving message: {}".format(e))
+            except Exception:
+                self.logger(
+                    "Error while receiving message: {}".format(traceback.format_exc())
+                )
                 self.close_stream = True
 
     async def transcribe_all_chunk_cache(
@@ -129,16 +135,27 @@ class Stream:
             start_time = time.time()
             result: str = ""
             bytes_to_transcribe = self.last_final_bytes + chunk_cache
-            data = self.transcriber._transcribe(bytes_to_transcribe, "Beginning of transcription:" + self.last_final_result_object["text"])
-            self.overall_transcribed_bytes += recent_cache
+            print(self.last_final_result_object)
+            data = self.transcriber._transcribe(
+                bytes_to_transcribe,
+                "Beginning of transcription:" + self.last_final_result_object["text"],
+            )
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (
                 len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
-            ) - (len(recent_cache) / BYTES_PER_SECOND)
+            )
+            # We need to remove the time of the repeatedly transcribed bytes from the overall transcribed seconds
+            last_final_bytes_seconds = len(self.last_final_bytes) / BYTES_PER_SECOND
+            overall_transcribed_seconds -= last_final_bytes_seconds
+
+            self.overall_transcribed_bytes += recent_cache
+
             print("overall_transcribed_seconds: ", overall_transcribed_seconds)
+
+
             if "segments" in data:
-                result_words = []
+                words = []
                 for segment in data["segments"]:
                     for word in segment["words"]:
                         # make float with 6 digits after point
@@ -146,15 +163,20 @@ class Stream:
                         end = float("{:.6f}".format(float(word["end"])))
                         conf = float("{:.6f}".format(float(word["probability"])))
                         word = word["word"].strip()
-                        result_words.append(
+                        words.append(
                             {
                                 "conf": conf,
-                                "start": start + overall_transcribed_seconds,
-                                "end": end + overall_transcribed_seconds,
+                                # the start time and end time is the time of the word minus the time of the current final
+                                "start": start + overall_transcribed_seconds-FINAL_TRANSCRIPTION_TIMEOUT,
+                                "end": end + overall_transcribed_seconds-FINAL_TRANSCRIPTION_TIMEOUT,
                                 "word": word,
                             }
                         )
-                        result = json.dumps({"result": result_words, "text": [x["word"] for x in result_words]}, indent=2)
+                        # create an object { result: list[{conf: float, start: float, end: fload, word: string}], text: string }
+                        result = {
+                            "result": words,
+                            "text": " ".join([x["word"] for x in words]),
+                        }
 
                 # returnResultText type {"result": result, "text": text}
                 returnResultText = FinalContextDetector().remove_first_final_words(
@@ -163,7 +185,7 @@ class Stream:
 
                 # Save text and bytes for later use
                 self.last_final_result_object = returnResultText
-                self.last_final_bytes = b""
+                self.last_final_bytes = chunk_cache
                 self.final_transcriptions.append(returnResultText)
             await websocket.send(json.dumps(returnResultText, indent=2))
             end_time = time.time()
@@ -171,8 +193,10 @@ class Stream:
                 "Final Transcription took {:.2f} s".format(end_time - start_time)
             )
 
-        except Exception as e:
-            self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
+        except Exception:
+            self.logger.print_error(
+                "Error while transcribing audio: {}".format(traceback.format_exc())
+            )
             self.close_stream = True
 
     async def transcribe_chunk_partial(
@@ -200,8 +224,10 @@ class Stream:
             self.logger.print_log(
                 "Partial transcription took {:.2f} s".format(end_time - start_time)
             )
-        except Exception as e:
-            self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
+        except Exception:
+            self.logger.print_error(
+                "Error while transcribing audio: {}".format(traceback.format_exc())
+            )
             self.close_stream = True
 
     def adjust_threshold_on_latency(self):
