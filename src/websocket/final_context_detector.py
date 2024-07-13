@@ -6,18 +6,18 @@ import re
 
 
 class FinalContextDetector:
-    # type of result & last_final_result:
+    # type of result:
     # {
     #   "conf": conf,
     #   "start": start + overall_transcribed_seconds,
     #   "end": end + overall_transcribed_seconds,
     #   "word": word,
     # }[]
-    # returns type {"result": result, "text": text}
+    # returns type & type of last_final_result {"result": result, "text": text}
     def remove_first_final_words(
         self, last_final_result: object, result: dict, length_of_finals_in_sec: int
     ) -> object:
-        if (last_final_result is None) or (len(last_final_result) == 0):
+        if (last_final_result is None) or (len(last_final_result["result"]) == 0):
             return result
 
 
