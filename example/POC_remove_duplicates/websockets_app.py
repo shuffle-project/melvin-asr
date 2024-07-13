@@ -1,6 +1,7 @@
 """Module to handle the WebSocket server"""
 import asyncio
 import json
+import time
 import websockets
 
 from websockets_settings import default_websocket_settings
@@ -12,7 +13,7 @@ BYTES_PER_SECOND = 32000
 
 # We want to print a final transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a final transcription
-FINAL_TRANSCRIPTION_TIMEOUT = 120
+FINAL_TRANSCRIPTION_TIMEOUT = 6
 
 # We want to print a partial transcription after a certain amount of time
 # This is the number of seconds we want to wait before printing a partial transcription
@@ -44,6 +45,9 @@ class WebSocketServer:
         self.overall_transcribed_bytes = b""
         self.overall_audio_bytes = b""
 
+        # Last final for duplicates
+        self.last_final = b""
+
         # Byte threshold for partial and final transcriptions
         # If the cache is larger than the threshold, we transcribe
         self.final_treshold = BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
@@ -68,13 +72,26 @@ class WebSocketServer:
                     self.recently_added_chunk_cache += message
                     self.overall_audio_bytes += message
 
+                    if len(self.chunk_cache) >= self.final_treshold:
+                        print("********** NEW FINAL **********")
+                        asyncio.ensure_future(
+                            self.transcribe_all_chunk_cache(
+                                websocket,
+                                self.chunk_cache,
+                                self.recently_added_chunk_cache,
+                            )
+                        )
+                        self.recently_added_chunk_cache = b""
+                        self.chunk_cache = b""
+
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
                         print("********** NEW PARTIAL **********")
                         # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
                         asyncio.ensure_future(
-                            self.transcribe_sentences(
+                            self.transcribe_chunk_partial(
                                 websocket,
                                 self.chunk_cache,
+                                self.recently_added_chunk_cache,
                             )
                         )
                         self.recently_added_chunk_cache = b""
@@ -93,38 +110,20 @@ class WebSocketServer:
                 print("Error while receiving message: {}".format(e))
                 break
 
-    async def transcribe_sentences(self, websocket, chunk_cache):
+    async def transcribe_all_chunk_cache(
+        self, websocket, chunk_cache, recent_cache
+    ) -> str:
+        """Function to transcribe a chunk of audio"""
+        start_time = time.time()
+        result: str = ""
         data = self.transcriber.transcribe_audio_audio_chunk(
-            chunk_cache, settings=default_websocket_settings()
+            chunk_cache,
+            "Last words of the audio: " + self.last_final,
+            settings=default_websocket_settings(),
         )
-        if "segments" not in data:
-            raise NameError()
-
-        cut_second = 0
-        text = ""
-        for segment in data["segments"]:
-            text = text + segment["text"]
-
-        if self.contains_sentence_ending_punctuation(text) is False:
-            result = json.dumps({"partial": text}, indent=2)
-            await websocket.send(result)
-            return
-
-        for segment in data["segments"]:
-            for word in segment["words"]:
-                if self.contains_sentence_ending_punctuation(word["word"]):
-                    # print(word["word"])
-                    cut_second = float("{:.6f}".format(float(word["end"])))
-                    # print(cut_second)
-                    break
-
-        index = round(cut_second * BYTES_PER_SECOND)
-        final_sentence = self.chunk_cache[:index]
-        self.chunk_cache = self.chunk_cache[index:]
-
-        data = self.transcriber.transcribe_audio_audio_chunk(
-            final_sentence, settings=default_websocket_settings()
-        )
+        print(self.last_final)
+        # self.adjust_threshold_on_latency()
+        self.overall_transcribed_bytes += recent_cache
         if "segments" in data:
             result = []
             text = ""
@@ -139,18 +138,62 @@ class WebSocketServer:
                         {"conf": conf, "start": start, "end": end, "word": word}
                     )
                 text = text + segment["text"]
-                print(text)
-            result = json.dumps({"result": result, "text": text}, indent=2)
+                clean_final = self.remove_duplicates(self.last_final, text)
+            result = json.dumps({"result": result, "text": clean_final}, indent=2)
+        await websocket.send(result)
+        self.last_final = text
+        end_time = time.time()
+        print("Final Transcription took {:.2f} s".format(end_time - start_time))
+
+    async def transcribe_chunk_partial(
+        self, websocket, chunk_cache, recent_cache
+    ) -> str:
+        start_time = time.time()
+        result: str = "Missing data"
+
+        prompt = ""
+        data = self.transcriber.transcribe_audio_audio_chunk(
+            chunk_cache, prompt, settings=default_websocket_settings()
+        )
+        # self.adjust_threshold_on_latency()
+        self.overall_transcribed_bytes += recent_cache
+        if "segments" in data:
+            text = ""
+            for segment in data["segments"]:
+                text += segment["text"]
+            result = json.dumps({"partial": text}, indent=2)
+        else:
+            print("Transcription Data is empty, no segments found")
         await websocket.send(result)
 
-    def contains_sentence_ending_punctuation(websocket, s):
-        sentence_endings = {".", "!", "?"}
-        return any(char in sentence_endings for char in s)
+        end_time = time.time()
+        print("Partial transcription took {:.2f} s".format(end_time - start_time))
+
+    def remove_duplicates(self, last_final, current_final):
+        # Zerlege die Texte in Wörterlisten
+        words1 = last_final.split()
+        words2 = current_final.split()
+
+        # Nimm die letzten 2 Wörter von text1 und die ersten 2 Wörter von text2
+        last_five_words_text1 = words1[-2:]
+        first_five_words_text2 = words2[:2]
+
+        # Erstelle eine Liste der Wörter in text2 ohne die Duplikate
+        new_words2 = first_five_words_text2.copy()
+        for word in first_five_words_text2:
+            if word in last_five_words_text1:
+                new_words2.remove(word)
+
+        # Kombiniere die neuen Wörter von text2 mit dem Rest der Wörter von text2
+        unique_text2 = new_words2 + words2[2:]
+
+        # Erstelle den neuen Text2 String
+        return " ".join(unique_text2)
 
 
 if __name__ == "__main__":
     try:
-        server = WebSocketServer("1234")
+        server = WebSocketServer("8394")
         asyncio.run(server.main())
     except KeyboardInterrupt as e:
         print("interrupted by user")

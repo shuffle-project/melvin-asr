@@ -81,6 +81,7 @@ class Transcriber:
     def _transcribe(
         self,
         audio_chunk: bytes,
+        prompt: str = "",
     ) -> dict:
         """Function to run the transcription process"""
         sample_rate = 16000
@@ -95,12 +96,9 @@ class Transcriber:
                 wav_file.setframerate(sample_rate)
                 wav_file.writeframes(audio_chunk)
             wav_io.seek(0)
-            result = self._transcribe_with_settings(wav_io, self._model)
+            settings = TranscriptionSettings().get_and_update_settings(
+                {"initial_prompt": prompt}
+            )
+            segments, info = self._model.transcribe(wav_io, **settings)
+            result = parse_segments_and_info_to_dict(segments, info)
         return result
-
-    @staticmethod
-    def _transcribe_with_settings(audio, model: WhisperModel) -> dict:
-        """Function to transcribe with settings"""
-        settings = TranscriptionSettings().get_and_update_settings()
-        segments, info = model.transcribe(audio, **settings)
-        return parse_segments_and_info_to_dict(segments, info)

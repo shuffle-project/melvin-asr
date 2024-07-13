@@ -3,6 +3,7 @@ import json
 import time
 import uuid
 import websockets
+import traceback
 from pydub import AudioSegment
 from src.helper.data_handler import DataHandler
 from src.helper.logger import Color, Logger
@@ -23,7 +24,6 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int):
-
         self.logger = Logger(f"Stream{id}", True, Color.random())
         self.transcriber = transcriber
         self.id = id
@@ -34,6 +34,13 @@ class Stream:
 
         # Cache for the chunks since the last final
         self.chunk_cache = b""
+
+        # Last final bytes and text to check for duplicates and create prompts
+        self.last_final_result_object = {
+            "text": "",
+            "result": [],
+        }  # requires empty objects to avoid errors at start
+        self.last_final_bytes = b""
 
         # stores all final transcription objects and audio for export
         self.final_transcriptions = []
@@ -61,6 +68,7 @@ class Stream:
                         self.export_audio, message
                     )
 
+                    # Final will be created
                     if len(self.chunk_cache) >= self.final_treshold:
                         self.logger.print_log(
                             "NEW FINAL: length of chunk cache: {}".format(
@@ -77,6 +85,7 @@ class Stream:
                         self.recently_added_chunk_cache = b""
                         self.chunk_cache = b""
 
+                    # Partial will be created
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
                         self.logger.print_log(
                             "NEW PARTIAL: length of chunk cache: {}".format(
@@ -111,8 +120,10 @@ class Stream:
             except websockets.exceptions.ConnectionClosedError:
                 self.logger("Client left unexpectedly")
                 self.close_stream = True
-            except Exception as e:
-                self.logger("Error while receiving message: {}".format(e))
+            except Exception:
+                self.logger(
+                    "Error while receiving message: {}".format(traceback.format_exc())
+                )
                 self.close_stream = True
 
     async def transcribe_all_chunk_cache(
@@ -122,16 +133,24 @@ class Stream:
         try:
             start_time = time.time()
             result: str = ""
-            data = self.transcriber._transcribe(chunk_cache)
+            bytes_to_transcribe = self.last_final_bytes + chunk_cache
+            data = self.transcriber._transcribe(
+                bytes_to_transcribe,
+                "Beginning of transcription:" + self.last_final_result_object["text"],
+            )
             self.adjust_threshold_on_latency()
             # we want the time when the final started, so it is the self.overall_transcribed_bytes time minus the recently added bytes
             overall_transcribed_seconds = (
                 len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
-            ) - (len(recent_cache) / BYTES_PER_SECOND)
+            )
+            # We need to remove the time of the repeatedly transcribed bytes from the overall transcribed seconds
+            last_final_bytes_seconds = len(self.last_final_bytes) / BYTES_PER_SECOND
+            overall_transcribed_seconds -= last_final_bytes_seconds
+
             self.overall_transcribed_bytes += recent_cache
+
             if "segments" in data:
-                result = []
-                text = ""
+                words = []
                 for segment in data["segments"]:
                     for word in segment["words"]:
                         # make float with 6 digits after point
@@ -139,25 +158,39 @@ class Stream:
                         end = float("{:.6f}".format(float(word["end"])))
                         conf = float("{:.6f}".format(float(word["probability"])))
                         word = word["word"].strip()
-                        result.append(
+                        words.append(
                             {
                                 "conf": conf,
-                                "start": start + overall_transcribed_seconds,
-                                "end": end + overall_transcribed_seconds,
+                                # the start time and end time is the time of the word minus the time of the current final
+                                "start": start
+                                + overall_transcribed_seconds
+                                - FINAL_TRANSCRIPTION_TIMEOUT,
+                                "end": end
+                                + overall_transcribed_seconds
+                                - FINAL_TRANSCRIPTION_TIMEOUT,
                                 "word": word,
                             }
                         )
+                        # create an object { result: list[{conf: float, start: float, end: fload, word: string}], text: string }
+                        result = {
+                            "result": words,
+                            "text": " ".join([x["word"] for x in words]),
+                        }
 
-                    text = text + segment["text"]
-                result = {"result": result, "text": text}
+                # Save text and bytes for later use
+                self.last_final_result_object = result
+                self.last_final_bytes = chunk_cache
                 self.final_transcriptions.append(result)
             await websocket.send(json.dumps(result, indent=2))
             end_time = time.time()
             self.logger.print_log(
                 "Final Transcription took {:.2f} s".format(end_time - start_time)
             )
-        except Exception as e:
-            self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
+
+        except Exception:
+            self.logger.print_error(
+                "Error while transcribing audio: {}".format(traceback.format_exc())
+            )
             self.close_stream = True
 
     async def transcribe_chunk_partial(
@@ -167,7 +200,9 @@ class Stream:
             start_time = time.time()
             result: str = "Missing data"
 
-            data = self.transcriber._transcribe(chunk_cache)
+            data = self.transcriber._transcribe(
+                chunk_cache,
+            )
             self.adjust_threshold_on_latency()
             self.overall_transcribed_bytes += recent_cache
             if "segments" in data:
@@ -185,8 +220,10 @@ class Stream:
             self.logger.print_log(
                 "Partial transcription took {:.2f} s".format(end_time - start_time)
             )
-        except Exception as e:
-            self.logger.print_error("Error while transcribing audio: {}".format(str(e)))
+        except Exception:
+            self.logger.print_error(
+                "Error while transcribing audio: {}".format(traceback.format_exc())
+            )
             self.close_stream = True
 
     def adjust_threshold_on_latency(self):
@@ -263,4 +300,3 @@ class Stream:
 
         combined = segment1.append(segment2, crossfade=crossfade_duration)
         return combined.raw_data
-
