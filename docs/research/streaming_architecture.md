@@ -102,3 +102,13 @@ Whisper VAD does run VAD automatically before running the transcription on the a
 We want to track the performance and latency of the stream by measuring the time passed since the stream started and comparing it to the overall audio byte time passed (Length of audio bytes that have been send to the server) and the transcribed byte time (Length of audio bytes that have been transcribed by the server).
 
 => This is the foundation to improve and measure latency.
+
+## Big Blue Button
+Our streaming setup can be used with Big Blue Button. If we connect both services, we get live captioning for BBB meetings. 
+To archive this, we need a configured BBB instance running on a different server. This is recommended by BBB so that the service runs in a clean environment. Our BBB instance runs on a separate Azure VM.
+
+In the BBB configuration file, we need to specify which transcription method we want to use (VOSK) and which languages are enabled for transcription (DE).
+
+Then we configured an additional service called `bbb-transcription-controller`. We set the websocket domain (our transcription endpoint) to the German translation. This can be done inside the repo's config yaml file. This was a bit tricky, because if you clone the official repo, change the configuration and run the `app.js` it won't work. We had to do `sudo apt install bbb-transcription-controller` and configure the files in the folder of the apt installation.
+
+On our side, we had to expose the docker port for the transcription service and add a subdomain in nginx to forward this port.
