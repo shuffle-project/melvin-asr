@@ -1,9 +1,13 @@
 """ Module to handle the transcription process """
+import json
 import time
+
+import stable_whisper
 from faster_whisper import WhisperModel
-from src.helper.logger import Logger, Color
+
+from src.helper.logger import Color, Logger
 from src.helper.model_handler import ModelHandler
-from src.helper.segment_info_parser import parse_segments_and_info_to_dict
+from src.helper.segment_info_parser import parse_stable_whisper_result
 from src.helper.transcription_settings import TranscriptionSettings
 
 LOGGER = Logger("Transcriber", True, Color.MAGENTA)
@@ -95,7 +99,7 @@ class Transcriber:
         """loads the model if not loaded"""
         if self.model is not None:
             return True
-        self.model = WhisperModel(
+        self.model = stable_whisper.load_faster_whisper(
             ModelHandler().get_model_path(self.model_name),
             local_files_only=True,
             device=self.device,
@@ -128,5 +132,26 @@ class Transcriber:
     ) -> dict:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
-        segments, info = model.transcribe(audio, **settings)
-        return parse_segments_and_info_to_dict(segments, info)
+        result = model.transcribe_stable(audio, **settings)
+        data = parse_stable_whisper_result(result)
+
+        return data
+
+    @time_it
+    def align_audio_file(
+        self, audio_file_path: str, text: str, language: str
+    ) -> dict:
+        """Function to run the alignment process"""
+        self.load_model()
+        try:
+            self.log.print_log("Align transcript for file: " + str(audio_file_path))
+            result = self.model.align(audio_file_path, text, language)
+            data = parse_stable_whisper_result(result)
+
+            return {
+                "success": True,
+                "data": data,
+            }
+        except Exception as e:
+            self.log.print_error("Error during alignment: " + str(e))
+            return {"success": False, "data": str(e)}

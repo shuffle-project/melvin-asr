@@ -3,10 +3,11 @@ import os
 import random
 import time
 from datetime import datetime
-from src.helper.types.transcription_status import TranscriptionStatus
+
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.logger import Logger, Color
+from src.helper.logger import Color, Logger
+from src.helper.types.transcription_status import TranscriptionStatus
 from src.rest.rest_transcriber import Transcriber
 
 
@@ -64,9 +65,17 @@ class Runner:
     def transcribe(self, transcription_id) -> None:
         """Transcribes the audio file with the given transcription_id."""
         audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
+        status_file = self.data_handler.get_status_file_by_id(transcription_id)
         settings = self.data_handler.get_status_file_settings(transcription_id)
 
-        response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
+        task = status_file["task"]
+
+        response = None
+        if task == "transcribe":
+            response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
+        elif task == "align":
+            response = self.transcriber.align_audio_file(audio_file_path, status_file["text"], status_file["language"])
+            
         self.data_handler.delete_audio_file(transcription_id)
         if response["success"] is False or (response["data"]["segments"] is None):
             self.data_handler.update_status_file(

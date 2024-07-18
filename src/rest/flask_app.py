@@ -4,14 +4,14 @@ import time
 import uuid
 from datetime import datetime
 from functools import wraps
+
+from flask import Flask, jsonify, make_response, request
 from pydub import AudioSegment
-from flask import Flask, jsonify, request, make_response
-from src.helper.logger import Color, Logger
+
 from src.helper.config import CONFIG
-from src.helper.types.transcription_status import (
-    TranscriptionStatus,
-)
 from src.helper.data_handler import DataHandler
+from src.helper.logger import Color, Logger
+from src.helper.types.transcription_status import TranscriptionStatus
 
 LOGGER = Logger("FlaskApp", False, Color.MAGENTA)
 DATA_HANDLER = DataHandler()
@@ -28,7 +28,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
         
         @wraps(func)
         def wrapper(*args, **kwargs):
-            api_key = request.headers.get("key")
+            api_key = request.headers.get("Authorization")
 
             if api_key and api_key in api_keys:
                 return func(*args, **kwargs)
@@ -115,13 +115,26 @@ def create_app(api_keys=CONFIG["api_keys"]):
                     settings = json.loads(request.form["settings"])
                 if "model" in request.form:
                     model = request.form["model"]
+                
+                task = request.form["task"] if "task" in request.form else "transcribe"
+                language = request.form["language"] if "language" in request.form else None
+                text = request.form["text"] if "text" in request.form else None
 
+                if task == "align":
+                    if not text:
+                        return make_response(jsonify({ "message": "property text is required for task align"}), 400, {"Content-Type": "application/json"})
+                    if not language:
+                        return make_response(jsonify({ "message": "property language is required for task align"}), 400, {"Content-Type": "application/json"})
+                    
                 data = {
                     "transcription_id": transcription_id,
                     "status": TranscriptionStatus.IN_QUERY.value,
                     "start_time": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "settings": settings,
                     "model": model,
+                    "task": task,
+                    "text": text,
+                    "language": language
                 }
 
                 DATA_HANDLER.write_status_file(transcription_id, data)

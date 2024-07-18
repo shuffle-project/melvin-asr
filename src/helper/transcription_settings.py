@@ -84,9 +84,10 @@ class TranscriptionSettings:
         """Returns the updated configuration."""
 
         updated_config = self.default_settings.copy()
-        for key, value in settings.items():
-            if key in updated_config:
-                updated_config[key] = value
+        if settings:
+            for key, value in settings.items():
+                if key in updated_config:
+                    updated_config[key] = value
 
         return updated_config
 

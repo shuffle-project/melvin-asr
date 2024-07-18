@@ -89,3 +89,33 @@ def parse_transcription_segments_to_dict(segment):  # type segment -> [dict]
         }
         new_segments_array.append(segment_dict)
     return new_segments_array
+
+def parse_stable_whisper_result(result) -> dict:
+    """Parses the stable whisper result to a dictionary"""
+    data = result.to_dict()
+
+    text = ""
+    segments = []
+    for segment in data["segments"]:
+        text += segment["text"]
+
+        words = []
+        for word in segment["words"]:
+            words.append({
+                "text": word["word"],
+                "start": word["start"],
+                "end": word["end"],
+                "probability": word["probability"],
+            })
+
+        segments.append({
+            "text": segment["text"],
+            "start": segment["start"],
+            "end": segment["end"],
+            "words": words,
+        })
+
+    return {
+        "text": text,
+        "segments": segments,
+    }
