@@ -1,5 +1,5 @@
 # Use a CUDA image that includes cuDNN
-FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Remove any third-party apt sources to avoid issues with expiring keys.
@@ -10,14 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
     python3-pip \
     ffmpeg \
-    curl \
     ca-certificates \
-    sudo \
-    git \
-    bzip2 \
-    libx11-6 \
     && python3 -m pip install --upgrade pip \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8394
 EXPOSE 8393
@@ -28,7 +23,7 @@ COPY ./src ./src
 COPY ./app.py ./app.py
 COPY ./requirements.txt ./requirements.txt
 
-RUN pip install -r ./requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
 
 # Set unbuffered output for Python, facilitating real-time log output
 CMD ["python3", "-u", "app.py"]
