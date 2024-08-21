@@ -1,6 +1,6 @@
-# ASR-API
+# Melvin ASR
 
-ASR-API is an application serving REST and WebSocket endpoints for the transcription of audio files.
+Melvin ASR is an application serving REST and WebSocket endpoints for the transcription of audio files.
 
 **REST API**: The API is based on HTTP requests that handles the transcription of files in an async workflow, enabling user to send an audio file in a first request and receive the transcription via a second request as soon as the transcript is ready. See [REST Documentation](docs/rest-api.md)
 

@@ -52,32 +52,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-# OLD deploy to server, manual deploy necessary on the new server
-
-# deploy:
-#   needs: [build_and_publish]
-#   runs-on: ubuntu-latest
-#   strategy:
-#     matrix:
-#       python-version: ["3.10"]
-#   steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v2
-
-#     - name: Add SSH key
-#       env:
-#         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-#       run: |
-#         mkdir -p ~/.ssh
-#         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-#         chmod 600 ~/.ssh/id_rsa
-#         echo "StrictHostKeyChecking no" > ~/.ssh/config
-
-#     - name: Transfer docker-compose.yml and /infrastructure to server
-#       env:
-#         HOST: ${{ secrets.HOST }}
-#         USER: ${{ secrets.USER }}
-#       run: |
-#         scp -i ~/.ssh/id_rsa -r ./infrastructure $USER@$HOST:/home/shuffle/asr-api-prod/
-#         scp -i ~/.ssh/id_rsa ./docker-compose.yml $USER@$HOST:/home/shuffle/asr-api-prod/
-#         scp -i ~/.ssh/id_rsa ./config.yml $USER@$HOST:/home/shuffle/asr-api-prod/

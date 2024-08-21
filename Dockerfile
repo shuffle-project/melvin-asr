@@ -1,5 +1,5 @@
 # Use a CUDA image that includes cuDNN
-FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu22.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Remove any third-party apt sources to avoid issues with expiring keys.
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 EXPOSE 8394
 EXPOSE 8393
 
-WORKDIR /asr-api
+WORKDIR /asr
 
 COPY ./src ./src
 COPY ./app.py ./app.py
