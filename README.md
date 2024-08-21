@@ -22,7 +22,7 @@ Before you begin, ensure you have installed the following tools:
 1. Clone this repository to your local machine:
 
    ```bash
-   git clone https://github.com/shuffle-project/asr-api.git
+   git clone https://github.com/shuffle-project/melvin-asr.git
    ```
 
 1. Build and run the app using Docker Compose from the root directory:
@@ -54,24 +54,24 @@ python app.py
 
 ## Research
 
-To optimize ASR-API there have been multiple Proof-of-concepts to find out which solutions are working most efficiently. Take a look at the following pages:
+To optimize ASR there have been multiple Proof-of-concepts to find out which solutions are working most efficiently. Take a look at the following pages:
 
 - [Parallel transcription utilizing one and multiple Whisper models](docs/research/parallel_transcription/parallel_transcription.md)
 - [Optimizing the streaming architecture](docs/research/streaming_architecture.md)
 
 ## Configuration
 
-The configuration of the ASR-API is done in the `config.yml` and `config.local.yml` file. The `config.local.yml` is used for local development, `config.yml` for Docker.
+The configuration of the service is done in the `config.yml` and `config.local.yml` file. The `config.local.yml` is used for local development, `config.yml` for Docker.
 
 These files are read by the `src/helper/config.py` module, which is providing configurations to the service logic.
 
 ## Linting & Testing
 
-ASR-API uses Ruff for linting and formating code, Pytest for Unit tests. See [Test Documentation](docs/test.md)
+The project uses Ruff for linting and formating code, Pytest for Unit tests. See [Test Documentation](docs/test.md)
 
 ## Deployment
 
-ASR-API is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in play. See [Deployment Documentation](docs/deployment.md)
+The project is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in play. See [Deployment Documentation](docs/deployment.md)
 
 ## Code Integration
 
@@ -79,7 +79,7 @@ We are maintaining our code following trunk based development. This means we are
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/shuffle-project/asr-api/blob/feat/license/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/shuffle-project/melvin-asr/blob/feat/license/LICENSE) file for details.
 
 ## Acknowledgements
 

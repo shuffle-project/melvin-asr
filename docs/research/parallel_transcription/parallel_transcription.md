@@ -1,6 +1,6 @@
 # Parallel Transcription
 
-We used multiple WhisperModel classes (The Class provided by faster-whisper package) with multithreading in our code to transcribe audio files in parallel. In parallel means transcribing multiple files at the same time using one ASR-API Docker container. With a proof of concept (POC), we aim to find the best option to transcribe multiple files in parallel for CPU and Cuda workloads.
+We used multiple WhisperModel classes (The Class provided by faster-whisper package) with multithreading in our code to transcribe audio files in parallel. In parallel means transcribing multiple files at the same time using one docker container. With a proof of concept (POC), we aim to find the best option to transcribe multiple files in parallel for CPU and Cuda workloads.
 
 For CPU, we need to determine whether to use a single WhisperModel class from the faster-whisper package in the code or multiple instances. Additionally, we want to test two parameters of the WhisperModel class: the “num_workers” option, which may be a valid choice for parallel transcription, when using one instance and the “cpu_threads” argument, to see how it affects transcription performance.
 
@@ -87,12 +87,12 @@ After all, we decided that the differences were too close to see a real benefit 
 - When working with multiple WhisperModel instances, the initialization must happen with a sligth time between one another or a race condition will throw an error.
 - It does not matter if you are instanciation multiple WhisperModel classes or one, the model is only one time in the RAM. Only tested for CPU!
 - As the multi and one WhisperModel instance approach are working pretty similar, it seems like we do not need to handle this part of the transcription process ourselfs. Working with once instance seems the easier and evenly "good" way. There is no way to use one model for CPU and GPU.
-- It is important to set the "cpu_treads" argument correctly, for the best case, of each CPU. This should be a config setting for ASR-API. E.g. M2-CPU is 2 Threads and a 128 core CPU is 8 threads.
+- It is important to set the "cpu_treads" argument correctly, for the best case, of each CPU. This should be a config setting for the service. E.g. M2-CPU is 2 Threads and a 128 core CPU is 8 threads.
 - Setting the "num_workers" argmuent to the amount of parallel transcription we want to run, seems like a good way of doing things. The results are always one of the best. Setting more workers does not affect the time it takes, but blocks more CPU power. Using less does affect the time it takes.
 
 ## Arguments faster-whisper WhisperModel
 
->Args:
+> Args:
 > model_size_or_path: Size of the model to use (tiny, tiny.en, base, base.en,
 > small, small.en, medium, medium.en, large-v1, large-v2, large-v3, or large), a path to a
 > converted model directory, or a CTranslate2-converted Whisper model ID from the HF Hub.
@@ -119,5 +119,5 @@ After all, we decided that the differences were too close to see a real benefit 
 >
 > download_root: Directory where the models should be saved. If not set, the models
 > are saved in the standard Hugging Face cache directory.
-> local_files_only:  If True, avoid downloading the file and return the path to the
+> local_files_only: If True, avoid downloading the file and return the path to the
 > local cached file if it exists.
