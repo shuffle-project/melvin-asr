@@ -1,6 +1,8 @@
 """config file that reads all config from .env or CMD environment for app"""
 import os
+
 import yaml
+from faster_whisper.tokenizer import _LANGUAGE_CODES
 
 
 def read_config(config_yml_path: str) -> dict:
@@ -58,6 +60,7 @@ def read_config(config_yml_path: str) -> dict:
         ),
         # Transcription default Configuration
         "transcription_default": get_config("transcription_default"),
+        "supported_language_codes": list(_LANGUAGE_CODES)
     }
 
 

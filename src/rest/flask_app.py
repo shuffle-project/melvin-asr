@@ -17,10 +17,11 @@ LOGGER = Logger("FlaskApp", False, Color.MAGENTA)
 DATA_HANDLER = DataHandler()
 
 
-def create_app(api_keys=CONFIG["api_keys"]):
+def create_app():
     """Function to create the Flask app"""
 
     app = Flask(__name__)
+    config = CONFIG
 
     def require_api_key(func):
         """Decorator function to require an API key for a route"""
@@ -30,13 +31,10 @@ def create_app(api_keys=CONFIG["api_keys"]):
         def wrapper(*args, **kwargs):
             api_key = request.headers.get("Authorization")
 
-            if api_key and api_key in api_keys:
+            if api_key and api_key in config["api_keys"]:
                 return func(*args, **kwargs)
 
-            LOGGER.print_error(
-                "Unauthorized REST API request. "
-                + f"api_key: {api_key}, config_key: {api_keys}"
-            )
+            LOGGER.print_error("Unauthorized REST API request.")
 
             return (
                 jsonify("Unauthorized"),
@@ -49,7 +47,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
     @require_api_key
     def show_config():
         """Function that returns the config of this service."""
-        config_info = CONFIG.copy()
+        config_info = config.copy()
         # remove api_keys from config, as we don't want to show them
         config_info.pop("api_keys")
         return make_response(json.dumps(config_info, indent=4), 200, {"Content-Type": "application/json"})
@@ -99,6 +97,10 @@ def create_app(api_keys=CONFIG["api_keys"]):
                 return "No file posted", 400
             file = request.files["file"]
             if file:
+                language = request.form["language"] if "language" in request.form else None
+                if language and language not in config["supported_language_codes"]:
+                    return make_response(jsonify({ f"message": "language code ({language}) is not supported"}), 400, {"Content-Type": "application/json"})
+
                 transcription_id = str(uuid.uuid4())
                 result = DATA_HANDLER.save_audio_file(
                     AudioSegment.from_file(file.stream), transcription_id
@@ -117,7 +119,7 @@ def create_app(api_keys=CONFIG["api_keys"]):
                     model = request.form["model"]
                 
                 task = request.form["task"] if "task" in request.form else "transcribe"
-                language = request.form["language"] if "language" in request.form else None
+                
                 text = request.form["text"] if "text" in request.form else None
 
                 if task == "align":
