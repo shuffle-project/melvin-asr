@@ -1,12 +1,13 @@
-""" This module contains the handler for the transcription process. """
+"""This module contains the handler for the transcription process."""
+
 import os
 import random
 import time
 from datetime import datetime
 
+from src.helper import logger
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.logger import Color, Logger
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.rest.rest_transcriber import Transcriber
 
@@ -16,19 +17,17 @@ class Runner:
     This class handles the transcription process by running whisper continuously.
     """
 
-    def __init__(
-        self, config: dict, identifier: int
-    ):
+    def __init__(self, config: dict, identifier: int):
         """Constructor of the Runner class."""
         self.identifier = identifier
         self.transcriber = Transcriber(config)
 
-        self.log = Logger(f"Runner{identifier}", True, Color.MAGENTA)
+        self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
 
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
-        self.log.print_log("started")
+        self.log.info("started")
 
         cc = 0  # counter for clean up
         while True:
@@ -41,12 +40,12 @@ class Runner:
                 schedule = int(CONFIG["cleanup_schedule_in_minutes"]) * 10 * 60
                 if cc > schedule:
                     self.data_handler.clean_up_audio_and_status_files()
-                    self.log.print_log("Status files cleaned up.")
+                    self.log.info("Status files cleaned up.")
                     cc = 0
 
                 continue
 
-            self.log.print_log("Processing file: " + transcription_id)
+            self.log.debug("Processing file: " + transcription_id)
             try:
                 self.data_handler.update_status_file(
                     TranscriptionStatus.IN_PROGRESS.value, transcription_id
@@ -54,9 +53,7 @@ class Runner:
                 self.transcribe(transcription_id)
 
             except Exception as e:
-                self.log.print_error(
-                    f"Runner Exception of type {type(e).__name__}: {str(e)}"
-                )
+                self.log.error(f"Runner Exception of type {type(e).__name__}: {str(e)}")
                 self.data_handler.update_status_file(
                     TranscriptionStatus.ERROR.value, transcription_id, str(e)
                 )
@@ -74,8 +71,10 @@ class Runner:
         if task == "transcribe":
             response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
         elif task == "align":
-            response = self.transcriber.align_audio_file(audio_file_path, status_file["text"], status_file["language"])
-            
+            response = self.transcriber.align_audio_file(
+                audio_file_path, status_file["text"], status_file["language"]
+            )
+
         self.data_handler.delete_audio_file(transcription_id)
         if response["success"] is False or (response["data"]["segments"] is None):
             self.data_handler.update_status_file(
@@ -132,7 +131,7 @@ class Runner:
                         oldest_transcription_id = data.get("transcription_id")
 
             except Exception as e:
-                self.log.print_error(
+                self.log.error(
                     f"Caught Exception of type {type(e).__name__}"
                     + f"while getting oldest status file: {str(e)}"
                 )

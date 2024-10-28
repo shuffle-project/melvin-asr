@@ -1,15 +1,14 @@
-""" This module contains a JSON FileHandler to simplify reading and writing JSON files."""
+"""This module contains a JSON FileHandler to simplify reading and writing JSON files."""
+
 import json
+import logging
 import os
 
-from src.helper.logger import Logger, Color
+LOGGER = logging.getLogger(__name__)
+
 
 class FileHandler:
     """This class handles the reading and writing of JSON files."""
-
-    def __init__(self):
-        #active debug mode to see the logs
-        self.log = Logger("FileHandler", False, Color.BRIGHT_RED)
 
     def read_json(self, file_path):
         """Reads a JSON file and returns the data."""
@@ -18,7 +17,7 @@ class FileHandler:
                 data = json.load(file)
             return data
         except Exception as e:
-            self.log.print_log("Error reading JSON file: " + str(e))
+            LOGGER.error("Error reading JSON file: " + str(e))
             return None
 
     def write_json(self, file_path, data) -> bool:
@@ -28,7 +27,7 @@ class FileHandler:
                 json.dump(data, file)
             return True
         except Exception as e:
-            self.log.print_log("Error writing JSON file: " + str(e))
+            LOGGER.error("Error writing JSON file: " + str(e))
             return False
 
     def create(self, file_path, data) -> bool:
@@ -38,7 +37,7 @@ class FileHandler:
                 json.dump(data, file)
             return True
         except Exception as e:
-            self.log.print_log("Error creating JSON file: " + str(e))
+            LOGGER.error("Error creating JSON file: " + str(e))
             return False
 
     def delete(self, file_path) -> bool:
@@ -47,5 +46,5 @@ class FileHandler:
             os.remove(file_path)
             return True
         except Exception as e:
-            self.log.print_log("Error deleting file: " + str(e))
+            LOGGER.error("Error deleting file: " + str(e))
             return False

@@ -1,8 +1,8 @@
-""" simple Logger to keep track of the program's progress """
+"""simple Logger to keep track of the program's progress"""
 
-from datetime import datetime
+import logging
 import random
-from src.helper.config import CONFIG
+
 
 class Color:
     """This class contains ANSI escape sequences for colored output."""
@@ -42,37 +42,51 @@ class Color:
         ][random.randint(0, 6)]
 
 
-class Logger:
-    """This class handles the logging of the program."""
+class LogFormatter(logging.Formatter):
+    FORMATS = {
+        logging.DEBUG: Color.BLUE,
+        logging.INFO: Color.WHITE,
+        logging.WARNING: Color.BRIGHT_YELLOW,
+        logging.ERROR: Color.YELLOW,
+        logging.CRITICAL: Color.RED,
+    }
 
-    def __init__(
-        self,
-        identifier: str,
-        debug: bool = CONFIG["debug"],
-        debug_color: Color = Color.BLUE,
-        pre_identifier: str = "",
-        error_color: Color = Color.FAIL,
-    ):
-        """Constructor of the Logger class."""
-        self.debug = debug
-        self.identifier = identifier
-        self.debug_color = debug_color
-        self.pre_identifier = pre_identifier
-        self.error_color = error_color
-
-    def print_log(self, message: str) -> None:
-        """Prints a log message."""
-        if self.debug:
-            print(
-                self.debug_color
-                + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {self.pre_identifier + message}"
-                + Color.ENDC
-            )
-
-    def print_error(self, message: str) -> None:
-        """Prints an error message."""
-        print(
-            self.error_color
-            + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, {self.identifier}] {self.pre_identifier + message}"
+    def format(self, record: logging.LogRecord) -> str:
+        """Format the string and set its color based on the log level"""
+        return (
+            self.FORMATS.get(record.levelno, Color.WHITE)
+            + super().format(record)
             + Color.ENDC
         )
+
+
+def init_logger() -> None:
+    """Set the LogFormatter as a formatter for the global logger"""
+    logging.basicConfig(
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=logging.DEBUG,
+    )
+    console = logging.StreamHandler()
+    # set a format which is simpler for console use
+    # Note: identifier is only given by some classes that use this similar to a traceID
+    formatter = LogFormatter("[%(asctime)s %(name)s] %(levelname)s %(message)s")
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # set to be the only logger
+    # Ensure that only one handler is currently configured
+    assert len(logging.getLogger("").handlers) == 1
+    # Replace the current logger with the logger with the custom formatting
+    logging.getLogger("").handlers = [console]
+
+
+def get_logger_with_id(name: str, id: str) -> logging.LoggerAdapter:
+    """Get the logger for the name. Extend said logger to also send the ID for every log request"""
+    additional_data = {"identifier": f"({id})"}
+    base_logger = logging.getLogger(name)
+    formatter = LogFormatter(
+        "[%(asctime)s %(name)s] %(levelname)s %(message)s (%(identifier)s)"
+    )
+    console = logging.StreamHandler()
+    console.setFormatter(formatter)
+    base_logger.handlers = [console]
+    return logging.LoggerAdapter(base_logger, additional_data)

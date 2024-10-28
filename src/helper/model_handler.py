@@ -1,27 +1,29 @@
 """Model handler class to handle the models and storage of the models."""
+
+import logging
 import os
 from faster_whisper.utils import download_model
 from src.helper.config import CONFIG
-from src.helper.logger import Logger
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ModelHandler:
     """Class to handle the models"""
 
     def __init__(self, model_path=CONFIG["model_path"]):
-        self.log = Logger("ModelHandler", True)
         self.model_path = model_path
 
     def setup_model(self, model_to_load: str) -> bool:
         """Function to setup the models"""
-        self.log.print_log(f"Setting up model.. {model_to_load}")
+        LOGGER.info(f"Setting up model.. {model_to_load}")
 
         model = self.get_model(model_to_load)
         if model is None:
-            self.log.print_log(f"Model {model_to_load} not found, downloading..")
+            LOGGER.info(f"Model {model_to_load} not found, downloading..")
             self.download_model(model_to_load)
             return True
-        self.log.print_log(f"Model {model_to_load} found, skipping download..")
+        LOGGER.debug(f"Model {model_to_load} found, skipping download..")
         return False
 
     def get_model_path(self, model_name: str) -> str:
@@ -32,13 +34,9 @@ class ModelHandler:
     def download_model(self, model_name: str) -> None:
         """Function to download a model"""
         try:
-            self.log.print_log(
-                download_model(model_name, self.get_model_path(model_name))
-            )
+            LOGGER.info(download_model(model_name, self.get_model_path(model_name)))
         except ValueError as e:
-            self.log.print_error(
-                f"tried to download_model for an INVALID MODEL NAME: {e}"
-            )
+            LOGGER.error(f"tried to download_model for an INVALID MODEL NAME: {e}")
 
     def get_model(self, model_name: str) -> str:
         """Function to get a model"""
