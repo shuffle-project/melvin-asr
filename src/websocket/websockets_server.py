@@ -1,13 +1,16 @@
 """Module to handle the WebSocket server"""
+
 import asyncio
+import logging
 import websockets
 from src.helper.config import CONFIG
 from src.websocket.stream import Stream
 from src.websocket.stream_transcriber import Transcriber
-from src.helper.logger import Color, Logger
 
 GET_WORKER_RETRY_TIME_SECONDS = 10
 WAITING_MESSAGE = f"No transcription workers available. Retrying in {GET_WORKER_RETRY_TIME_SECONDS} seconds"
+
+LOGGER = logging.getLogger(__name__)
 
 
 class WebSocketServer:
@@ -26,15 +29,14 @@ class WebSocketServer:
 
     def __init__(self, host: str, port: int, config: dict = CONFIG):
         self.should_stop = False
-        self.log = Logger("WebSocketServer", True, Color.CYAN)
         self.host = host
         self.port = port
 
         # Setup the GPU and CPU Transcribers
         self.gpu_config = config["websocket_stream"]["cuda"]
-        self.log.print_log(f"GPU Config: {self.gpu_config}")
+        LOGGER.info(f"GPU Config: {self.gpu_config}")
         self.cpu_config = config["websocket_stream"]["cpu"]
-        self.log.print_log(f"CPU Config: {self.cpu_config}")
+        LOGGER.info(f"CPU Config: {self.cpu_config}")
 
         if self.gpu_config["active"]:
             if (
@@ -42,14 +44,14 @@ class WebSocketServer:
                 or (self.gpu_config["device_index"] is None)
                 or (self.gpu_config["worker_seats"] is None)
             ):
-                self.log.print_log("GPU Config is not set correctly")
+                LOGGER.warning("GPU Config is not set correctly")
                 raise ValueError("GPU Config is not set correctly")
             self.gpu_transcriber = Transcriber.for_gpu(
                 model_name=self.gpu_config["model"],
                 device_index=self.gpu_config["device_index"],
             )
             self.gpu_worker_seats = self.gpu_config["worker_seats"]
-            self.log.print_log(
+            LOGGER.info(
                 f"GPU Stream Transcriber is active, Worker Seats: {self.gpu_worker_seats}"
             )
 
@@ -59,7 +61,7 @@ class WebSocketServer:
                 or self.cpu_config["cpu_threads"] is None
                 or self.cpu_config["worker_seats"] is None
             ):
-                self.log.print_log("CPU Config is not set correctly")
+                LOGGER.warning("CPU Config is not set correctly")
                 raise ValueError("CPU Config is not set correctly")
             self.cpu_transcriber = Transcriber.for_cpu(
                 model_name=self.cpu_config["model"],
@@ -67,7 +69,7 @@ class WebSocketServer:
                 num_workers=self.cpu_config["worker_seats"],
             )
             self.cpu_worker_seats = self.cpu_config["worker_seats"]
-            self.log.print_log(
+            LOGGER.info(
                 f"CPU Stream Transcriber is active, Worker Seats: {self.cpu_worker_seats}"
             )
 
@@ -84,8 +86,9 @@ class WebSocketServer:
         """Function to handle a new client connection"""
 
         self.stream_counter += 1
+        # TODO: Is this the best idea? Wouldnt a uuid be a better idea?
         id = self.stream_counter
-        self.log.print_log(
+        LOGGER.debug(
             f"New client connected: {websocket.remote_address}, Stream ID: {id}\navailable seats for GPU: {self.gpu_worker_seats}, CPU: {self.cpu_worker_seats},\nconfigured seats for GPU: {self.gpu_config['worker_seats']}, CPU: {self.cpu_config['worker_seats']}"
         )
 
@@ -93,45 +96,43 @@ class WebSocketServer:
         while searching:
             if self.gpu_transcriber is not None and self.gpu_worker_seats > 0:
                 self.gpu_worker_seats -= 1
-                self.log.print_log(f"Client {id} is using GPU worker")
+                LOGGER.debug(f"Client {id} is using GPU worker")
                 searching = False
                 try:
                     await Stream(transcriber=self.gpu_transcriber, id=id).echo(
                         websocket=websocket, path=path
                     )
                 except Exception as e:
-                    self.log.print_error(
+                    LOGGER.error(
                         f"Client {id} disconnected with an exception while using a worker: {e}"
                     )
                 finally:
                     self.gpu_worker_seats += 1
-                    self.log.print_log(f"Client {id} returned GPU worker")
+                    LOGGER.debug(f"Client {id} returned GPU worker")
 
             elif self.cpu_transcriber is not None and self.cpu_worker_seats > 0:
                 self.cpu_worker_seats -= 1
-                self.log.print_log(f"Client {id} is using CPU worker")
+                LOGGER.debug(f"Client {id} is using CPU worker")
                 searching = False
                 try:
                     await Stream(transcriber=self.cpu_transcriber, id=id).echo(
                         websocket=websocket, path=path
                     )
                 except Exception as e:
-                    self.log.print_log(
+                    LOGGER.warning(
                         f"Client {id} disconnected with an exception while using a worker: {e}"
                     )
                 finally:
                     self.cpu_worker_seats += 1
-                    self.log.print_log(f"Client {id} returned CPU worker")
+                    LOGGER.debug(f"Client {id} returned CPU worker")
 
             if searching:
                 try:
                     await websocket.send(WAITING_MESSAGE)
                 except Exception:
-                    self.log.print_log(
-                        f"Client {id} disconnected while waiting for a worker"
-                    )
+                    LOGGER.debug(f"Client {id} disconnected while waiting for a worker")
 
-                self.log.print_log(
+                LOGGER.debug(
                     f"Client {id} is waiting for a worker,\navailable seats for GPU: {self.gpu_worker_seats}, CPU: {self.cpu_worker_seats},\nconfigured seats for GPU: {self.gpu_config['worker_seats']}, CPU: {self.cpu_config['worker_seats']}"
                 )
                 await asyncio.sleep(GET_WORKER_RETRY_TIME_SECONDS)

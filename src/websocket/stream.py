@@ -5,8 +5,8 @@ import uuid
 import websockets
 import traceback
 from pydub import AudioSegment
+from src.helper import logger
 from src.helper.data_handler import DataHandler
-from src.helper.logger import Color, Logger
 from src.websocket.stream_transcriber import Transcriber
 
 # To Calculate the seconds of audio in a chunk of 16000 Hz, 2 bytes per sample and 1 channel (as typically used in Whisper):
@@ -24,7 +24,7 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int):
-        self.logger = Logger(f"Stream{id}", True, Color.random())
+        self.logger = logger.get_logger_with_id(__name__, id)
         self.transcriber = transcriber
         self.id = id
         self.close_stream = False
@@ -70,7 +70,7 @@ class Stream:
 
                     # Final will be created
                     if len(self.chunk_cache) >= self.final_treshold:
-                        self.logger.print_log(
+                        self.logger.debug(
                             "NEW FINAL: length of chunk cache: {}".format(
                                 len(self.chunk_cache)
                             )
@@ -87,7 +87,7 @@ class Stream:
 
                     # Partial will be created
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
-                        self.logger.print_log(
+                        self.logger.info(
                             "NEW PARTIAL: length of chunk cache: {}".format(
                                 len(self.recently_added_chunk_cache)
                             )
@@ -102,7 +102,7 @@ class Stream:
                         )
                         self.recently_added_chunk_cache = b""
                 elif isinstance(message, str) is True:
-                    self.logger.print_log(
+                    self.logger.debug(
                         "Received control message (string): {}".format(message)
                     )
                     if "eof" in message:
@@ -115,13 +115,13 @@ class Stream:
                         await websocket.send("control message unknown")
 
             except websockets.exceptions.ConnectionClosedOK:
-                self.logger("Client left")
+                self.logger.debug("Client left")
                 self.close_stream = True
             except websockets.exceptions.ConnectionClosedError:
-                self.logger("Client left unexpectedly")
+                self.logger.debug("Client left unexpectedly")
                 self.close_stream = True
             except Exception:
-                self.logger(
+                self.logger.error(
                     "Error while receiving message: {}".format(traceback.format_exc())
                 )
                 self.close_stream = True
@@ -183,12 +183,12 @@ class Stream:
                 self.final_transcriptions.append(result)
             await websocket.send(json.dumps(result, indent=2))
             end_time = time.time()
-            self.logger.print_log(
+            self.logger.debug(
                 "Final Transcription took {:.2f} s".format(end_time - start_time)
             )
 
         except Exception:
-            self.logger.print_error(
+            self.logger.error(
                 "Error while transcribing audio: {}".format(traceback.format_exc())
             )
             self.close_stream = True
@@ -211,17 +211,15 @@ class Stream:
                     text += segment["text"]
                 result = json.dumps({"partial": text}, indent=2)
             else:
-                self.logger.print_error(
-                    "Transcription Data is empty, no segments found"
-                )
+                self.logger.error("Transcription Data is empty, no segments found")
             await websocket.send(result)
 
             end_time = time.time()
-            self.logger.print_log(
+            self.logger.debug(
                 "Partial transcription took {:.2f} s".format(end_time - start_time)
             )
         except Exception:
-            self.logger.print_error(
+            self.logger.error(
                 "Error while transcribing audio: {}".format(traceback.format_exc())
             )
             self.close_stream = True
@@ -232,7 +230,7 @@ class Stream:
         seconds_transcribed = len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
         # Calculate the latency of the connection
         seconds_difference_received_transcribed = seconds_received - seconds_transcribed
-        self.logger.print_log(
+        self.logger.info(
             f"Latency: {seconds_difference_received_transcribed} s, Partial Threshhold {self.partial_treshold / BYTES_PER_SECOND}"
         )
 
@@ -247,7 +245,7 @@ class Stream:
             seconds_difference_received_transcribed_exclude_partial
             > FINAL_TRANSCRIPTION_TIMEOUT - 2
         ):
-            self.logger.print_log("Latency is too high, increasing partial threshold")
+            self.logger.debug("Latency is too high, increasing partial threshold")
             self.partial_treshold = self.partial_treshold * 1.5
             if self.partial_treshold > self.final_treshold:
                 self.partial_treshold = self.final_treshold

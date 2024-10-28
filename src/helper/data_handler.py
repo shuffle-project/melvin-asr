@@ -1,6 +1,8 @@
 """This module works as Interface for the access to the data folder."""
+
 import io
 import json
+import logging
 import os
 from datetime import datetime
 from pydub import AudioSegment
@@ -8,7 +10,7 @@ import time
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.helper.config import CONFIG
 from src.helper.file_handler import FileHandler
-from src.helper.logger import Logger
+
 
 class DataHandler:
     """This class handles the data folder."""
@@ -20,7 +22,7 @@ class DataHandler:
         audio_file_format: str = CONFIG["audio_file_format"],
         export_file_path: str = CONFIG["export_file_path"],
     ):
-        self.log = Logger("DataHandler", True)
+        self.log = logging.getLogger(__name__)
         self.root_path = os.getcwd()
         self.file_handler = FileHandler()
 
@@ -61,7 +63,7 @@ class DataHandler:
         if os.path.isfile(file_path):
             os.remove(file_path)
             return True
-        self.log.print_error(f"Status file {file_name} not found.")
+        self.log.error(f"Status file {file_name} not found.")
         return False
 
     def get_audio_file_path_by_id(self, transcription_id: str) -> str:
@@ -86,9 +88,9 @@ class DataHandler:
             if error_message is not None:
                 data["error_message"] = error_message
             self.file_handler.write_json(file_path, data)
-            self.log.print_log(f"Status file {file_name} updated (status: {status})")
+            self.log.info(f"Status file {file_name} updated (status: {status})")
         else:
-            self.log.print_error(
+            self.log.error(
                 f"File for transcription ID {transcription_id} not found, PATH: {self.status_path}"
             )
 
@@ -105,12 +107,12 @@ class DataHandler:
                 TranscriptionStatus.FINISHED.value, transcription_id
             )
             return True
-        self.log.print_error(
-            f"Transcript or Status file for {transcription_id} not found."
-        )
+        self.log.error(f"Transcript or Status file for {transcription_id} not found.")
         return False
 
-    def clean_up_audio_and_status_files(self, keep_data_for_hours: int = CONFIG["keep_data_for_hours"]) -> None:
+    def clean_up_audio_and_status_files(
+        self, keep_data_for_hours: int = CONFIG["keep_data_for_hours"]
+    ) -> None:
         """Deletes status and audio files that are older than the keep_data_for_hours."""
         try:
             for filename in os.listdir(self.status_path):
@@ -120,7 +122,7 @@ class DataHandler:
                     # 3600 seconds in an hour
                     if (time.time() - file_time) / 3600 > keep_data_for_hours:
                         os.remove(file_path)
-                        self.log.print_log(f"Deleted status file {filename}")
+                        self.log.debug(f"Deleted status file {filename}")
             for filename in os.listdir(self.audio_file_path):
                 if filename.endswith(CONFIG["audio_file_format"]):
                     file_path = os.path.join(self.audio_file_path, filename)
@@ -128,18 +130,20 @@ class DataHandler:
                     # 3600 seconds in an hour
                     if (time.time() - file_time) / 3600 > keep_data_for_hours:
                         os.remove(file_path)
-                        self.log.print_log(f"Deleted audio file {filename}")
+                        self.log.debug(f"Deleted audio file {filename}")
             for filename in os.listdir(self.export_file_path):
-                if filename.endswith(".json") or filename.endswith(CONFIG["audio_file_format"]):
+                if filename.endswith(".json") or filename.endswith(
+                    CONFIG["audio_file_format"]
+                ):
                     file_path = os.path.join(self.export_file_path, filename)
                     file_time = os.path.getmtime(file_path)
                     # 3600 seconds in an hour
                     if (time.time() - file_time) / 3600 > keep_data_for_hours:
                         os.remove(file_path)
-                        self.log.print_log(f"Deleted export file {filename}")
+                        self.log.debug(f"Deleted export file {filename}")
 
         except Exception as e:
-            self.log.print_error(f"Error while cleaning up files: {str(e)}")
+            self.log.error(f"Error while cleaning up files: {str(e)}")
 
     def get_status_file_settings(self, transcription_id: str) -> dict:
         """Returns the settings from the status file."""
@@ -150,9 +154,7 @@ class DataHandler:
             if data and "settings" in data:
                 return data.get("settings")
         except Exception as e:
-            self.log.print_error(
-                f"Error getting settings from status file: {str(e)}" + e
-            )
+            self.log.error(f"Error getting settings from status file: {str(e)}" + e)
         return None
 
     def save_audio_file(self, audio, transcription_id) -> dict:
@@ -169,7 +171,7 @@ class DataHandler:
             return {"success": True, "message": "Conversion successful."}
         except Exception as e:
             error_message = f"Audio File creation failed for: {str(e)}"
-            self.log.print_error(error_message)
+            self.log.error(error_message)
             return {"success": False, "message": error_message}
 
     def delete_audio_file(self, transcription_id: str) -> bool:
@@ -179,7 +181,7 @@ class DataHandler:
         if os.path.isfile(file_path):
             os.remove(file_path)
             return True
-        self.log.print_error(f"Audio file {file_name} not found.")
+        self.log.error(f"Audio file {file_name} not found.")
         return False
 
     def get_number_of_audio_files(self) -> int:
@@ -206,14 +208,14 @@ class DataHandler:
             data=audio_chunk,
             sample_width=2,  # Assuming 16-bit PCM
             frame_rate=16000,
-            channels=1
+            channels=1,
         )
 
         # Export the AudioSegment as a WAV file
         with open(export_path, "wb") as out_f:
             audio_segment.export(out_f, format="wav")
 
-        self.log.print_log(f"WAV file exported: {export_path}")
+        self.log.debug(f"WAV file exported: {export_path}")
         return export_path
 
     def export_dict_to_json_file(self, data: dict, name: str) -> str:
@@ -221,13 +223,13 @@ class DataHandler:
         file_name = f"{name}.json"
         export_path = os.path.join(self.export_file_path, file_name)
         os.makedirs(os.path.dirname(export_path), exist_ok=True)
-        
+
         with open(export_path, "w") as json_file:
             json.dump(data, json_file, indent=4)
-        
-        self.log.print_log(f"JSON file exported: {export_path}")
+
+        self.log.debug(f"JSON file exported: {export_path}")
         return export_path
-    
+
     def get_export_json_by_id(self, transcription_id: str) -> dict:
         """Returns the export json-file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
@@ -236,7 +238,7 @@ class DataHandler:
         if data:
             return data
         return None
-    
+
     def get_audio_file_by_id(self, transcription_id: str) -> bytes:
         """Returns the audio file data as bytes by the given transcription_id."""
         file_name = f"{transcription_id}{self.audio_file_format}"
