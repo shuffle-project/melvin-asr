@@ -18,11 +18,14 @@ LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
 
 
-def create_app():
+def create_app(overwrite_api_key=None):
     """Function to create the Flask app"""
 
     app = Flask(__name__)
     config = CONFIG
+
+    if overwrite_api_key is not None:
+        config["api_keys"].append(overwrite_api_key)
 
     def require_api_key(func):
         """Decorator function to require an API key for a route"""
