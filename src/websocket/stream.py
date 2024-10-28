@@ -109,7 +109,7 @@ class Stream:
                         name = self.export_transcription_and_wav()
                         await websocket.send(name)
                         await websocket.close()
-                        self.logger.print_log("eof received")
+                        self.logger.info("eof received")
                         self.close_stream = True
                     else:
                         await websocket.send("control message unknown")

@@ -102,7 +102,7 @@ class DataHandler:
         if transcript_data and status_data:
             status_data["transcript"] = transcript_data
             self.write_status_file(transcription_id, status_data)
-            self.log.print_log(f"Transcript added for {transcription_id}")
+            self.log.info(f"Transcript added for {transcription_id}")
             self.update_status_file(
                 TranscriptionStatus.FINISHED.value, transcription_id
             )
