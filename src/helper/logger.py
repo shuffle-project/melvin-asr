@@ -90,3 +90,12 @@ def get_logger_with_id(name: str, id: str) -> logging.LoggerAdapter:
     console.setFormatter(formatter)
     base_logger.handlers = [console]
     return logging.LoggerAdapter(base_logger, additional_data)
+
+
+def set_global_loglevel(level: str):
+    levelMap = logging.getLevelNamesMapping()
+    if level not in levelMap:
+        logging.getLogger(__name__).info(
+            f"The configured loglevel of {level} is not a valid loglevel. Defaulting to INFO!"
+        )
+    logging.basicConfig(level=levelMap.get(level, "info"))

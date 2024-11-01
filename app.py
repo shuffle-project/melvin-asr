@@ -4,7 +4,7 @@ import logging
 import multiprocessing
 import os
 import signal
-from src.helper.logger import init_logger
+from src.helper.logger import init_logger, set_global_loglevel
 from src.helper.config import CONFIG
 from src.rest.run import run_rest_api
 from src.websocket.run import run_websocket_api
@@ -36,6 +36,7 @@ def run(port, websocket_port, host):
 
 
 if __name__ == "__main__":
+    set_global_loglevel(CONFIG["log_level"])
     LOGGER.debug(str(CONFIG))
     try:
         run(CONFIG["rest_port"], CONFIG["websocket_port"], CONFIG["host"])
