@@ -28,7 +28,7 @@ def read_config(config_yml_path: str) -> dict:
 
     return {
         # Essential Configuration, these are required in config.yml
-        "log_level": get_config("log_level"),
+        "log_level": get_config("log_level").upper(),
         "api_keys": get_config("api_keys"),
         "rest_runner": get_config("rest_runner"),
         "websocket_stream": get_config("websocket_stream"),
