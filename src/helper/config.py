@@ -1,4 +1,5 @@
 """config file that reads all config from .env or CMD environment for app"""
+
 import os
 
 import yaml
@@ -27,7 +28,7 @@ def read_config(config_yml_path: str) -> dict:
 
     return {
         # Essential Configuration, these are required in config.yml
-        "debug": get_config("debug"),
+        "log_level": get_config("log_level"),
         "api_keys": get_config("api_keys"),
         "rest_runner": get_config("rest_runner"),
         "websocket_stream": get_config("websocket_stream"),
@@ -60,7 +61,7 @@ def read_config(config_yml_path: str) -> dict:
         ),
         # Transcription default Configuration
         "transcription_default": get_config("transcription_default"),
-        "supported_language_codes": list(_LANGUAGE_CODES)
+        "supported_language_codes": list(_LANGUAGE_CODES),
     }
 
 
