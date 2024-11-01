@@ -36,7 +36,7 @@ def run(port, websocket_port, host):
 
 
 if __name__ == "__main__":
-    set_global_loglevel(CONFIG["log_level"])
+    set_global_loglevel(CONFIG.get("log_level", "INFO"))
     LOGGER.debug(str(CONFIG))
     try:
         run(CONFIG["rest_port"], CONFIG["websocket_port"], CONFIG["host"])
