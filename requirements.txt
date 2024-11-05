@@ -11,3 +11,4 @@ SpeechRecognition==3.10.1
 stable_ts_whisperless==2.17.3
 ruff==0.1.15
 numpy<2
+ctranslate2==4.4.0
