@@ -1,15 +1,16 @@
-""" Module to handle the transcription process """
+"""Module to handle the transcription process"""
+
 import io
 import wave
 
 from faster_whisper import WhisperModel
+from faster_whisper.utils import logging
 
-from src.helper.logger import Logger, Color
 from src.helper.model_handler import ModelHandler
 from src.helper.segment_info_parser import parse_segments_and_info_to_dict
 from src.helper.transcription_settings import TranscriptionSettings
 
-LOGGER = Logger("Stream Transcriber", False, Color.CYAN)
+LOGGER = logging.getLogger(__name__)
 
 
 class Transcriber:

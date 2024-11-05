@@ -1,13 +1,16 @@
-""" Entry point for the application """
+"""Entry point for the application"""
+
+import logging
 import multiprocessing
 import os
 import signal
-from src.helper.logger import Logger
+from src.helper.logger import init_logger, set_global_loglevel
 from src.helper.config import CONFIG
 from src.rest.run import run_rest_api
 from src.websocket.run import run_websocket_api
 
-LOGGER = Logger("app.py", True)
+init_logger()
+LOGGER = logging.getLogger(__name__)
 
 
 def run(port, websocket_port, host):
@@ -33,7 +36,8 @@ def run(port, websocket_port, host):
 
 
 if __name__ == "__main__":
-    LOGGER.print_log(str(CONFIG))
+    set_global_loglevel(CONFIG.get("log_level", "INFO"))
+    LOGGER.debug(str(CONFIG))
     try:
         run(CONFIG["rest_port"], CONFIG["websocket_port"], CONFIG["host"])
     except KeyboardInterrupt:

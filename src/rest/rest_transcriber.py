@@ -1,16 +1,16 @@
-""" Module to handle the transcription process """
-import json
+"""Module to handle the transcription process"""
+
+import logging
 import time
 
 import stable_whisper
 from faster_whisper import WhisperModel
 
-from src.helper.logger import Color, Logger
 from src.helper.model_handler import ModelHandler
 from src.helper.segment_info_parser import parse_stable_whisper_result
 from src.helper.transcription_settings import TranscriptionSettings
 
-LOGGER = Logger("Transcriber", True, Color.MAGENTA)
+LOGGER = logging.getLogger(__name__)
 
 
 def time_it(func):
@@ -24,7 +24,7 @@ def time_it(func):
         result = func(*args, **kwargs)  # Execute the function
         end_time = time.time()  # Record the end time
         elapsed_time = end_time - start_time  # Calculate elapsed time
-        log.print_log(
+        log.debug(
             f"Function {func.__name__} took {elapsed_time:.4f} seconds to execute."
         )
         return result
@@ -36,8 +36,6 @@ class Transcriber:
     """Class to handle the transcription process"""
 
     def __init__(self, config: dict):
-        self.log = LOGGER
-
         # Parsing Config
         # possible config options:
         #   device: cpu
@@ -85,7 +83,7 @@ class Transcriber:
         ):
             pass
         else:
-            self.log.print_error(
+            LOGGER.error(
                 "Invalid or Unmatching device or compute_type: "
                 + f"{self.device} {self.compute_type}, Fallback to CPU int8"
             )
@@ -116,7 +114,7 @@ class Transcriber:
         """Function to run the transcription process"""
         self.load_model()
         try:
-            self.log.print_log("Transcribing file: " + str(audio_file_path))
+            LOGGER.info("Transcribing file: " + str(audio_file_path))
             return {
                 "success": True,
                 "data": self.transcribe_with_settings(
@@ -124,7 +122,7 @@ class Transcriber:
                 ),
             }
         except Exception as e:
-            self.log.print_error("Error during transcription: " + str(e))
+            LOGGER.error("Error during transcription: " + str(e))
             return {"success": False, "data": str(e)}
 
     def transcribe_with_settings(
@@ -138,13 +136,11 @@ class Transcriber:
         return data
 
     @time_it
-    def align_audio_file(
-        self, audio_file_path: str, text: str, language: str
-    ) -> dict:
+    def align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
         """Function to run the alignment process"""
         self.load_model()
         try:
-            self.log.print_log("Align transcript for file: " + str(audio_file_path))
+            LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result = self.model.align(audio_file_path, text, language)
             data = parse_stable_whisper_result(result)
 
@@ -153,5 +149,5 @@ class Transcriber:
                 "data": data,
             }
         except Exception as e:
-            self.log.print_error("Error during alignment: " + str(e))
+            LOGGER.error("Error during alignment: " + str(e))
             return {"success": False, "data": str(e)}

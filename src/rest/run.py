@@ -1,12 +1,13 @@
-""" Entry point for the REST API. """
+"""Entry point for the REST API."""
+
+import logging
 import multiprocessing
 import waitress
 from src.rest.runner import Runner
 from src.helper.config import CONFIG
-from src.helper.logger import Color, Logger
 from src.rest.flask_app import create_app
 
-log = Logger("src/rest/run.py", True, Color.MAGENTA)
+LOGGER = logging.getLogger(__name__)
 
 
 def run_rest_api(port, host) -> dict:
@@ -29,7 +30,7 @@ def run_rest_api(port, host) -> dict:
 
 def run_flask_app(port, host):
     """Starts the flask app for production."""
-    log.print_log(f"Starting Flask app prod on '{host}:{port}'")
+    LOGGER.info(f"Starting Flask app prod on '{host}:{port}'")
     app = create_app()
     waitress.serve(app, port=port, url_scheme="https", host=host)
 
@@ -53,12 +54,8 @@ def start_runners() -> dict:
         runner.join()
 
 
-def start_runner(
-    config: dict, identifier: int
-) -> None:
+def start_runner(config: dict, identifier: int) -> None:
     """Starts a file transcriber."""
-    log.print_log(
-        f"Starting REST runner with config: {config}.."
-    )
+    LOGGER.info(f"Starting REST runner with config: {config}..")
     runner = Runner(config, identifier)
     runner.run()
