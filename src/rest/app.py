@@ -3,10 +3,9 @@ import logging
 import time
 import uuid
 from datetime import datetime
-from functools import wraps
 
-from fastapi import (Depends, FastAPI, File, Form, Header, HTTPException,
-                     Request, Security, UploadFile)
+from fastapi import (Depends, FastAPI, File, Form, HTTPException, Security,
+                     UploadFile)
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
