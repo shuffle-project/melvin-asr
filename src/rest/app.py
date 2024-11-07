@@ -6,10 +6,12 @@ from datetime import datetime
 from functools import wraps
 
 from fastapi import (Depends, FastAPI, File, Form, Header, HTTPException,
-                     Request, UploadFile)
+                     Request, Security, UploadFile)
 from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from pydub import AudioSegment
+from starlette.status import HTTP_401_UNAUTHORIZED
 
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
@@ -33,14 +35,36 @@ class TranscriptionData(BaseModel):
 config = CONFIG
 
 app = FastAPI()
+api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
-async def require_api_key(authorization: str | None = Header(None)):
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = app.openapi()
+    openapi_schema["components"]["securitySchemes"] = {
+        "APIKeyHeader": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "API Key needed to access this endpoint."
+        }
+    }
+    # globally, can also be done by paths
+    openapi_schema["security"] = [{"APIKeyHeader": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+async def require_api_key(api_key: str = Security(api_key_header)):
     """Dependency to require an API key for a route."""
-
-    if authorization not in config["api_keys"]:
-        LOGGER.warning(f"Unauthorized API key attempt: {authorization}")
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    config = CONFIG
+    if api_key not in config["api_keys"]:
+        LOGGER.warning(f"Unauthorized API key attempt: {api_key}")
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized"
+        )
+    return api_key
 
 
 @app.get("/", response_class=JSONResponse, dependencies=[Depends(require_api_key)])
