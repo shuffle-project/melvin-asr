@@ -7,7 +7,7 @@ RUN rm -f /etc/apt/sources.list.d/*.list
 
 # Install some basic utilities.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.10 \
+    python3.11 \
     python3-pip \
     ffmpeg \
     ca-certificates \
@@ -20,11 +20,12 @@ EXPOSE 8393
 
 WORKDIR /asr
 
-COPY ./src ./src
-COPY ./app.py ./app.py
 COPY ./requirements.txt ./requirements.txt
 
-RUN pip install --no-cache-dir -r ./requirements.txt
+RUN python3.11 -m pip install --no-cache-dir -r ./requirements.txt
+
+COPY ./src ./src
+COPY ./app.py ./app.py
 
 # Set unbuffered output for Python, facilitating real-time log output
-CMD ["python3", "-u", "app.py"]
+CMD ["python3.11", "-u", "app.py"]

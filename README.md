@@ -12,7 +12,7 @@ Melvin ASR is an application serving REST and WebSocket endpoints for the transc
 
 Before you begin, ensure you have installed the following tools:
 
-- Python 3.10
+- Python 3.11+
 - Docker & Docker Compose
 - Visual Studio Code
 - ffmpeg
