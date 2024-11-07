@@ -2,10 +2,12 @@
 
 import logging
 import multiprocessing
+
 import waitress
-from src.rest.runner import Runner
+
 from src.helper.config import CONFIG
-from src.rest.flask_app import create_app
+from src.rest.app import app
+from src.rest.runner import Runner
 
 LOGGER = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 def run_rest_api(port, host) -> dict:
     """Returns the models.yaml file as dict."""
     flask_process = multiprocessing.Process(
-        target=run_flask_app,
+        target=run_app,
         args=(port, host),
     )
 
@@ -28,10 +30,9 @@ def run_rest_api(port, host) -> dict:
     runner_process.join()
 
 
-def run_flask_app(port, host):
+def run_app(port, host):
     """Starts the flask app for production."""
     LOGGER.info(f"Starting Flask app prod on '{host}:{port}'")
-    app = create_app()
     waitress.serve(app, port=port, url_scheme="https", host=host)
 
 

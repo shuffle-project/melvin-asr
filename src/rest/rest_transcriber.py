@@ -25,7 +25,8 @@ def time_it(func):
         end_time = time.time()  # Record the end time
         elapsed_time = end_time - start_time  # Calculate elapsed time
         log.debug(
-            f"Function {func.__name__} took {elapsed_time:.4f} seconds to execute."
+            f"Function {func.__name__} took {
+                elapsed_time:.4f} seconds to execute."
         )
         return result
 
