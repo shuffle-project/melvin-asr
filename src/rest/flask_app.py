@@ -14,10 +14,6 @@ from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
 
-import sys
-
-print(sys.version)
-
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
 
