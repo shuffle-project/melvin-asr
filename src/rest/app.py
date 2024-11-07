@@ -39,20 +39,18 @@ api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
 def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = app.openapi()
-    openapi_schema["components"]["securitySchemes"] = {
-        "APIKeyHeader": {
-            "type": "apiKey",
-            "in": "header",
-            "name": "Authorization",
-            "description": "API Key needed to access this endpoint."
+    if not app.openapi_schema:
+        openapi_schema = app.openapi()
+        openapi_schema["components"]["securitySchemes"] = {
+            "APIKeyHeader": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "API Key needed to access this endpoint."
+            }
         }
-    }
-    # globally, can also be done by paths
-    openapi_schema["security"] = [{"APIKeyHeader": []}]
-    app.openapi_schema = openapi_schema
+        openapi_schema["security"] = [{"APIKeyHeader": []}]
+        app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 
@@ -62,8 +60,7 @@ async def require_api_key(api_key: str = Security(api_key_header)):
     if api_key not in config["api_keys"]:
         LOGGER.warning(f"Unauthorized API key attempt: {api_key}")
         raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized"
-        )
+            status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return api_key
 
 
@@ -120,52 +117,45 @@ async def post_transcription(
     text: str | None = Form(None),
 ):
     """Transcribe an audio file."""
-    try:
-        if language and language not in config["supported_language_codes"]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Language code ({language}) is not supported",
-            )
+    if language and language not in config["supported_language_codes"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported language code: {language}",
+        )
 
-        transcription_id = str(uuid.uuid4())
+    transcription_id = str(uuid.uuid4())
+    try:
         audio = AudioSegment.from_file(file.file)
         result = DATA_HANDLER.save_audio_file(audio, transcription_id)
-
         if not result["success"]:
             raise HTTPException(status_code=400, detail=result["message"])
-
-        # sleep to ensure file is saved
-        time.sleep(0.1)
-
-        settings_dict = json.loads(settings) if settings else None
-        if task == "align" and not text:
-            raise HTTPException(
-                status_code=400,
-                detail="property text is required for task align"
-            )
-        if task == "align" and not language:
-            raise HTTPException(
-                status_code=400,
-                detail="property language is required for task align"
-            )
-
-        data = TranscriptionData(
-            transcription_id=transcription_id,
-            status=TranscriptionStatus.IN_QUERY.value,
-            start_time=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            settings=settings_dict,
-            model=model,
-            task=task,
-            text=text,
-            language=language,
-        ).dict()
-
-        DATA_HANDLER.write_status_file(transcription_id, data)
-        return JSONResponse(content=data, status_code=200)
-
     except Exception as e:
-        LOGGER.error(f"Error during transcription: {e}")
+        LOGGER.error(f"Audio processing error: {e}")
         raise HTTPException(status_code=500, detail="Something went wrong")
+
+    time.sleep(0.1)  # ensure file is saved
+
+    if task == "align" and (not text or not language):
+        missing_field = "text" if not text else "language"
+        raise HTTPException(
+            status_code=400,
+            detail=f"property {missing_field} is required for task align"
+        )
+
+    settings_dict = json.loads(settings) if settings else None
+    data = TranscriptionData(
+        transcription_id=transcription_id,
+        status=TranscriptionStatus.IN_QUERY.value,
+        start_time=datetime.utcnow().isoformat() + 'Z',
+        settings=settings_dict,
+        model=model,
+        task=task,
+        text=text,
+        language=language,
+    ).model_dump()
+
+    DATA_HANDLER.write_status_file(transcription_id, data)
+    return JSONResponse(content=data, status_code=200)
 
 
 @app.get("/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)])
