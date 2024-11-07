@@ -13,3 +13,4 @@ ruff==0.1.15
 numpy<2
 ctranslate2==4.4.0
 fastapi==0.115.4
+python-multipart==0.0.17

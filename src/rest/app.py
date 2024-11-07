@@ -5,8 +5,8 @@ import uuid
 from datetime import datetime
 from functools import wraps
 
-from fastapi import (FastAPI, File, Form, Header, HTTPException, Request,
-                     UploadFile)
+from fastapi import (Depends, FastAPI, File, Form, Header, HTTPException,
+                     Request, UploadFile)
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from pydub import AudioSegment
@@ -35,14 +35,15 @@ config = CONFIG
 app = FastAPI()
 
 
-def require_api_key(api_key: str | None = Header(None)):
-    """Dependency to require an API key for a route"""
-    if api_key not in config["api_keys"]:
-        LOGGER.warning("Unauthorized REST API request.")
+async def require_api_key(authorization: str | None = Header(None)):
+    """Dependency to require an API key for a route."""
+
+    if authorization not in config["api_keys"]:
+        LOGGER.warning(f"Unauthorized API key attempt: {authorization}")
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@app.get("/", response_class=JSONResponse, dependencies=[require_api_key])
+@app.get("/", response_class=JSONResponse, dependencies=[Depends(require_api_key)])
 async def show_config():
     """Returns the config of this service, excluding API keys."""
     config_info = config.copy()
@@ -50,13 +51,13 @@ async def show_config():
     return JSONResponse(content=config_info, status_code=200)
 
 
-@app.get("/health", response_class=PlainTextResponse, dependencies=[require_api_key])
+@app.get("/health", response_class=PlainTextResponse, dependencies=[Depends(require_api_key)])
 async def health_check():
     """Return health status."""
     return "OK"
 
 
-@app.get("/transcriptions", dependencies=[require_api_key])
+@app.get("/transcriptions", dependencies=[Depends(require_api_key)])
 async def get_transcriptions():
     """Get all transcriptions and their statuses."""
     transcriptions = []
@@ -76,7 +77,7 @@ async def get_transcriptions():
     return JSONResponse(content=transcriptions, status_code=200)
 
 
-@app.get("/transcriptions/{transcription_id}", dependencies=[require_api_key])
+@app.get("/transcriptions/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_transcriptions_id(transcription_id: str):
     """Get the status of a transcription by ID."""
     file = DATA_HANDLER.get_status_file_by_id(transcription_id)
@@ -85,7 +86,7 @@ async def get_transcriptions_id(transcription_id: str):
     raise HTTPException(status_code=404, detail="Transcription ID not found")
 
 
-@app.post("/transcriptions", dependencies=[require_api_key])
+@app.post("/transcriptions", dependencies=[Depends(require_api_key)])
 async def post_transcription(
     file: UploadFile = File(...),
     language: str | None = Form(None),
@@ -143,7 +144,7 @@ async def post_transcription(
         raise HTTPException(status_code=500, detail="Something went wrong")
 
 
-@app.get("/export/transcript/{transcription_id}", dependencies=[require_api_key])
+@app.get("/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_stream_transcript_export(transcription_id: str):
     """Get the transcription JSON for a specific ID."""
     file = DATA_HANDLER.get_export_json_by_id(transcription_id)
@@ -152,7 +153,7 @@ async def get_stream_transcript_export(transcription_id: str):
     raise HTTPException(status_code=404, detail="Transcription ID not found")
 
 
-@app.get("/export/audio/{transcription_id}", dependencies=[require_api_key])
+@app.get("/export/audio/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_stream_audio_export(transcription_id: str):
     """Get the audio WAV file for a specific transcription ID."""
     file = DATA_HANDLER.get_audio_file_by_id(transcription_id)

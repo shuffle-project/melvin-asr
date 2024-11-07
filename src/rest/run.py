@@ -3,7 +3,7 @@
 import logging
 import multiprocessing
 
-import waitress
+import uvicorn
 
 from src.helper.config import CONFIG
 from src.rest.app import app
@@ -33,7 +33,7 @@ def run_rest_api(port, host) -> dict:
 def run_app(port, host):
     """Starts the flask app for production."""
     LOGGER.info(f"Starting Flask app prod on '{host}:{port}'")
-    waitress.serve(app, port=port, url_scheme="https", host=host)
+    uvicorn.run(app, port=port, host=host)
 
 
 def start_runners() -> dict:
