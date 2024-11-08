@@ -133,7 +133,7 @@ async def post_transcription(
         LOGGER.error(f"Audio processing error: {e}")
         raise HTTPException(status_code=500, detail="Something went wrong")
 
-    time.sleep(0.1)  # ensure file is saved
+    time.sleep(0.1)  # TODO: Remove this line...
 
     if task == "align" and (not text or not language):
         missing_field = "text" if not text else "language"
