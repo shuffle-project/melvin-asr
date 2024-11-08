@@ -60,6 +60,15 @@ def test_show_config(rest_client):
     assert response.json() == config_info
 
 
+def test_get_transcriptions_without_files(rest_client):
+    """Test the get transcriptions endpoint without any transcriptions"""
+
+    response = rest_client.get(
+        "/transcriptions", headers={"Authorization": EXAMPLE_AUTH_KEY})
+    assert response.status_code == 200
+    assert response.json() == []
+
+
 def test_show_config_unauthorized(rest_client):
     """Test the show config endpoint with an invalid auth key"""
     response = rest_client.get("/", headers={"Authorization": "INVALID_KEY"})
@@ -120,15 +129,6 @@ def test_get_transcriptions_id_not_found(rest_client):
         "/transcriptions/123456789", headers={"Authorization": EXAMPLE_AUTH_KEY})
     assert response.status_code == 404
     assert response.json().get("detail") == "Transcription ID not found"
-
-
-def test_get_transcriptions_without_files(rest_client):
-    """Test the get transcriptions endpoint without any transcriptions"""
-
-    response = rest_client.get(
-        "/transcriptions", headers={"Authorization": EXAMPLE_AUTH_KEY})
-    assert response.status_code == 200
-    assert response.json() == []
 
 
 def test_post_transcription_with_settings_model(rest_client):
