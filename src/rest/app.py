@@ -38,6 +38,7 @@ api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
 def custom_openapi():
+"""" Modify the openapi definition to include our auth schema """
     if not app.openapi_schema:
         openapi_schema = app.openapi()
         openapi_schema["components"]["securitySchemes"] = {
