@@ -13,9 +13,6 @@ env:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10"]
     permissions:
       contents: read
       packages: write
