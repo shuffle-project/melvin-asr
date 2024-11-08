@@ -15,6 +15,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.types.transcription_status import TranscriptionStatus
+from src.rest.rest_transcriber import time_it
 
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
@@ -64,6 +65,7 @@ async def require_api_key(api_key: str = Security(api_key_header)):
     return api_key
 
 
+@time_it
 @app.get("/", response_class=JSONResponse, dependencies=[Depends(require_api_key)])
 async def show_config():
     """Returns the config of this service, excluding API keys."""
@@ -78,6 +80,7 @@ async def health_check():
     return "OK"
 
 
+@time_it
 @app.get("/transcriptions", dependencies=[Depends(require_api_key)])
 async def get_transcriptions():
     """Get all transcriptions and their statuses."""
@@ -98,6 +101,7 @@ async def get_transcriptions():
     return JSONResponse(content=transcriptions, status_code=200)
 
 
+@time_it
 @app.get("/transcriptions/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_transcriptions_id(transcription_id: str):
     """Get the status of a transcription by ID."""
@@ -107,6 +111,7 @@ async def get_transcriptions_id(transcription_id: str):
     raise HTTPException(status_code=404, detail="Transcription ID not found")
 
 
+@time_it
 @app.post("/transcriptions", dependencies=[Depends(require_api_key)])
 async def post_transcription(
     file: UploadFile = File(...),
@@ -158,6 +163,7 @@ async def post_transcription(
     return JSONResponse(content=data, status_code=200)
 
 
+@time_it
 @app.get("/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_stream_transcript_export(transcription_id: str):
     """Get the transcription JSON for a specific ID."""
@@ -167,6 +173,7 @@ async def get_stream_transcript_export(transcription_id: str):
     raise HTTPException(status_code=404, detail="Transcription ID not found")
 
 
+@time_it
 @app.get("/export/audio/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_stream_audio_export(transcription_id: str):
     """Get the audio WAV file for a specific transcription ID."""
