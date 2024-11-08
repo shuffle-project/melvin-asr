@@ -14,3 +14,5 @@ numpy<2
 ctranslate2==4.4.0
 fastapi==0.115.4
 python-multipart==0.0.17
+httpx==0.27.2
+uvicorn==0.32.0
