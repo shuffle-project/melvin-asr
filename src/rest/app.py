@@ -171,9 +171,11 @@ async def get_stream_transcript_export(transcription_id: str):
 async def get_stream_audio_export(transcription_id: str):
     """Get the audio WAV file for a specific transcription ID."""
     file = DATA_HANDLER.get_audio_file_by_id(transcription_id)
-    if file is not None:
-        return PlainTextResponse(content=file, headers={
-            "Content-Type": "audio/wav",
-            "Content-Disposition": f"attachment; filename={transcription_id}.wav"
-        })
-    raise HTTPException(status_code=404, detail="File not found")
+
+    if file is None:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return PlainTextResponse(content=file, headers={
+        "Content-Type": "audio/wav",
+        "Content-Disposition": f"attachment; filename={transcription_id}.wav"
+    })
