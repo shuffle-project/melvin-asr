@@ -14,8 +14,8 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
+from src.helper.time_it import time_it
 from src.helper.types.transcription_status import TranscriptionStatus
-from src.rest.rest_transcriber import time_it
 
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
