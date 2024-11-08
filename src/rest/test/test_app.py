@@ -98,7 +98,7 @@ def test_post_transcription_with_wrong_file(rest_client, cleanup_data):
     assert response.status_code == 422
 
 
-def test_get_transcriptions_id(rest_client, transcription_id):
+def test_get_transcriptions_id(rest_client, transcription_id, cleanup_data):
     """Test the get transcription by ID endpoint"""
     response = rest_client.get(
         f"/transcriptions/{transcription_id}", headers={"Authorization": EXAMPLE_AUTH_KEY}
