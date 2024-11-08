@@ -9,7 +9,8 @@ from fastapi.testclient import TestClient  # Import TestClient from FastAPI
 
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.test_base.cleanup_data_fixture import cleanup_data
+from src.helper.test_base.cleanup_data_fixture import \
+    cleanup_data  # is required
 from src.rest.app import app
 
 EXAMPLE_AUDIO_FILE_PATH = os.path.join(
@@ -62,7 +63,7 @@ def test_show_config_unauthorized(rest_client):
     assert "Unauthorized" in response.json().get("detail", "")
 
 
-def test_post_transcription(rest_client, cleanup_data):
+def test_post_transcription(rest_client):
     """Test the post transcription endpoint"""
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
@@ -80,14 +81,14 @@ def test_post_transcription(rest_client, cleanup_data):
         response_dict["transcription_id"]) is not None
 
 
-def test_post_transcription_without_file(rest_client, cleanup_data):
+def test_post_transcription_without_file(rest_client):
     """Test the post transcription endpoint without a file"""
     response = rest_client.post(
         "/transcriptions", headers={"Authorization": EXAMPLE_AUTH_KEY})
     assert response.status_code == 422
 
 
-def test_post_transcription_with_wrong_file(rest_client, cleanup_data):
+def test_post_transcription_with_wrong_file(rest_client):
     """Test the post transcription endpoint with an incorrect file key"""
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
@@ -98,7 +99,7 @@ def test_post_transcription_with_wrong_file(rest_client, cleanup_data):
     assert response.status_code == 422
 
 
-def test_get_transcriptions_id(rest_client, transcription_id, cleanup_data):
+def test_get_transcriptions_id(rest_client, transcription_id):
     """Test the get transcription by ID endpoint"""
     response = rest_client.get(
         f"/transcriptions/{transcription_id}", headers={"Authorization": EXAMPLE_AUTH_KEY}
@@ -154,7 +155,7 @@ def test_invalid_auth_key(rest_client):
     assert "Unauthorized" in response.json().get("detail", "")
 
 
-def test_post_transcription_with_settings_model(rest_client, cleanup_data):
+def test_post_transcription_with_settings_model(rest_client):
     """Test the get transcription id endpointwith settings and model in data"""
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response_post = rest_client.post(
@@ -179,9 +180,7 @@ def test_post_transcription_with_settings_model(rest_client, cleanup_data):
     assert response_dict == response_dict_post
 
 
-def test_post_transc_with_too_many_audio_files_stored_not_including_model(
-    rest_client, cleanup_data
-):
+def test_post_transc_with_too_many_audio_files_stored_not_including_model(rest_client):
     """
     Test the post transcription endpoint
     with too many audio files stored in the queue

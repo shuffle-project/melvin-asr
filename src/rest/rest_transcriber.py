@@ -1,7 +1,6 @@
 """Module to handle the transcription process"""
 
 import logging
-import time
 
 import stable_whisper
 from faster_whisper import WhisperModel
