@@ -33,7 +33,7 @@ def run_rest_api(port, host) -> dict:
 def run_app(port, host):
     """Starts the flask app for production."""
     LOGGER.info(f"Starting Flask app prod on '{host}:{port}'")
-    uvicorn.run(app, port=port, host=host)
+    uvicorn.run(app, port=port, host=host, log_config=None)
 
 
 def start_runners() -> dict:
