@@ -52,6 +52,10 @@ Locally for a development environment the websocket and the flask api are starte
 python app.py
 ```
 
+## Docs
+
+We are using OpenApi for the documentation of the REST-API. The documentation is available at <http://localhost:8393/docs> (potentially different port).
+
 ## Research
 
 To optimize ASR there have been multiple Proof-of-concepts to find out which solutions are working most efficiently. Take a look at the following pages:

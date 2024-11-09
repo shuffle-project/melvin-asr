@@ -104,11 +104,11 @@ async def get_transcriptions_id(transcription_id: str):
 @app.post("/transcriptions", dependencies=[Depends(require_api_key)])
 async def post_transcription(
     file: UploadFile = File(...),
-    language: str | None = Form(None),
-    settings: str | None = Form(None),
-    model: str | None = Form(None),
+    language: str | None = Form("en"),
+    settings: str | None = Form('{}'),
+    model: str | None = Form("large-v3"),
     task: str = Form("transcribe"),
-    text: str | None = Form(None),
+    text: str | None = Form(""),
 ):
     """Transcribe an audio file."""
     if language and language not in config["supported_language_codes"]:
