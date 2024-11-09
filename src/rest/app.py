@@ -8,28 +8,17 @@ from fastapi import (Depends, FastAPI, File, Form, HTTPException, Security,
                      UploadFile)
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel
 from pydub import AudioSegment
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.time_it import time_it
+from src.helper.types.transcription_data import TranscriptionData
 from src.helper.types.transcription_status import TranscriptionStatus
 
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
-
-
-class TranscriptionData(BaseModel):
-    transcription_id: str
-    status: str
-    start_time: str
-    settings: dict | None = None
-    model: str | None = None
-    task: str
-    text: str | None = None
-    language: str | None = None
 
 
 config = CONFIG
