@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WhisperStream REST API Call Example</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
     <div id="container">
         <h1>WhisperStream REST</h1>
-        
-        <!-- Ask for API key and store it-->     
+
+        <!-- Ask for API key and store it-->
         <label for="apiKey">API Key:</label>
-        <input type="text" id="apiKey" placeholder="Enter your API key">
+        <input type="text" id="apiKey" placeholder="Enter your API key" />
         <button onclick="saveApiKey()">Save Key</button>
 
         <!-- Displays the status of the API -->
@@ -24,14 +26,22 @@
         </div>
 
         <!-- File input element -->
-        <input type="file" id="fileInput" accept=".wav" style="display: none;" onchange="handleFileSelect(event)">
+        <input type="file" id="fileInput" accept=".wav" style="display: none" onchange="handleFileSelect(event)" />
 
         <!-- Transcode button -->
-        <button onclick="startTranscription()">Transcode</button>
+        <button onclick="requestTranscription()">Transcode</button>
 
         <!-- Response div -->
         <div id="response"></div>
     </div>
+    <div id="sidebar">
+        <h2>Transcriptions</h2>
+        <button onclick="requestTranscriptionText()">Request Transcription</button>
+        <div id="transcriptionFileName"></div>
+        <div id="transcriptionResponse"></div>
+    </div>
+
     <script src="script.js"></script>
 </body>
+
 </html>

@@ -1,4 +1,7 @@
 let selectedFile = null;
+const responseTextContainer = document.getElementById('transcriptionResponse');
+const transcriptionFileName = document.getElementById('transcriptionFileName');
+
 
 /**
  * On window load, retrieve and set the API key from localStorage.
@@ -95,7 +98,7 @@ document.getElementById('dropZone').addEventListener('click', () => {
  * Function to start transcription by sending a selected file to the API.
  * Displays the response or error in the 'response' element.
  */
-async function startTranscription() {
+async function requestTranscription() {
     const responseContainer = document.getElementById('response');
 
     // Check if a file is selected
@@ -145,8 +148,45 @@ async function startTranscription() {
         // Parse and display response data
         const data = await response.json();
         responseContainer.textContent = JSON.stringify(data, null, 2);
+        transcriptionFileName.textContent = "File name: " + selectedFile.name;
+        responseTextContainer.textContent = data['transcription_id'];
     } catch (error) {
         // Display error message on failure
         responseContainer.textContent = error.message;
+    }
+}
+
+async function requestTranscriptionText() {
+    transcription_id = "287c4ded-ecdc-4938-9b56-78e3ab8b1f3d";
+
+    const apiKey = localStorage.getItem('apiKey');  // Retrieve the saved API key
+    if (!apiKey) {
+        responseContainer.textContent = 'API key is missing. Please save your API key first.';
+        return;
+    }
+
+    responseTextContainer.textContent = 'Calling API...';
+
+    try {
+        // Make POST request to transcription API
+        const response = await fetch(`http://localhost:8393/transcriptions/${transcription_id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `${apiKey}`
+            },
+        });
+
+        // Check response status
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        // Parse and display response data
+        const data = await response.json();
+
+        responseTextContainer.textContent = data['transcript']['text'];
+    } catch (error) {
+        // Display error message on failure
+        responseTextContainer.textContent = error.message;
     }
 }
