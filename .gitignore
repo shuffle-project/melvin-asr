@@ -9,3 +9,4 @@ whisper.cpp
 
 .idea/
 .DS_Store
+.vscode/
