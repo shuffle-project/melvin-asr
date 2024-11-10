@@ -49,7 +49,7 @@ Example:
 
 ```text
 Header: key: shuffle2024
-Body: settings: {"test": "test"}, model: "tiny", file: "test.wav"
+Body: settings: {"test": "test"}, model: "large-v3", file: "test.wav"
 POST /transcriptions
 ```
 

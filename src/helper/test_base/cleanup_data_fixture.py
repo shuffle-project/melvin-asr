@@ -1,12 +1,14 @@
 """cleanup_data.fixture.py"""
 import os
+
 import pytest
+
 from src.helper.data_handler import DataHandler
 
 DATA_HANDLER = DataHandler()
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def cleanup_data():
     """deletes all .json in the status folder and all .wav in the audio folder"""
     yield

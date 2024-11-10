@@ -1,35 +1,16 @@
 """Module to handle the transcription process"""
 
 import logging
-import time
 
 import stable_whisper
 from faster_whisper import WhisperModel
 
 from src.helper.model_handler import ModelHandler
 from src.helper.segment_info_parser import parse_stable_whisper_result
+from src.helper.time_it import time_it
 from src.helper.transcription_settings import TranscriptionSettings
 
 LOGGER = logging.getLogger(__name__)
-
-
-def time_it(func):
-    """
-    Decorator function to measure and print the execution time of a function.
-    """
-
-    def wrapper(*args, **kwargs):
-        log = LOGGER
-        start_time = time.time()  # Record the start time
-        result = func(*args, **kwargs)  # Execute the function
-        end_time = time.time()  # Record the end time
-        elapsed_time = end_time - start_time  # Calculate elapsed time
-        log.debug(
-            f"Function {func.__name__} took {elapsed_time:.4f} seconds to execute."
-        )
-        return result
-
-    return wrapper
 
 
 class Transcriber:
