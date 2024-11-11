@@ -1,9 +1,32 @@
 import argparse
+from jiwer.transforms import (
+    Compose,
+    RemoveMultipleSpaces,
+    Strip,
+    ToLowerCase,
+    ExpandCommonEnglishContractions,
+    RemoveKaldiNonWords,
+    RemoveWhiteSpace,
+    ReduceToSingleSentence,
+)
 import tqdm
 import requests
 import os
 import time
 import jiwer
+from pathlib import Path
+
+transform_default = Compose(
+    [
+        ToLowerCase(),
+        ExpandCommonEnglishContractions(),
+        RemoveKaldiNonWords(),
+        RemoveWhiteSpace(replace_by_space=True),
+        RemoveMultipleSpaces(),
+        Strip(),
+        ReduceToSingleSentence(),
+    ]
+)
 
 
 def load_file_list(size: str):
@@ -16,8 +39,9 @@ def load_file_list(size: str):
 
 
 def get_expected_transcription(path: str):
-    with open(f"{path}.txt", "rb") as f:
-        return f.read()
+    content = Path(f"{path}.txt").read_text()
+    content = content.replace("\n", "")
+    return transform_default(str(content))
 
 
 def await_transcription_finish(id: str, api_key: str):
@@ -65,10 +89,15 @@ def benchmark(settings):
         pass
     audio_files = load_file_list(settings.scale)
     sum = 0
+    print(settings.debug)
     for filepath in tqdm.tqdm(audio_files, desc="Transcribing"):
         transcription = transcribe_file(filepath, settings.overwrite_api_key)
         expected = get_expected_transcription(filepath)
-        sum += jiwer.wer(transcription, str(expected))
+        transcription = transform_default(transcription)
+        if settings.debug:
+            print(f"Expected: {expected}")
+            print(f"Received: {transcription}")
+        sum += jiwer.wer(" ".join(transcription), " ".join(expected))
 
     print(f"Total WER: {sum/len(audio_files)}")
 
@@ -84,4 +113,5 @@ if __name__ == "__main__":
     )
     parser.add_argument("--parallel", default=False)
     parser.add_argument("--overwrite-api-key", default="shuffle2024")
+    parser.add_argument("--debug", action="store_true")
     benchmark(parser.parse_args())
