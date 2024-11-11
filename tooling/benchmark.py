@@ -15,6 +15,9 @@ import os
 import time
 import jiwer
 from pathlib import Path
+import prettytable
+
+DATA_BASE_PATH = os.path.join(os.getcwd(), "data")
 
 transform_default = Compose(
     [
@@ -30,7 +33,7 @@ transform_default = Compose(
 
 
 def load_file_list(size: str):
-    dirpath = os.path.join(os.getcwd(), "data", size)
+    dirpath = os.path.join(DATA_BASE_PATH, size)
     return [
         os.path.join(dirpath, f)
         for f in os.listdir(dirpath)
@@ -87,19 +90,44 @@ def transcribe_file(filepath: str, api_key: str) -> str:
 def benchmark(settings):
     if settings.target == "websocket":
         pass
+    wer_dict = {}
+    duration_dict = {}
     audio_files = load_file_list(settings.scale)
-    sum = 0
-    print(settings.debug)
-    for filepath in tqdm.tqdm(audio_files, desc="Transcribing"):
+    wer_sum = 0
+    duration_sum = 0
+    for filepath in tqdm.tqdm(
+        audio_files, desc="Transcribing", disable=settings.disable_progress_bar
+    ):
+        start_time = time.time()
         transcription = transcribe_file(filepath, settings.overwrite_api_key)
+        diff = time.time() - start_time
         expected = get_expected_transcription(filepath)
         transcription = transform_default(transcription)
         if settings.debug:
             print(f"Expected: {expected}")
             print(f"Received: {transcription}")
-        sum += jiwer.wer(" ".join(transcription), " ".join(expected))
 
-    print(f"Total WER: {sum/len(audio_files)}")
+        curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
+        wer_sum += curr_wer
+        duration_sum += diff
+        if settings.table:
+            wer_dict[
+                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
+            ] = curr_wer
+            duration_dict[
+                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
+            ] = diff
+
+    if settings.table:
+        table = prettytable.PrettyTable()
+        table.field_names = ["File", "WER", "Duration"]
+        for key in wer_dict:
+            table.add_row([key, round(wer_dict[key], 2), round(duration_dict[key], 2)])
+        print(table)
+
+    print(
+        f"Average WER: {round(wer_sum/len(audio_files),5)}\tAverage duration: {round(duration_sum/len(audio_files),2)}"
+    )
 
 
 if __name__ == "__main__":
@@ -107,11 +135,37 @@ if __name__ == "__main__":
         "melvin-benchmarker",
         description="Simple tool for benchmarking the melvin-asr rest/websocket api based on the word error rate",
     )
-    parser.add_argument("--scale", "-s", default="small", choices=["small", "big"])
     parser.add_argument(
-        "--target", "-t", default="rest", choices=["rest", "websocket", "all"]
+        "--scale",
+        "-s",
+        default="small",
+        choices=["small", "big"],
+        help="Set the dataset to use. Affects duration and accuracy of benchmark",
     )
-    parser.add_argument("--parallel", default=False)
-    parser.add_argument("--overwrite-api-key", default="shuffle2024")
-    parser.add_argument("--debug", action="store_true")
+    parser.add_argument(
+        "--target",
+        "-t",
+        default="rest",
+        choices=["rest", "websocket", "all"],
+        help="Set the target api",
+    )
+    parser.add_argument("--parallel", default=False, help="NOT IMPLEMENTED")
+    parser.add_argument(
+        "--overwrite-api-key", default="shuffle2024", help="Set api key to be used"
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug log for transcription want and received",
+    )
+    parser.add_argument(
+        "--table",
+        action="store_true",
+        help="Print the word error rate and duration per file as a table",
+    )
+    parser.add_argument(
+        "--disable-progress-bar",
+        action="store_true",
+        help="Disable the progress bar. This means there is no way of monitoring the progress of the benchmark",
+    )
     benchmark(parser.parse_args())
