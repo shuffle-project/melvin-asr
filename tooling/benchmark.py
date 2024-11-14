@@ -1,4 +1,7 @@
 import argparse
+import asyncio
+import json
+import wave
 from jiwer.transforms import (
     Compose,
     RemoveMultipleSpaces,
@@ -16,6 +19,7 @@ import time
 import jiwer
 from pathlib import Path
 import prettytable
+import websockets
 
 DATA_BASE_PATH = os.path.join(os.getcwd(), "data")
 
@@ -30,6 +34,11 @@ transform_default = Compose(
         ReduceToSingleSentence(),
     ]
 )
+
+
+async def read_wav_file(file_path):
+    with wave.open(file_path, "rb") as wav_file:
+        return wav_file.readframes(wav_file.getnframes())
 
 
 def load_file_list(size: str):
@@ -66,7 +75,43 @@ def await_transcription_finish(id: str, api_key: str):
                 is_finished = True
 
 
-def transcribe_file(filepath: str, api_key: str) -> str:
+# Wrap asyncio execution
+def transcribe_file_websocket(filepath: str) -> str:
+    loop = asyncio.get_event_loop()
+    res = loop.run_until_complete(asyncio.gather(__transcribe_file_websocket(filepath)))
+    print(res)
+    return res[0]
+
+
+# websockets is heavily integrated with asyncio...so we have to do this in an asyncio way
+async def __transcribe_file_websocket(filepath: str) -> str:
+    audio_data = await read_wav_file(filepath)
+
+    messages = []
+    try:
+        async with websockets.connect("ws://localhost:8394") as websocket_connection:
+            await websocket_connection.send(audio_data)
+            # Wait...the server needs a few seconds anyway
+            await asyncio.sleep(3)
+
+            while True:
+                try:
+                    message = await asyncio.wait_for(
+                        websocket_connection.recv(), timeout=15.0
+                    )
+                    messages.append(message)
+                except asyncio.TimeoutError:
+                    print("No message received for 5 seconds, sending 'eof'")
+                    await websocket_connection.close()
+                    break
+            assert len(messages) > 0
+    except websockets.exceptions.ConnectionClosedOK:
+        # This is the expected behaviour
+        pass
+    return json.loads(" ".join(messages))["text"]
+
+
+def transcribe_file_rest(filepath: str, api_key: str) -> str:
     r = None
     with open(filepath, "rb") as f:
         r = requests.post(
@@ -89,7 +134,10 @@ def transcribe_file(filepath: str, api_key: str) -> str:
 
 def benchmark(settings):
     if settings.target == "websocket":
-        pass
+        print("As of now the transcription via websockets is not parallel.")
+        print(
+            "Meaning: The benchmark duration of files via websockets = sum(length of audio files)"
+        )
     wer_dict = {}
     duration_dict = {}
     audio_files = load_file_list(settings.scale)
@@ -99,7 +147,11 @@ def benchmark(settings):
         audio_files, desc="Transcribing", disable=settings.disable_progress_bar
     ):
         start_time = time.time()
-        transcription = transcribe_file(filepath, settings.overwrite_api_key)
+        transcription = None
+        if settings.target == "rest":
+            transcription = transcribe_file_rest(filepath, settings.overwrite_api_key)
+        elif settings.target == "websocket":
+            transcription = transcribe_file_websocket(filepath)
         diff = time.time() - start_time
         expected = get_expected_transcription(filepath)
         transcription = transform_default(transcription)
