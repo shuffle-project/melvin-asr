@@ -13,7 +13,6 @@ async def read_wav_file(file_path):
 def transcribe_file_websocket(filepath: str) -> str:
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(asyncio.gather(__transcribe_file_websocket(filepath)))
-    print(res)
     return res[0]
 
 
@@ -39,7 +38,9 @@ async def __transcribe_file_websocket(filepath: str) -> str:
                     # However this seems more error resistant
                     await websocket_connection.close()
                     break
-            assert len(messages) > 0
+            if len(messages) == 0:
+                print(f"Empty messages for filepath {filepath}. This should not happen")
+                return ""
     except websockets.exceptions.ConnectionClosedOK:
         # This is the expected behaviour
         pass

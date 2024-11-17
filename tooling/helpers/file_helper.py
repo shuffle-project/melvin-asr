@@ -1,5 +1,5 @@
 import os
-from pathlib import Path
+import json
 
 DATA_BASE_PATH = os.path.join(os.getcwd(), "data")
 
@@ -14,6 +14,8 @@ def load_file_list(size: str):
 
 
 def get_expected_transcription(path: str):
-    content = Path(f"{path}.txt").read_text()
-    content = content.replace("\n", "")
-    return str(content)
+    json_path = f"{path[:-4]}.json"
+
+    with open(json_path) as f:
+        d = json.load(f)
+        return str(d["transcript"])

@@ -65,6 +65,18 @@ def benchmark(settings):
             print(f"Expected: {expected}")
             print(f"Received: {transcription}")
 
+        # This can only happen if backend or benchmark encounter an error
+        # However it WOULD terminate the entire benchmarking process
+        if len(transcription) == 0:
+            # -1000 = error encountered
+            wer_dict[
+                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
+            ] = -1000
+            duration_dict[
+                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
+            ] = diff
+            continue
+
         curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
         wer_sum += curr_wer
         duration_sum += diff
@@ -80,7 +92,12 @@ def benchmark(settings):
         table = prettytable.PrettyTable()
         table.field_names = ["File", "WER", "Duration"]
         for key in wer_dict:
-            table.add_row([key, round(wer_dict[key], 2), round(duration_dict[key], 2)])
+            w = wer_dict[key]
+            if w == -1000:
+                w = "ERR"
+            else:
+                w = round(w, 2)
+            table.add_row([key, w, round(duration_dict[key], 2)])
         print(table)
 
     print(
