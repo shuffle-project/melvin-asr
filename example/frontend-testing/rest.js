@@ -49,7 +49,7 @@ window.onload = async function checkHealth() {
         }
     } catch (error) {
         // Display error message in case of request failure
-        responseContainer.textContent = 'Could not reach API';
+        responseContainer.textContent = 'Could not reach API / API Key missing';
     }
 }
 
@@ -169,7 +169,7 @@ async function requestTranscriptionText() {
 
     try {
         // Make POST request to transcription API
-        const response = await fetch(`http://localhost:8393/transcriptions/${transcription_id}`, {
+        const response = await fetch(`http://localhost:8393/transcript/${transcription_id}`, {
             method: 'GET',
             headers: {
                 'Authorization': `${apiKey}`
@@ -184,7 +184,7 @@ async function requestTranscriptionText() {
         // Parse and display response data
         const data = await response.json();
 
-        responseTextContainer.textContent = data['transcript']['text'];
+        responseTextContainer.textContent = data.stringify(data, null, 2); //data['transcript']['text'];
     } catch (error) {
         // Display error message on failure
         responseTextContainer.textContent = error.message;

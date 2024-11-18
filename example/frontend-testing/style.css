@@ -6,8 +6,9 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f5f5f5;
+    flex-wrap: wrap;
 }
-#container, #sidebar {
+#container, #sidebar, #websocketContainer {
     width: 45%;
     margin: 10px;
     padding: 20px;
@@ -15,7 +16,14 @@ body {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-#container {
+#container, #websocketContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#websocketContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
