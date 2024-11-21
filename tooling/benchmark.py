@@ -19,6 +19,7 @@ from helpers.file_helper import (
     load_file_list,
     DATA_BASE_PATH,
     get_expected_transcription,
+    transform_value_for_table,
 )
 
 from helpers.rest_helper import transcribe_file_rest
@@ -52,52 +53,81 @@ def benchmark(settings):
     for filepath in tqdm.tqdm(
         audio_files, desc="Transcribing", disable=settings.disable_progress_bar
     ):
-        start_time = time.time()
-        transcription = None
-        if settings.target == "rest":
-            transcription = transcribe_file_rest(filepath, settings.overwrite_api_key)
-        elif settings.target == "websocket":
-            transcription = transcribe_file_websocket(filepath)
-        diff = time.time() - start_time
+        rest_transcription = None
+        rest_duration = None
+        websocket_transcription = None
+        websocket_duration = None
+        if settings.target == "rest" or settings.target == "all":
+            start_time = time.time()
+            rest_transcription = transcribe_file_rest(
+                filepath, settings.overwrite_api_key
+            )
+            rest_duration = time.time() - start_time
+        if settings.target == "websocket" or settings.target == "all":
+            start_time = time.time()
+            websocket_transcription = transcribe_file_websocket(
+                filepath, settings.overwrite_api_key
+            )
+            websocket_duration = time.time() - start_time
         expected = transform_default(get_expected_transcription(filepath))
-        transcription = transform_default(transcription)
         if settings.debug:
             print(f"Expected: {expected}")
-            print(f"Received: {transcription}")
 
-        # This can only happen if backend or benchmark encounter an error
-        # However it WOULD terminate the entire benchmarking process
-        if len(transcription) == 0:
-            # -1000 = error encountered
-            wer_dict[
-                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
-            ] = -1000
-            duration_dict[
-                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
-            ] = diff
-            continue
+        wer_vals = []
+        diff_vals = []
+        for val in [
+            (rest_transcription, rest_duration),
+            (websocket_transcription, websocket_duration),
+        ]:
+            transcription, duration = val
+            if transcription is None or duration is None:
+                wer_vals.append(None)
+                diff_vals.append(None)
+                continue
 
-        curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
-        wer_sum += curr_wer
-        duration_sum += diff
+            diff_vals.append(duration)
+
+            # This can only happen if backend or benchmark encounter an error
+            # However it WOULD terminate the entire benchmarking process
+            if len(transcription) == 0:
+                # -1000 = error encountered
+                wer_vals.append(-1000)
+                continue
+
+            transcription = transform_default(transcription)
+            if settings.debug:
+                print(f"Received: {transcription}")
+
+            curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
+            wer_vals.append(curr_wer)
+            wer_sum += curr_wer
+            duration_sum += duration
+
         if settings.table:
             wer_dict[
                 filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
-            ] = curr_wer
+            ] = wer_vals
             duration_dict[
                 filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
-            ] = diff
+            ] = diff_vals
 
     if settings.table:
         table = prettytable.PrettyTable()
-        table.field_names = ["File", "WER", "Duration"]
+        table.field_names = [
+            "File",
+            "Rest WER",
+            "Rest Duration",
+            "WS WER",
+            "WS Duration",
+        ]
         for key in wer_dict:
-            w = wer_dict[key]
-            if w == -1000:
-                w = "ERR"
-            else:
-                w = round(w, 2)
-            table.add_row([key, w, round(duration_dict[key], 2)])
+            row = [key]
+            wer_vals = wer_dict[key]
+            duration_vals = duration_dict[key]
+            for i in range(2):
+                row.append(transform_value_for_table(wer_vals[i]))
+                row.append(transform_value_for_table(duration_vals[i]))
+            table.add_row(row)
         print(table)
 
     print(

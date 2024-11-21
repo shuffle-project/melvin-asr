@@ -48,7 +48,7 @@ def main():
             continue
         subprocess.run(
             [
-                f"ffmpeg -i {filepath} -hide_banner -ar 16000 -ac 1 -sample_fmt s16 ./big/{id}.wav"
+                f"ffmpeg -i {filepath} -hide_banner -loglevel error -ar 16000 -ac 1 -sample_fmt s16 ./big/{id}.wav"
             ],
             shell=True,
             stdout=subprocess.DEVNULL,

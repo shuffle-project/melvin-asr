@@ -19,3 +19,11 @@ def get_expected_transcription(path: str):
     with open(json_path) as f:
         d = json.load(f)
         return str(d["transcript"])
+
+
+def transform_value_for_table(val, round_value=2):
+    if val is None:
+        return "-"
+    elif val == -1000:
+        return "ERR"
+    return round(val, round_value)
