@@ -1,55 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WhisperStream REST API Call Example</title>
+    <title>WhisperStream REST API / WebSocket Example</title>
     <link rel="stylesheet" href="style.css" />
-</head>
+  </head>
+  <body>
+    <header class="header">
+      <h1>WhisperStream</h1>
+      <div class="toggle">
+        <label for="toggleSwitch">REST</label>
+        <label class="switch">
+          <input type="checkbox" id="toggleSwitch" />
+          <span class="slider"></span>
+        </label>
+        <label for="toggleSwitch">WebSocket</label>
+      </div>
+    </header>
 
-<body>
-    <div id="container">
-        <h1>WhisperStream REST</h1>
+    <main class="content-panel">
+      <!-- REST Content -->
+      <div class="content rest active" id="restContent">
+        <div class="column">
+          <h3>REST</h3>
+          <!-- Ask for API key and store it-->
+          <label for="apiKey">API Key:</label>
+          <input type="text" id="apiKey" placeholder="Enter your API key" />
+          <button onclick="saveApiKey()">Save Key</button>
 
-        <!-- Ask for API key and store it-->
-        <label for="apiKey">API Key:</label>
-        <input type="text" id="apiKey" placeholder="Enter your API key" />
-        <button onclick="saveApiKey()">Save Key</button>
+          <!-- Displays the status of the API -->
+          <div id="checkHealth"></div>
 
-        <!-- Displays the status of the API -->
-        <div id="checkHealth"></div>
-
-        <!-- Drop a file here or click to select a file -->
-        <div id="dropZone" ondrop="handleDrop(event)" ondragover="allowDrop(event)">
+          <!-- Drop a file here or click to select a file -->
+          <div
+            id="dropZone"
+            ondrop="handleDrop(event)"
+            ondragover="allowDrop(event)"
+          >
             Drop a file here or click to select a file
+          </div>
+
+          <!-- File input element -->
+          <input
+            type="file"
+            id="fileInput"
+            accept=".wav"
+            style="display: none"
+            onchange="handleFileSelect(event)"
+          />
+
+          <!-- Transcode button -->
+          <button onclick="requestTranscription()">Transcode</button>
+
+          <!-- Response div -->
+          <div id="response"></div>
         </div>
 
-        <!-- File input element -->
-        <input type="file" id="fileInput" accept=".wav" style="display: none" onchange="handleFileSelect(event)" />
+        <div class="column">
+          <h3>Transcriptions</h3>
+          <input type="text" id="transcriptionID" placeholder="Enter the Transcription ID here" />
+          <button onclick="requestTranscriptionText()">
+            Request Transcription
+          </button>
+          <div id="transcriptionFileName"></div>
+          <div id="transcriptionResponse"></div>
+        </div>
+      </div>
 
-        <!-- Transcode button -->
-        <button onclick="requestTranscription()">Transcode</button>
-
-        <!-- Response div -->
-        <div id="response"></div>
-    </div>
-    <div id="sidebar">
-        <h2>Transcriptions</h2>
-        <button onclick="requestTranscriptionText()">Request Transcription</button>
-        <div id="transcriptionFileName"></div>
-        <div id="transcriptionResponse"></div>
-    </div>
-
-    <div id="websocketContainer">
-        <h1>WhisperStream WebSocket</h1>
+      <!-- WebSocket Content -->
+      <div class="content websocket" id="websocketContent">
+        <h2>WebSocket</h2>
         <!-- WebSocket Start recording button -->
-        <button id="startRecording" >Record</button>
+        <button id="startRecording">Record</button>
         <!-- Stop recording button -->
         <button id="stopRecording">Stop</button>
-    </div>
+      </div>
+    </main>
+
+    <script src="main.js"></script>
     <script src="rest.js"></script>
     <script src="websocket.js"></script>
-</body>
-
+  </body>
 </html>

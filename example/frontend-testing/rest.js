@@ -2,7 +2,6 @@ let selectedFile = null;
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
 
-
 /**
  * On window load, retrieve and set the API key from localStorage.
  * If an API key is found, it is populated in the input field.
@@ -156,9 +155,15 @@ async function requestTranscription() {
     }
 }
 
-async function requestTranscriptionText() {
-    transcription_id = "287c4ded-ecdc-4938-9b56-78e3ab8b1f3d";
+submitButton.addEventListener('click', () => {
+    userInputValue = inputField.value; // Get the input value
+    console.log("User Input:", userInputValue); // Log it to the console
+    // You can now use `userInputValue` in your script
+});
 
+async function requestTranscriptionText() {
+
+    const transcription_id = document.getElementById('transcriptionID').value;
     const apiKey = localStorage.getItem('apiKey');  // Retrieve the saved API key
     if (!apiKey) {
         responseContainer.textContent = 'API key is missing. Please save your API key first.';
@@ -169,7 +174,7 @@ async function requestTranscriptionText() {
 
     try {
         // Make POST request to transcription API
-        const response = await fetch(`http://localhost:8393/transcript/${transcription_id}`, {
+        const response = await fetch(`http://localhost:8393/transcriptions/${transcription_id}`, {
             method: 'GET',
             headers: {
                 'Authorization': `${apiKey}`
@@ -184,7 +189,7 @@ async function requestTranscriptionText() {
         // Parse and display response data
         const data = await response.json();
 
-        responseTextContainer.textContent = data.stringify(data, null, 2); //data['transcript']['text'];
+        responseTextContainer.textContent = JSON.stringify(data['transcript']['text'], null, 2); //data['transcript']['text'];
     } catch (error) {
         // Display error message on failure
         responseTextContainer.textContent = error.message;
