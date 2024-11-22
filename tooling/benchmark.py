@@ -10,20 +10,21 @@ from jiwer.transforms import (
     ReduceToSingleSentence,
 )
 import tqdm
-import os
 import time
 import jiwer
-import prettytable
 
 from helpers.file_helper import (
+    get_file_name,
     load_file_list,
-    DATA_BASE_PATH,
     get_expected_transcription,
-    transform_value_for_table,
 )
 
 from helpers.rest_helper import transcribe_file_rest
-from helpers.websocket_helper import transcribe_file_websocket
+from helpers.websocket_helper import (
+    TRANSCRIPTION_WEBSOCKET_TIMEOUT,
+    transcribe_file_websocket,
+)
+from helpers.table_helpers import render_table
 
 
 transform_default = Compose(
@@ -40,16 +41,14 @@ transform_default = Compose(
 
 
 def benchmark(settings):
-    if settings.target == "websocket":
-        print("As of now the transcription via websockets is not parallel.")
-        print(
-            "Meaning: The benchmark duration of files via websockets = sum(length of audio files)"
-        )
-    wer_dict = {}
-    duration_dict = {}
     audio_files = load_file_list(settings.scale)
-    wer_sum = 0
-    duration_sum = 0
+    results = {
+        "key": [],
+        "wer_rest": [],
+        "duration_rest": [],
+        "wer_websocket": [],
+        "duration_websocket": [],
+    }
     for filepath in tqdm.tqdm(
         audio_files, desc="Transcribing", disable=settings.disable_progress_bar
     ):
@@ -68,71 +67,42 @@ def benchmark(settings):
             websocket_transcription = transcribe_file_websocket(
                 filepath, settings.overwrite_api_key
             )
-            websocket_duration = time.time() - start_time
+            # During transcription we wait for timeout once
+            # Therefore we subtract it from the recorded transcription time
+            websocket_duration = (
+                time.time() - start_time - TRANSCRIPTION_WEBSOCKET_TIMEOUT
+            )
         expected = transform_default(get_expected_transcription(filepath))
         if settings.debug:
             print(f"Expected: {expected}")
 
-        wer_vals = []
-        diff_vals = []
+        results["key"] += [get_file_name(filepath, settings.scale)]
         for val in [
-            (rest_transcription, rest_duration),
-            (websocket_transcription, websocket_duration),
+            (rest_transcription, rest_duration, "rest"),
+            (websocket_transcription, websocket_duration, "websocket"),
         ]:
-            transcription, duration = val
+            transcription, duration, method_key = val
             if transcription is None or duration is None:
-                wer_vals.append(None)
-                diff_vals.append(None)
+                results[f"wer_{method_key}"] += [None]
+                results[f"duration_{method_key}"] += [None]
                 continue
 
-            diff_vals.append(duration)
+            results[f"duration_{method_key}"] += [duration]
 
             # This can only happen if backend or benchmark encounter an error
             # However it WOULD terminate the entire benchmarking process
             if len(transcription) == 0:
                 # -1000 = error encountered
-                wer_vals.append(-1000)
+                results[f"wer_{method_key}"] += [-1000]
                 continue
 
             transcription = transform_default(transcription)
             if settings.debug:
-                print(f"Received: {transcription}")
+                print(f"Received({method_key}): {transcription}")
 
             curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
-            wer_vals.append(curr_wer)
-            wer_sum += curr_wer
-            duration_sum += duration
-
-        if settings.table:
-            wer_dict[
-                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
-            ] = wer_vals
-            duration_dict[
-                filepath.replace(f"{os.path.join(DATA_BASE_PATH, settings.scale)}/", "")
-            ] = diff_vals
-
-    if settings.table:
-        table = prettytable.PrettyTable()
-        table.field_names = [
-            "File",
-            "Rest WER",
-            "Rest Duration",
-            "WS WER",
-            "WS Duration",
-        ]
-        for key in wer_dict:
-            row = [key]
-            wer_vals = wer_dict[key]
-            duration_vals = duration_dict[key]
-            for i in range(2):
-                row.append(transform_value_for_table(wer_vals[i]))
-                row.append(transform_value_for_table(duration_vals[i]))
-            table.add_row(row)
-        print(table)
-
-    print(
-        f"Average WER: {round(wer_sum/len(audio_files),5)}\tAverage duration: {round(duration_sum/len(audio_files),2)}"
-    )
+            results[f"wer_{method_key}"] += [curr_wer]
+    render_table(results)
 
 
 if __name__ == "__main__":
@@ -161,12 +131,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Enable debug log for transcription want and received",
-    )
-    parser.add_argument(
-        "--table",
-        action="store_true",
-        help="Print the word error rate and duration per file as a table",
+        help="Enable debug log for transcription want and received. This (for obvious reasons) kinda clashes with the progress bar...but oh well",
     )
     parser.add_argument(
         "--disable-progress-bar",

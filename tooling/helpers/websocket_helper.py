@@ -1,9 +1,10 @@
 import asyncio
-from typing import Tuple
 import websockets
 from pydub import AudioSegment
 import requests
 import json
+
+TRANSCRIPTION_WEBSOCKET_TIMEOUT = 15.0
 
 
 async def read_wav_file_into_chunks(file_path, chunk_duration=1000):
@@ -67,7 +68,8 @@ async def __transcribe_file_websocket(filepath: str) -> str:
                     if len(audio_data) > 0:
                         await websocket_connection.send(audio_data.pop(0))
                     message = await asyncio.wait_for(
-                        websocket_connection.recv(), timeout=15.0
+                        websocket_connection.recv(),
+                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT,
                     )
                     messages.append(message)
                 except asyncio.TimeoutError:
