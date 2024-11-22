@@ -126,7 +126,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--parallel", default=False, help="NOT IMPLEMENTED")
     parser.add_argument(
-        "--overwrite-api-key", default="shuffle2024", help="Set api key to be used"
+        "--overwrite-api-key",
+        default="shuffle2024",
+        help="Set api key to be used. The default value should work fine for local dev",
     )
     parser.add_argument(
         "--debug",
