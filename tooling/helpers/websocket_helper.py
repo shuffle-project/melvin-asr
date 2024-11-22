@@ -1,4 +1,5 @@
 import asyncio
+from typing import Tuple
 import websockets
 from pydub import AudioSegment
 import requests
@@ -13,6 +14,16 @@ async def read_wav_file_into_chunks(file_path, chunk_duration=1000):
     return chunks
 
 
+def safe_to_json(text: str) -> dict | None:
+    data = None
+    try:
+        data = json.loads(text)
+    except ValueError:
+        # text was not valid json
+        pass
+    return data
+
+
 # TODO: this function can be merged with the rest transcription once the export apis for rest and websockets have been unified
 def fetch_transcription(id: str, api_key: str):
     # This means the returned id is NOT! a transcription id
@@ -25,7 +36,8 @@ def fetch_transcription(id: str, api_key: str):
     )
     if r.status_code == 200:
         data = r.json()
-        return data[0]["text"]
+        res = " ".join([x["text"] for x in data])
+        return res
 
     print("Desired ID could not be resolved")
     # Make sure the benchmark does not terminate if one file fails
@@ -36,10 +48,10 @@ def fetch_transcription(id: str, api_key: str):
 # Wrap asyncio execution
 def transcribe_file_websocket(filepath: str, api_key: str) -> str:
     loop = asyncio.get_event_loop()
-    transcription_id = loop.run_until_complete(
+    transcribe_res = loop.run_until_complete(
         asyncio.gather(__transcribe_file_websocket(filepath))
     )
-    result = fetch_transcription(transcription_id[0], api_key)
+    result = fetch_transcription(transcribe_res[0], api_key)
     return result
 
 
@@ -47,7 +59,7 @@ def transcribe_file_websocket(filepath: str, api_key: str) -> str:
 async def __transcribe_file_websocket(filepath: str) -> str:
     audio_data = await read_wav_file_into_chunks(filepath)
     messages = []
-    message = ""
+    id = ""
     try:
         async with websockets.connect("ws://localhost:8394") as websocket_connection:
             while True:
@@ -64,7 +76,11 @@ async def __transcribe_file_websocket(filepath: str) -> str:
             if len(messages) == 0:
                 print(f"Empty messages for filepath {filepath}. This should not happen")
                 return ""
+
+            await websocket_connection.send("eof")
+            id = await asyncio.wait_for(websocket_connection.recv(), timeout=15.0)
+            await websocket_connection.close()
+
     except websockets.exceptions.ConnectionClosedOK:  # This is the expected behaviour
         pass
-    # TODO: proper parsing for this
-    return json.loads(str(messages[-1]))
+    return str(id)
