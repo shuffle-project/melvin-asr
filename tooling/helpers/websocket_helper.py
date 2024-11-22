@@ -37,7 +37,10 @@ def fetch_transcription(id: str, api_key: str):
     )
     if r.status_code == 200:
         data = r.json()
-        res = " ".join([x["text"] for x in data])
+        res = ""
+        for segment in data:
+            if "text" in segment:
+                res += f" {segment['text']}"
         return res
 
     print("Desired ID could not be resolved")
