@@ -1,0 +1,187 @@
+/* General styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #121212; /* Dark mode */
+    color: #ffffff; /* Light text */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Header styles */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px 20px;
+    background-color: #1c1c1c; /* Slightly lighter than the body */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    gap: 20px; /* Space between elements */
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    width: calc(100% - 40px); /* Match content panel padding */
+    padding: 10px 20px;
+    margin: 0 auto;
+}
+
+/* Toggle switch container */
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+}
+
+/* Switch styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: 0.4s;
+    border-radius: 25px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 21px;
+    width: 21px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #1e88e5; /* Active blue */
+}
+
+input:checked + .slider:before {
+    transform: translateX(25px);
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* Button styles */
+button {
+    margin: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: #1e88e5; /* Darker blue */
+    color: #ffffff; /* White text */
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #1565c0; /* Even darker blue for hover */
+}
+
+/* Response section */
+#response {
+    margin-top: 20px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    text-align: left;
+    color: #cfcfcf; /* Softer light text */
+}
+
+/* Drop zone styles */
+#dropZone {
+    border: 2px dashed #1e88e5;
+    padding: 20px;
+    margin-top: 20px;
+    background-color: #1c1c1c; /* Darker background for contrast */
+    color: #1e88e5;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#dropZone:hover {
+    background-color: #292929; /* Slightly lighter on hover */
+}
+
+/* Content panel styles */
+.content-panel {
+    width: 95%;
+    height: 80vh;
+    background-color: #1c1c1c;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem;
+}
+
+/* REST content (two columns) */
+.content.rest {
+    grid-template-columns: auto;
+    gap: 20px;
+    width: 100%;
+    height: 100%;
+}
+
+.content.rest .column {
+    width: 40%;
+    background-color: #2b2b2b;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* WebSocket content (single column) */
+.content.websocket {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Hide inactive content */
+.content {
+    display: none;
+}
+
+.content.active {
+    display: flex;
+}
