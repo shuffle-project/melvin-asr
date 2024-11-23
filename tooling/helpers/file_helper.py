@@ -24,7 +24,7 @@ def get_expected_transcription(path: str):
 def transform_value_for_table(val, round_value=2):
     if val is None:
         return "-"
-    elif val == -1000:
+    elif val == ERR_CODE:
         return "ERR"
     return round(val, round_value)
 
