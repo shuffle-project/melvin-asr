@@ -106,6 +106,14 @@ class Stream:
                         "Received control message (string): {}".format(message)
                     )
                     if "eof" in message:
+                        if "eof-finalize" in message:
+                            # Non default behaviour but useful for some scenarios, like testing
+                            await self.transcribe_all_chunk_cache(
+                                websocket,
+                                self.chunk_cache,
+                                self.recently_added_chunk_cache,
+                                skip_send=True,
+                            )
                         name = self.export_transcription_and_wav()
                         await websocket.send(name)
                         await websocket.close()
@@ -127,7 +135,7 @@ class Stream:
                 self.close_stream = True
 
     async def transcribe_all_chunk_cache(
-        self, websocket, chunk_cache, recent_cache
+        self, websocket, chunk_cache, recent_cache, skip_send=False
     ) -> str:
         """Function to transcribe a chunk of audio"""
         try:
@@ -181,7 +189,8 @@ class Stream:
                 self.last_final_result_object = result
                 self.last_final_bytes = chunk_cache
                 self.final_transcriptions.append(result)
-            await websocket.send(json.dumps(result, indent=2))
+            if not skip_send:
+                await websocket.send(json.dumps(result, indent=2))
             end_time = time.time()
             self.logger.debug(
                 "Final Transcription took {:.2f} s".format(end_time - start_time)
