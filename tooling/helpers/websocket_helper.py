@@ -35,7 +35,7 @@ def fetch_transcription(id: str, api_key: str):
         f"http://localhost:8393/export/transcript/{id}",
         headers={"Authorization": api_key},
     )
-    if r.status_code == 200:
+    if r.status_code == HTTPStatus.OK:
         data = r.json()
         res = ""
         for segment in data:
