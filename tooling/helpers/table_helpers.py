@@ -3,6 +3,7 @@ from prettytable import prettytable
 from helpers.file_helper import transform_value_for_table
 import statistics
 
+ERR_CODE = -1000
 
 def get_stats_per_column(data, exclude_key=["key"]) -> Dict:
     res = {}
@@ -17,7 +18,7 @@ def get_stats_per_column(data, exclude_key=["key"]) -> Dict:
             if val is None:
                 not_tested_cnt += 1
                 continue
-            if val == -1000:
+            if val == ERR_CODE:
                 failed_cnt += 1
                 continue
             valid_values.append(val)
