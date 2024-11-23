@@ -29,11 +29,5 @@ def transform_value_for_table(val, round_value=2):
     return round(val, round_value)
 
 
-def safe_divide_for_table(sum, amount, round_value=2):
-    if amount == 0:
-        return "N/A"
-    return round((sum / amount), round_value)
-
-
 def get_file_name(path, scale):
     return path.replace(f"{os.path.join(DATA_BASE_PATH, scale)}/", "")
