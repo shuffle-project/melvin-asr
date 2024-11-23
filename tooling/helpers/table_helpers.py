@@ -1,9 +1,17 @@
 from typing import Dict
 from prettytable import prettytable
-from helpers.file_helper import transform_value_for_table
 import statistics
 
 ERR_CODE = -1000
+
+
+def transform_value_for_table(val, round_value=2):
+    if val is None:
+        return "-"
+    elif val == ERR_CODE:
+        return "ERR"
+    return round(val, round_value)
+
 
 def get_stats_per_column(data, exclude_key=["key"]) -> Dict:
     res = {}

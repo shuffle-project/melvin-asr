@@ -24,7 +24,7 @@ from helpers.websocket_helper import (
     TRANSCRIPTION_WEBSOCKET_TIMEOUT,
     transcribe_file_websocket,
 )
-from helpers.table_helpers import render_table
+from helpers.table_helpers import render_table, ERR_CODE
 
 
 transform_default = Compose(
@@ -92,8 +92,7 @@ def benchmark(settings):
             # This can only happen if backend or benchmark encounter an error
             # However it WOULD terminate the entire benchmarking process
             if len(transcription) == 0:
-                # -1000 = error encountered
-                results[f"wer_{method_key}"] += [-1000]
+                results[f"wer_{method_key}"] += [ERR_CODE]
                 continue
 
             transcription = transform_default(transcription)
