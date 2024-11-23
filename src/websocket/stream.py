@@ -106,12 +106,14 @@ class Stream:
                         "Received control message (string): {}".format(message)
                     )
                     if "eof" in message:
-                        await self.transcribe_all_chunk_cache(
-                            websocket,
-                            self.chunk_cache,
-                            self.recently_added_chunk_cache,
-                            skip_send=True,
-                        )
+                        if "eof-finalize" in message:
+                            # Non default behaviour but useful for some scenarios, like testing
+                            await self.transcribe_all_chunk_cache(
+                                websocket,
+                                self.chunk_cache,
+                                self.recently_added_chunk_cache,
+                                skip_send=True,
+                            )
                         name = self.export_transcription_and_wav()
                         await websocket.send(name)
                         await websocket.close()

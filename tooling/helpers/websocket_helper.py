@@ -82,7 +82,7 @@ async def __transcribe_file_websocket(filepath: str) -> str:
                 print(f"Empty messages for filepath {filepath}. This should not happen")
                 return ""
 
-            await websocket_connection.send("eof")
+            await websocket_connection.send("eof-finalize")
             id = await asyncio.wait_for(websocket_connection.recv(), timeout=15.0)
             await websocket_connection.close()
 
