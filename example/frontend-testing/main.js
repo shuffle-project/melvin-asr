@@ -3,9 +3,6 @@ const toggleSwitch = document.getElementById('toggleSwitch');
 const restContent = document.getElementById('restContent');
 const websocketContent = document.getElementById('websocketContent');
 
-// Ensure REST content is visible initially
-//restContent.classList.add('active');
-
 // Toggle content based on the switch state
 toggleSwitch.addEventListener('change', () => {
     if (toggleSwitch.checked) {
