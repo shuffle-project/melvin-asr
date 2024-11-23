@@ -53,7 +53,6 @@ def main():
             shell=True,
             stdout=subprocess.DEVNULL,
         )
-        # shutil.copy(filepath, os.path.join("./big", f"{id}.mp3"))
         shutil.copy(json_path, os.path.join("./big", f"{id}.json"))
         cnt += 1
     print(f"Copied {cnt} files.")
