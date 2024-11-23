@@ -20,6 +20,7 @@ class AudioProcessor extends AudioWorkletProcessor {
         // Convert Float32Array to Int16Array
         const int16Data = new Int16Array(chunk.length);
         for (let i = 0; i < chunk.length; i++) {
+          // Perform mapping from float in (range -1 to +1) into signed 16 bit int realm (range -32,768 to +32,767)
           int16Data[i] = Math.max(-1, Math.min(1, chunk[i])) * 32767;
         }
 
