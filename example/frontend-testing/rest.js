@@ -22,7 +22,7 @@ window.onload = function() {
  */
 window.onload = async function checkHealth() {
     const responseContainer = document.getElementById('checkHealth');
-    responseContainer.textContent = 'Calling API...';
+    responseContainer.textContent = 'Checking API status...';
 
     const apiKey = localStorage.getItem('apiKey');  // Retrieve the saved API key
     if (!apiKey) {
