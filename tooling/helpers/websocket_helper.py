@@ -3,7 +3,7 @@ import websockets
 from pydub import AudioSegment
 import requests
 import json
-
+from http import HTTPStatus
 TRANSCRIPTION_WEBSOCKET_TIMEOUT = 15.0
 
 
