@@ -2,7 +2,7 @@ import os
 import json
 
 DATA_BASE_PATH = os.path.join(os.getcwd(), "data")
-
+ERR_CODE = -1000
 
 def load_file_list(size: str):
     dirpath = os.path.join(DATA_BASE_PATH, size)
