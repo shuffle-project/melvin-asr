@@ -18,7 +18,7 @@ async function startRecording() {
     console.log("WebSocket connection established");
 
     // Initialize AudioContext and Audio Worklet
-    audioContext = new AudioContext({});
+    audioContext = new AudioContext({sampleRate: 16000});
     await audioContext.audioWorklet.addModule('processor.js');
 
     // Capture microphone input
