@@ -2,7 +2,8 @@
 
 import json
 import math
-
+from dataclasses import asdict
+from faster_whisper import Segment
 
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
     """parses the segments and info to a dictionary"""
@@ -20,7 +21,7 @@ def parse_transcription_info_to_dict(info) -> dict:
 
     def filter_infinity_values(options):
         """Filters out infinity values or replaces them with a string representation."""
-        json_list = json.loads(json.dumps(options))
+        json_list = asdict(options)
         # should return a list of values
         if (not isinstance(json_list, list)):
             print("parse_transcription_info_to_dict: options is not a list")
@@ -55,13 +56,13 @@ def parse_segment_words_to_dict(words_array):  # type words_array: [[]] -> [dict
     if words_array is None:
         return new_word_array
     for word_array in words_array:
-        if not isinstance(word_array[2], str):
+        if not isinstance(word_array.word, str):
             continue  # Skip if word is not a string
         word_dict = {
-            "start": word_array[0],
-            "end": word_array[1],
-            "word": word_array[2],
-            "probability": word_array[3],
+            "start": word_array.start,
+            "end": word_array.end,
+            "word": word_array.word,
+            "probability": word_array.probability,
         }
         new_word_array.append(word_dict)
     return new_word_array
@@ -69,30 +70,30 @@ def parse_segment_words_to_dict(words_array):  # type words_array: [[]] -> [dict
 
 def parse_transcription_segments_to_dict(segment):  # type segment -> [dict]
     """Parses the transcription segment to a dictionary"""
-    segments_array = json.loads(json.dumps(segment))
+    segments_array = list(segment)
     new_segments_array = []
     if segment is None:
         return new_segments_array
     for segment_array in segments_array:
         segment_dict = {
-            "id": segment_array[0],
-            "seek": segment_array[1],
-            "start": segment_array[2],
-            "end": segment_array[3],
-            "text": segment_array[4],
-            "tokens": segment_array[5],
-            "temperature": segment_array[6],
-            "avg_logprob": segment_array[7],
-            "compression_ratio": segment_array[8],
-            "no_speech_prob": segment_array[9],
-            "words": parse_segment_words_to_dict(segment_array[10]),
+            "id": segment_array.id,
+            "seek": segment_array.seek,
+            "start": segment_array.start,
+            "end": segment_array.end,
+            "text": segment_array.text,
+            "tokens": segment_array.tokens,
+            "temperature": segment_array.temperature,
+            "avg_logprob": segment_array.avg_logprob,
+            "compression_ratio": segment_array.compression_ratio,
+            "no_speech_prob": segment_array.no_speech_prob,
+            "words": parse_segment_words_to_dict(segment_array.words),
         }
         new_segments_array.append(segment_dict)
     return new_segments_array
 
 def parse_stable_whisper_result(result) -> dict:
     """Parses the stable whisper result to a dictionary"""
-    data = result.to_dict()
+    data = asdict(result)
 
     text = ""
     segments = []
