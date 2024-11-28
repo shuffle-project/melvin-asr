@@ -1,9 +1,8 @@
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
-import json
 import math
 from dataclasses import asdict
-from faster_whisper import Segment
+
 
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
     """parses the segments and info to a dictionary"""
@@ -23,19 +22,19 @@ def parse_transcription_info_to_dict(info) -> dict:
         """Filters out infinity values or replaces them with a string representation."""
         json_list = asdict(options)
         # should return a list of values
-        if (not isinstance(json_list, list)):
+        if not isinstance(json_list, list):
             print("parse_transcription_info_to_dict: options is not a list")
             return options
 
         filtered_options = []
         for item in json_list:
             if isinstance(item, float) and math.isinf(item):
-                filtered_options.append('Infinity' if item > 0 else '-Infinity')
+                filtered_options.append("Infinity" if item > 0 else "-Infinity")
             elif isinstance(item, float) and math.isnan(item):
-                filtered_options.append('NaN')
+                filtered_options.append("NaN")
             else:
                 filtered_options.append(item)
-        return filtered_options 
+        return filtered_options
 
     info_dict = {
         "language": info.language,
@@ -91,30 +90,36 @@ def parse_transcription_segments_to_dict(segment):  # type segment -> [dict]
         new_segments_array.append(segment_dict)
     return new_segments_array
 
+
 def parse_stable_whisper_result(result) -> dict:
     """Parses the stable whisper result to a dictionary"""
-    data = asdict(result)
+    data = result if isinstance(result, dict) else asdict(result)
 
     text = ""
     segments = []
     for segment in data["segments"]:
+        segment = asdict(segment)
         text += segment["text"]
 
         words = []
         for word in segment["words"]:
-            words.append({
-                "text": word["word"],
-                "start": word["start"],
-                "end": word["end"],
-                "probability": word["probability"],
-            })
+            words.append(
+                {
+                    "text": word["word"],
+                    "start": word["start"],
+                    "end": word["end"],
+                    "probability": word["probability"],
+                }
+            )
 
-        segments.append({
-            "text": segment["text"],
-            "start": segment["start"],
-            "end": segment["end"],
-            "words": words,
-        })
+        segments.append(
+            {
+                "text": segment["text"],
+                "start": segment["start"],
+                "end": segment["end"],
+                "words": words,
+            }
+        )
 
     return {
         "text": text,
