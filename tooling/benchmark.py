@@ -101,7 +101,7 @@ def benchmark(settings):
 
             curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
             results[f"wer_{method_key}"] += [curr_wer]
-    render_table(results)
+    render_table(results, export=settings.export_markdown)
 
 
 if __name__ == "__main__":
@@ -138,5 +138,10 @@ if __name__ == "__main__":
         "--disable-progress-bar",
         action="store_true",
         help="Disable the progress bar. This means there is no way of monitoring the progress of the benchmark",
+    )
+    parser.add_argument(
+        "--export-markdown",
+        action="store_true",
+        help="Export table as markdown to results.md",
     )
     benchmark(parser.parse_args())
