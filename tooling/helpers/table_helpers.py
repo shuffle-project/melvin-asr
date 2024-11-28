@@ -1,5 +1,5 @@
 from typing import Dict
-from prettytable import prettytable
+from prettytable import prettytable, MARKDOWN
 import statistics
 
 ERR_CODE = -1000
@@ -52,7 +52,7 @@ def build_rows_from_stats(data):
     return [avg_row, median_row]
 
 
-def render_table(data: dict):
+def render_table(data: dict, export=False):
     table = prettytable.PrettyTable()
     table.field_names = [
         "File",
@@ -76,3 +76,8 @@ def render_table(data: dict):
 
     table.add_rows(build_rows_from_stats(get_stats_per_column(data)))
     print(table)
+    if export:
+        print("Exporting table in markdown form to result.md")
+        table.set_style(MARKDOWN)
+        with open("result.md", "w") as text_file:
+            text_file.write(table.get_string())
