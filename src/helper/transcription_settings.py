@@ -1,4 +1,4 @@
-""" Function to handle settings for the transcription with faster-whisper. """
+"""Function to handle settings for the transcription with faster-whisper."""
 
 # The settings are used to configure the transcription process by faster-whisper:
 
@@ -20,6 +20,7 @@
 #     below this value, treat as failed.
 #   - no_speech_threshold: If the no_speech probability is higher than this value AND
 #     the average log probability over sampled tokens is below log_prob_threshold, consider the segment as silent.
+#   - log_progress: whether to show progress bar or not.
 #   - condition_on_previous_text: If True, the previous output of the model is provided
 #     as a prompt for the next window; disabling may make the text inconsistent across windows, but the model becomes less prone to getting stuck in a failure loop, such as repetition looping or timestamps going out of sync.
 #   - prompt_reset_on_temperature: Resets prompt if temperature is above this value.
@@ -77,6 +78,7 @@ class TranscriptionSettings:
             "append_punctuations": "\"'.。,，!！?？:：”)]}、",
             "vad_filter": True,
             "vad_parameters": None,
+            "log_progress": False,
         }
         self.apply_config_defaults()
 
@@ -94,6 +96,6 @@ class TranscriptionSettings:
     def apply_config_defaults(self) -> None:
         """Apply the default settings from global config."""
         config = CONFIG["transcription_default"]
-        for key, value in self.default_settings.items():
+        for key, _ in self.default_settings.items():
             if key in config:
                 self.default_settings[key] = config[key]
