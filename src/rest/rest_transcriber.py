@@ -2,6 +2,7 @@
 
 import logging
 
+from faster_whisper.transcribe import TranscriptionOptions
 import stable_whisper
 from faster_whisper import WhisperModel
 
@@ -111,9 +112,13 @@ class Transcriber:
     ) -> dict:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
-        result = model.transcribe_stable(audio, **settings)
+        # cannot use transcribe_stable because it performs illegal actions on segment
+        # issue likely resides here:
+        # https://github.com/jianfch/stable-ts/blob/9fe1bf511862dccb669ff27f5fae9ae206b91a10/stable_whisper/whisper_word_level/faster_whisper.py#L204
+        result = model.transcribe(audio, **settings)
+        result = {"segments": result[0]}
+        # TODO: Maybe alignint the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
         data = parse_stable_whisper_result(result)
-
         return data
 
     @time_it
