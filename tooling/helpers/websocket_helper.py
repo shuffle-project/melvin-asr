@@ -4,6 +4,7 @@ from pydub import AudioSegment
 import requests
 import json
 from http import HTTPStatus
+
 TRANSCRIPTION_WEBSOCKET_TIMEOUT = 15.0
 
 
@@ -75,6 +76,11 @@ async def __transcribe_file_websocket(filepath: str) -> str:
                         timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT,
                     )
                     messages.append(message)
+                    try:
+                        d = json.loads(message)
+                        print(d)
+                    except:
+                        pass
                 except asyncio.TimeoutError:
                     if len(messages) != 0:
                         break
