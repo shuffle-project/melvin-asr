@@ -109,7 +109,6 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Dict:
                             # result["partials"].append(d["text"])
                             # if debug:
                             # print(f"Final: {d['text']}")
-
                     except json.JSONDecodeError:
                         pass
                 except asyncio.TimeoutError:

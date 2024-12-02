@@ -3,6 +3,8 @@
 import logging
 import random
 
+from faster_whisper.utils import os
+
 
 class Color:
     """This class contains ANSI escape sequences for colored output."""
@@ -81,17 +83,9 @@ def init_logger() -> None:
     logging.getLogger("").handlers = [console]
 
 
-def get_logger_with_id(name: str, id: str) -> logging.LoggerAdapter:
-    """Get the logger for the name. Extend said logger to also send the ID for every log request"""
-    additional_data = {"identifier": f"({id})"}
-    base_logger = logging.getLogger(name)
-    formatter = LogFormatter(
-        "[%(asctime)s %(name)s:%(lineno)d] %(levelname)s %(message)s (%(identifier)s)"
-    )
-    console = logging.StreamHandler()
-    console.setFormatter(formatter)
-    base_logger.handlers = [console]
-    return logging.LoggerAdapter(base_logger, additional_data)
+def get_logger_with_id(name: str, id: str) -> logging.Logger:
+    """Uniform way to get a formatted logger with the id in its name"""
+    return logging.getLogger(f"{name} ({id})")
 
 
 def set_global_loglevel(level: str):
