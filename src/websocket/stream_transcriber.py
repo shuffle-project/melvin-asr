@@ -1,10 +1,12 @@
 """Module to handle the transcription process"""
 
 import io
+from typing import Iterable, Tuple
 import wave
 
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 from faster_whisper.utils import logging
+from faster_whisper.transcribe import TranscriptionInfo, Segment
 
 from src.helper.model_handler import ModelHandler
 from src.helper.segment_info_parser import parse_segments_and_info_to_dict
@@ -105,3 +107,26 @@ class Transcriber:
             segments, info = self._batched_model.transcribe(wav_io, batch_size=16, **settings)
             result = parse_segments_and_info_to_dict(segments, info)
         return result
+
+    def _transcribe_raw(
+        self,
+        audio_chunk: bytes,
+        prompt: str = "",
+    ) -> Tuple[Iterable[Segment], TranscriptionInfo]:
+        """Function to run the transcription process"""
+        sample_rate = 16000
+        num_channels = 1
+        sampwidth = 2
+
+        result = "ERROR"
+        with io.BytesIO() as wav_io:
+            with wave.open(wav_io, "wb") as wav_file:
+                wav_file.setnchannels(num_channels)
+                wav_file.setsampwidth(sampwidth)
+                wav_file.setframerate(sample_rate)
+                wav_file.writeframes(audio_chunk)
+            wav_io.seek(0)
+            settings = TranscriptionSettings().get_and_update_settings(
+                {"initial_prompt": prompt}
+            )
+            return self._model.transcribe(wav_io, **settings)
