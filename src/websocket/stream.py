@@ -2,7 +2,6 @@ import asyncio
 import json
 import time
 import uuid
-from faster_whisper.transcribe import Segment
 import websockets
 import traceback
 from pydub import AudioSegment
