@@ -5,7 +5,7 @@ import uuid
 import traceback
 import uuid
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 from pydub import AudioSegment
 
 from src.helper import logger
