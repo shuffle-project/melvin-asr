@@ -118,7 +118,6 @@ class Transcriber:
         num_channels = 1
         sampwidth = 2
 
-        result = "ERROR"
         with io.BytesIO() as wav_io:
             with wave.open(wav_io, "wb") as wav_file:
                 wav_file.setnchannels(num_channels)
