@@ -65,7 +65,7 @@ def benchmark(settings):
         if settings.target == "websocket" or settings.target == "all":
             start_time = time.time()
             websocket_transcription = transcribe_file_websocket(
-                filepath, settings.overwrite_api_key
+                filepath, settings.overwrite_api_key, settings.debug
             )
             # During transcription we wait for timeout once
             # Therefore we subtract it from the recorded transcription time
