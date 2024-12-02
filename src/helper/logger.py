@@ -3,7 +3,6 @@
 import logging
 import random
 
-from faster_whisper.utils import os
 
 
 class Color:
