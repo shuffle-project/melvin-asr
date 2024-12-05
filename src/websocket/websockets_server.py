@@ -51,8 +51,7 @@ class WebSocketServer:
             )
             self.gpu_worker_seats = self.gpu_config["worker_seats"]
             LOGGER.info(
-                f"GPU Stream Transcriber is active, Worker Seats: {
-                    self.gpu_worker_seats}"
+                f"GPU Stream Transcriber is active, Worker Seats: {self.gpu_worker_seats}"
             )
 
         # Setup CPU Transcriber
@@ -79,8 +78,7 @@ class WebSocketServer:
         self.stream_counter += 1
         client_id = self.stream_counter
         LOGGER.debug(
-            f"New client connected: {
-                     websocket.client}, Stream ID: {client_id}"
+            f"New client connected: {websocket.client}, Stream ID: {client_id}"
         )
 
         searching = True
@@ -129,8 +127,7 @@ class WebSocketServer:
                     return
 
                 LOGGER.debug(
-                    f"Client {client_id} is waiting for a worker, available seats - GPU: {
-                        self.gpu_worker_seats}, CPU: {self.cpu_worker_seats}"
+                    f"Client {client_id} is waiting for a worker, available seats - GPU: {self.gpu_worker_seats}, CPU: {self.cpu_worker_seats}"
                 )
                 await asyncio.sleep(GET_WORKER_RETRY_TIME_SECONDS)
 
