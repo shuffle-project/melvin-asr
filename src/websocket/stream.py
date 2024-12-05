@@ -109,6 +109,8 @@ class Stream:
             self.logger.error(f"Error while receiving message: {
                               traceback.format_exc()}")
             self.close_stream = True
+        finally:
+            await websocket.close()
 
     async def transcribe_all_chunk_cache(
         self, websocket: WebSocket, chunk_cache, recent_cache, skip_send=False
