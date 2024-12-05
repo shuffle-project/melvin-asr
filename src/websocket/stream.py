@@ -111,8 +111,7 @@ class Stream:
             self.close_stream = True
         except Exception:
             self.logger.error(
-                f"Error while receiving message: {
-                              traceback.format_exc()}"
+                f"Error while receiving message: {traceback.format_exc()}"
             )
             self.close_stream = True
         finally:
@@ -166,14 +165,12 @@ class Stream:
             if not skip_send:
                 await websocket.send_text(json.dumps(result, indent=2))
             self.logger.debug(
-                f"Final Transcription took {
-                              time.time() - start_time:.2f} s"
+                f"Final Transcription took {time.time() - start_time:.2f} s"
             )
 
         except Exception:
             self.logger.error(
-                f"Error while transcribing audio: {
-                              traceback.format_exc()}"
+                f"Error while transcribing audio: {traceback.format_exc()}"
             )
             self.close_stream = True
 
