@@ -69,8 +69,7 @@ class WebSocketServer:
             )
             self.cpu_worker_seats = self.cpu_config["worker_seats"]
             LOGGER.info(
-                f"CPU Stream Transcriber is active, Worker Seats: {
-                    self.cpu_worker_seats}"
+                f"CPU Stream Transcriber is active, Worker Seats: {self.cpu_worker_seats}"
             )
 
     async def handle_new_client(self, websocket: WebSocket):
@@ -93,8 +92,7 @@ class WebSocketServer:
                     )
                 except Exception as e:
                     LOGGER.error(
-                        f"Client {
-                            client_id} disconnected with an exception while using a worker: {e}"
+                        f"Client {client_id} disconnected with an exception while using a worker: {e}"
                     )
                 finally:
                     self.gpu_worker_seats += 1
@@ -110,8 +108,7 @@ class WebSocketServer:
                     )
                 except Exception as e:
                     LOGGER.warning(
-                        f"Client {
-                            client_id} disconnected with an exception while using a worker: {e}"
+                        f"Client {client_id} disconnected with an exception while using a worker: {e}"
                     )
                 finally:
                     self.cpu_worker_seats += 1
