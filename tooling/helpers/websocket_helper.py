@@ -98,9 +98,10 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Dict:
                             if debug:
                                 print(f"Partial: {d['partial']}")
                         elif "text" in d:
-                            result["partials"].append(d["text"])
-                            if debug:
-                                print(f"Final: {d['text']}")
+                            pass
+                            # result["partials"].append(d["text"])
+                            # if debug:
+                            # print(f"Final: {d['text']}")
 
                     except json.JSONDecodeError:
                         pass
