@@ -79,8 +79,10 @@ class WebSocketServer:
         """Function to handle a new client connection"""
         self.stream_counter += 1
         client_id = self.stream_counter
-        LOGGER.debug(f"New client connected: {
-                     websocket.client}, Stream ID: {client_id}")
+        LOGGER.debug(
+            f"New client connected: {
+                     websocket.client}, Stream ID: {client_id}"
+        )
 
         searching = True
         while searching:
@@ -89,7 +91,9 @@ class WebSocketServer:
                 LOGGER.debug(f"Client {client_id} is using GPU worker")
                 searching = False
                 try:
-                    await Stream(transcriber=self.gpu_transcriber, id=client_id).echo(websocket=websocket)
+                    await Stream(transcriber=self.gpu_transcriber, id=client_id).echo(
+                        websocket=websocket
+                    )
                 except Exception as e:
                     LOGGER.error(
                         f"Client {
@@ -104,7 +108,9 @@ class WebSocketServer:
                 LOGGER.debug(f"Client {client_id} is using CPU worker")
                 searching = False
                 try:
-                    await Stream(transcriber=self.cpu_transcriber, id=id).echo(websocket=websocket)
+                    await Stream(transcriber=self.cpu_transcriber, id=id).echo(
+                        websocket=websocket
+                    )
                 except Exception as e:
                     LOGGER.warning(
                         f"Client {
@@ -119,7 +125,8 @@ class WebSocketServer:
                     await websocket.send_text(WAITING_MESSAGE)
                 except WebSocketDisconnect:
                     LOGGER.debug(
-                        f"Client {client_id} disconnected while waiting for a worker")
+                        f"Client {client_id} disconnected while waiting for a worker"
+                    )
                     return
 
                 LOGGER.debug(
