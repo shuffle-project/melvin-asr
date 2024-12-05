@@ -109,7 +109,7 @@ class Stream:
         except WebSocketDisconnect:
             self.logger.debug("Client disconnected")
             self.close_stream = True
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 f"Error while receiving message: {
                               traceback.format_exc()}"
