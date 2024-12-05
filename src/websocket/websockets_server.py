@@ -10,8 +10,7 @@ from src.websocket.stream import Stream
 from src.websocket.stream_transcriber import Transcriber
 
 GET_WORKER_RETRY_TIME_SECONDS = 10
-WAITING_MESSAGE = f"No transcription workers available. Retrying in {
-    GET_WORKER_RETRY_TIME_SECONDS} seconds"
+WAITING_MESSAGE = f"No transcription workers available. Retrying in {GET_WORKER_RETRY_TIME_SECONDS} seconds"
 
 LOGGER = logging.getLogger(__name__)
 
