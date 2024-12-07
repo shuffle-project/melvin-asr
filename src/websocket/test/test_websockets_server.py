@@ -1,15 +1,10 @@
-from math import exp
 from unittest.mock import Mock, patch
 
 from pydub import AudioSegment
 
-import pytest
-import logging
-import wave
 import time
 from fastapi.testclient import TestClient
 
-from src.helper.logger import init_logger
 from src.websocket.websockets_server import WebSocketServer, app
 
 TEST_TIMEOUT_SECONDS = 120
