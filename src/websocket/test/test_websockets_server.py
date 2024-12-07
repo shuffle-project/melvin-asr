@@ -183,21 +183,21 @@ def test_eof_for_stream_returns_id(mock_spock):
     start_time = time.time()
     client = TestClient(app)
 
-    eof_send = False
+    eof_sent = False
 
     # Short audio data -> we dont need a lot of data for this test
     audio_data = read_wav_file_into_chunks(EXAMPLE_WAV_FILE)[:5]
     assert len(audio_data) > 0
     with client.websocket_connect("/") as websocket:
         messages = []
-        while time.time() - start_time < TEST_TIMEOUT_SECONDS and not eof_send:
+        while time.time() - start_time < TEST_TIMEOUT_SECONDS and not eof_sent:
             try:
                 if len(audio_data) > 0:
                     websocket.send_bytes(audio_data.pop(0))
                     message = websocket.receive_json()
                 else:
                     websocket.send_text("eof")
-                    eof_send = True
+                    eof_sent = True
                     message = websocket.receive_text()
                 print(f"Message received: {message}", flush=True)
                 messages.append(message)
