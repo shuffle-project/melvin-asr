@@ -142,9 +142,9 @@ class Stream:
                 words = []
                 for segment in data["segments"]:
                     for word in segment["words"]:
-                        start = (round(float(word["start"]), 6),)
-                        end = (round(float(word["end"]), 6),)
-                        conf = (round(float(word["probability"]), 6),)
+                        start = float(f"{word['start']:.6f}")
+                        end = float(f"{word['end']:.6f}")
+                        conf = float(f"{word['probability']:.6f}")
                         words.append(
                             {
                                 "conf": conf,
