@@ -1,9 +1,8 @@
+import time
 from unittest.mock import Mock, patch
 
-from pydub import AudioSegment
-
-import time
 from fastapi.testclient import TestClient
+from pydub import AudioSegment
 
 from src.websocket.websockets_server import WebSocketServer, app
 
@@ -121,11 +120,9 @@ def test_send_eof_and_expect_connection_close():
     with client.websocket_connect("/") as websocket:
         websocket.send_text("eof")
         try:
-            # TODO: how to test the connection is then closed?
-            # Ends with a string response, else it would be a json response
-            # TODO: can come an empty string? Should be properly validated what comes back?
             response = websocket.receive_text()
             assert isinstance(response, str)
+            assert len(response) == 32
         except RuntimeError as e:
             if "disconnect message" not in str(e):
                 raise
