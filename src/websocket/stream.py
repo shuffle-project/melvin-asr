@@ -213,16 +213,22 @@ class Stream:
             self.close_stream = True
 
     def adjust_threshold_on_latency(self):
+        """Adjusts the partial threshold based on the latency"""
         seconds_received = len(self.overall_audio_bytes) / BYTES_PER_SECOND
         seconds_transcribed = len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
         # Calculate the latency of the connection
         seconds_difference = seconds_received - seconds_transcribed
 
-        if seconds_difference > FINAL_TRANSCRIPTION_TIMEOUT - 2:
+        # we need to exclude the partial threshold from the calculation, because if the threshold is reached, the latency is always bad
+        seconds_difference_exclude_partial = (
+            seconds_difference - self.partial_treshold / BYTES_PER_SECOND
+        )
+
+        if seconds_difference_exclude_partial > FINAL_TRANSCRIPTION_TIMEOUT - 2:
             self.partial_treshold = min(
                 self.partial_treshold * 1.5, self.final_treshold
             )
-        elif seconds_difference < FINAL_TRANSCRIPTION_TIMEOUT / 6:
+        elif seconds_difference_exclude_partial < FINAL_TRANSCRIPTION_TIMEOUT / 6:
             self.partial_treshold = max(
                 self.partial_treshold * 0.75,
                 BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT,
