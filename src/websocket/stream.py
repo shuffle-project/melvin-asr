@@ -11,7 +11,8 @@ from src.helper import logger
 from src.helper.data_handler import DataHandler
 from src.websocket.stream_transcriber import Transcriber
 
-# Constants
+# To Calculate the seconds of audio in a chunk of 16000 Hz, 2 bytes per sample and 1 channel (as typically used in Whisper):
+# 16000 Hz * 2 bytes * 1 channel = 32000 bytes per second
 BYTES_PER_SECOND = 32000
 
 # This is the number of seconds we wait before printing a final transcription
