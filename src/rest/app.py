@@ -2,10 +2,9 @@ import json
 import logging
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-from fastapi import (Depends, FastAPI, File, Form, HTTPException, Security,
-                     UploadFile)
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Security, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
@@ -28,7 +27,7 @@ api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
 def custom_openapi():
-    """Modify the openapi definition to include our auth schema """
+    """Modify the openapi definition to include our auth schema"""
     if not app.openapi_schema:
         openapi_schema = app.openapi()
         openapi_schema["components"]["securitySchemes"] = {
@@ -36,7 +35,7 @@ def custom_openapi():
                 "type": "apiKey",
                 "in": "header",
                 "name": "Authorization",
-                "description": "API Key needed to access this endpoint."
+                "description": "API Key needed to access this endpoint.",
             }
         }
         openapi_schema["security"] = [{"APIKeyHeader": []}]
@@ -49,8 +48,7 @@ async def require_api_key(api_key: str = Security(api_key_header)):
     config = CONFIG
     if api_key not in config["api_keys"]:
         LOGGER.warning(f"Unauthorized API key attempt: {api_key}")
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return api_key
 
 
@@ -63,7 +61,9 @@ async def show_config():
     return JSONResponse(content=config_info, status_code=200)
 
 
-@app.get("/health", response_class=PlainTextResponse, dependencies=[Depends(require_api_key)])
+@app.get(
+    "/health", response_class=PlainTextResponse, dependencies=[Depends(require_api_key)]
+)
 async def health_check():
     """Return health status."""
     return "OK"
@@ -105,7 +105,7 @@ async def get_transcriptions_id(transcription_id: str):
 async def post_transcription(
     file: UploadFile = File(...),
     language: str | None = Form("en"),
-    settings: str | None = Form('{}'),
+    settings: str | None = Form("{}"),
     model: str | None = Form("large-v3"),
     task: str = Form("transcribe"),
     text: str | None = Form(""),
@@ -133,14 +133,14 @@ async def post_transcription(
         missing_field = "text" if not text else "language"
         raise HTTPException(
             status_code=400,
-            detail=f"property {missing_field} is required for task align"
+            detail=f"property {missing_field} is required for task align",
         )
 
     settings_dict = json.loads(settings) if settings else None
     data = TranscriptionData(
         transcription_id=transcription_id,
         status=TranscriptionStatus.IN_QUERY.value,
-        start_time=datetime.utcnow().isoformat() + 'Z',
+        start_time=datetime.now(timezone.utc).isoformat() + "Z",
         settings=settings_dict,
         model=model,
         task=task,
@@ -153,7 +153,9 @@ async def post_transcription(
 
 
 @time_it
-@app.get("/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)])
+@app.get(
+    "/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)]
+)
 async def get_stream_transcript_export(transcription_id: str):
     """Get the transcription JSON for a specific ID."""
     file = DATA_HANDLER.get_export_json_by_id(transcription_id)
@@ -171,7 +173,10 @@ async def get_stream_audio_export(transcription_id: str):
     if file is None:
         raise HTTPException(status_code=404, detail="File not found")
 
-    return PlainTextResponse(content=file, headers={
-        "Content-Type": "audio/wav",
-        "Content-Disposition": f"attachment; filename={transcription_id}.wav"
-    })
+    return PlainTextResponse(
+        content=file,
+        headers={
+            "Content-Type": "audio/wav",
+            "Content-Disposition": f"attachment; filename={transcription_id}.wav",
+        },
+    )

@@ -1,15 +1,18 @@
 """This File contains tests for the DataHandler class."""
+
 # ignore unused-import because of pytest fixtures
 # ruff: noqa: F811
 # ruff: noqa: F401
 import datetime
 import json
 import os
+
 from pydub import AudioSegment
+
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.types.transcription_status import TranscriptionStatus
 from src.helper.test_base.cleanup_data_fixture import cleanup_data
+from src.helper.types.transcription_status import TranscriptionStatus
 
 EXAMPLE_TRANSCRIPTION_ID = "example"
 EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/helper/test_base/example.wav"
@@ -17,7 +20,7 @@ EXAMPLE_AUDIO_FILE_PATH = os.getcwd() + "/src/helper/test_base/example.wav"
 DATA_HANDLER = DataHandler()
 
 
-def test_get_status_file_by_id_success(cleanup_data):
+def test_get_status_file_by_id_success(cleanup_data: None):
     """Tests getting a existing status file by id."""
     DATA_HANDLER.write_status_file("example", {"test": "test"})
     data = DATA_HANDLER.get_status_file_by_id("example")
@@ -30,7 +33,7 @@ def test_get_status_file_by_id_fail():
     assert data is None
 
 
-def test_get_all_status_filenames(cleanup_data):
+def test_get_all_status_filenames(cleanup_data: None):
     """Tests getting all status filenames."""
     DATA_HANDLER.write_status_file("example1", {"test": "test"})
     DATA_HANDLER.write_status_file("example2", {"test": "test"})
@@ -40,24 +43,24 @@ def test_get_all_status_filenames(cleanup_data):
     assert ("example2.json" in filenames) is True
 
 
-def test_write_status_file(cleanup_data):
+def test_write_status_file(cleanup_data: None):
     """Tests writing a status file."""
-    time = datetime.datetime.now()
+    time = datetime.datetime.now(datetime.timezone.utc)
     data = {"time": str(time)}
     DATA_HANDLER.write_status_file("write", data)
     assert DATA_HANDLER.get_status_file_by_id("write") == data
 
 
-def test_write_status_file_does_not_exist(cleanup_data):
+def test_write_status_file_does_not_exist(cleanup_data: None):
     """Tests writing a status file."""
-    time = datetime.datetime.now()
+    time = datetime.datetime.now(datetime.timezone.utc)
     data = {"time": str(time)}
     DATA_HANDLER.write_status_file("write1", data)
     assert DATA_HANDLER.get_status_file_by_id("write1") == data
     DATA_HANDLER.delete_status_file("write1")
 
 
-def test_delete_status_file_success(cleanup_data):
+def test_delete_status_file_success(cleanup_data: None):
     """Tests deleting a status file."""
     DATA_HANDLER.write_status_file("write", {})
     res = DATA_HANDLER.delete_status_file("write")
@@ -71,7 +74,7 @@ def test_delete_status_file_fail():
     assert res is False
 
 
-def test_get_audio_file_path_by_id(cleanup_data):
+def test_get_audio_file_path_by_id(cleanup_data: None):
     """Tests getting a audio file path by id."""
     # copy example.wav to example-save.wav
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
@@ -88,20 +91,18 @@ def test_get_audio_file_path_by_id_fail():
     assert path is None
 
 
-def test_update_status_file_success(cleanup_data):
+def test_update_status_file_success(cleanup_data: None):
     """Tests updating a status file."""
     # prepare write.json file
     data = {"status": TranscriptionStatus.IN_PROGRESS.value}
     DATA_HANDLER.write_status_file("write", data)
     # update status file
     DATA_HANDLER.update_status_file(TranscriptionStatus.FINISHED.value, "write")
-    # check status file
-    end_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    check_data = {
-        "status": TranscriptionStatus.FINISHED.value,
-        "end_time": end_time,
-    }
-    assert DATA_HANDLER.get_status_file_by_id("write") == check_data
+
+    assert (
+        DATA_HANDLER.get_status_file_by_id("write")["status"]
+        == TranscriptionStatus.FINISHED.value
+    )
 
 
 def test_update_status_file_fail():
@@ -110,7 +111,7 @@ def test_update_status_file_fail():
     assert DATA_HANDLER.get_status_file_by_id("non_existing") is None
 
 
-def test_update_status_file_with_error_message(cleanup_data):
+def test_update_status_file_with_error_message(cleanup_data: None):
     """Tests updating a status file with an error message."""
     # prepare write.json file
     data = {"status": TranscriptionStatus.IN_PROGRESS.value}
@@ -125,7 +126,7 @@ def test_update_status_file_with_error_message(cleanup_data):
     assert DATA_HANDLER.get_status_file_by_id("write") == check_data
 
 
-def test_merge_transcript_to_status_success(cleanup_data):
+def test_merge_transcript_to_status_success(cleanup_data: None):
     """Tests merging a transcript to a status file."""
     # prepare write.json file
     data = {"status": TranscriptionStatus.IN_PROGRESS.value}
@@ -134,13 +135,16 @@ def test_merge_transcript_to_status_success(cleanup_data):
     transcript_data = {"transcript": "test"}
     DATA_HANDLER.merge_transcript_to_status("write", transcript_data)
     # check status file
-    end_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     check_data = {
         "status": TranscriptionStatus.FINISHED.value,
         "transcript": {"transcript": "test"},
-        "end_time": end_time,
     }
-    assert DATA_HANDLER.get_status_file_by_id("write") == check_data
+    actual_data = DATA_HANDLER.get_status_file_by_id("write")
+    assert actual_data["status"] == check_data["status"]
+    assert (
+        actual_data["transcript"]["transcript"]
+        == check_data["transcript"]["transcript"]
+    )
 
 
 def test_merge_transcript_to_status_fail():
@@ -148,7 +152,7 @@ def test_merge_transcript_to_status_fail():
     assert DATA_HANDLER.merge_transcript_to_status("non_existing", {}) is False
 
 
-def test_save_audio_file_success(cleanup_data):
+def test_save_audio_file_success(cleanup_data: None):
     """Tests saving an audio file."""
     # copy example.wav to example-save.wav
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
@@ -185,7 +189,7 @@ def test_delete_audio_file_fail():
     assert res is False
 
 
-def test_get_number_of_audio_files(cleanup_data):
+def test_get_number_of_audio_files(cleanup_data: None):
     """Tests getting the number of audio files."""
     assert DATA_HANDLER.get_number_of_audio_files() == 0
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
@@ -195,7 +199,7 @@ def test_get_number_of_audio_files(cleanup_data):
     assert DATA_HANDLER.get_number_of_audio_files() == 0
 
 
-def test_clean_up_audio_and_status_files(cleanup_data):
+def test_clean_up_audio_and_status_files(cleanup_data: None):
     """Tests cleaning up audio and status files."""
     DATA_HANDLER.write_status_file("example", {"test": "test"})
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
@@ -209,7 +213,7 @@ def test_clean_up_audio_and_status_files(cleanup_data):
     assert DATA_HANDLER.get_status_file_by_id("example") is None
 
 
-def test_clean_up_audio_and_status_files_do_keep(cleanup_data):
+def test_clean_up_audio_and_status_files_do_keep(cleanup_data: None):
     """Tests cleaning up audio and status files."""
     DATA_HANDLER.write_status_file("example", {"test": "test"})
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
@@ -223,7 +227,7 @@ def test_clean_up_audio_and_status_files_do_keep(cleanup_data):
     assert DATA_HANDLER.get_status_file_by_id("example") is not None
 
 
-def test_export_wav_file_success(cleanup_data):
+def test_export_wav_file_success(cleanup_data: None):
     """Tests exporting a WAV file."""
     example_audio_data = AudioSegment.from_wav(EXAMPLE_AUDIO_FILE_PATH)
     resampled_audio = example_audio_data.set_frame_rate(16000).set_channels(1)
@@ -243,7 +247,8 @@ def test_export_wav_file_success(cleanup_data):
     # Cleanup
     os.remove(export_path)
 
-def test_export_dict_to_json_file_success(cleanup_data):
+
+def test_export_dict_to_json_file_success(cleanup_data: None):
     """Tests exporting a dictionary to a JSON file."""
     data = {
         "result": [

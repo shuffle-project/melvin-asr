@@ -4,12 +4,14 @@ import io
 import json
 import logging
 import os
-from datetime import datetime
-from pydub import AudioSegment
 import time
-from src.helper.types.transcription_status import TranscriptionStatus
+from datetime import datetime, timezone
+
+from pydub import AudioSegment
+
 from src.helper.config import CONFIG
 from src.helper.file_handler import FileHandler
+from src.helper.types.transcription_status import TranscriptionStatus
 
 
 class DataHandler:
@@ -84,7 +86,7 @@ class DataHandler:
         if data:
             data["status"] = status
             if status == TranscriptionStatus.FINISHED.value:
-                data["end_time"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                data["end_time"] = str(datetime.now(timezone.utc))
             if error_message is not None:
                 data["error_message"] = error_message
             self.file_handler.write_json(file_path, data)
