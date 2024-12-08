@@ -1,4 +1,5 @@
 """This File contains tests for the FileHandler class."""
+
 # ignore unused-import because of pytest fixtures
 # ruff: noqa: F811
 # ruff: noqa: F401
@@ -7,6 +8,7 @@ import json
 import os
 
 import pytest
+
 from src.helper.file_handler import FileHandler
 
 FILE_HANDLER = FileHandler()
@@ -38,7 +40,7 @@ def test_read_json_fail():
 
 def test_write_json_success(setup_and_teardown_file):
     """Tests writing a JSON file by writing the current time."""
-    time = datetime.datetime.now()
+    time = datetime.datetime.now(datetime.timezone.utc)
     data = {"time": str(time)}
     success = FILE_HANDLER.write_json(TEST_FILE_PATH, data)
     assert success is True
@@ -47,7 +49,7 @@ def test_write_json_success(setup_and_teardown_file):
 
 def test_write_json_fail():
     """Tests writing a non existing JSON file by writing the current time."""
-    time = datetime.datetime.now()
+    time = datetime.datetime.now(datetime.timezone.utc)
     data = {"time": str(time)}
     success = FILE_HANDLER.write_json("does/not/exist.json", data)
     assert success is False
