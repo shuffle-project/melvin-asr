@@ -120,9 +120,7 @@ class Runner:
                     if model != self.transcriber.model_name and model is not None:
                         continue
 
-                    current_datetime = datetime.fromisoformat(
-                        start_time.replace("Z", "+00:00")
-                    )
+                    current_datetime = datetime.fromisoformat(start_time)
                     if (
                         oldest_start_time is None
                         or current_datetime < oldest_start_time
