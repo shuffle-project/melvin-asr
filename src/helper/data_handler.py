@@ -86,7 +86,9 @@ class DataHandler:
         if data:
             data["status"] = status
             if status == TranscriptionStatus.FINISHED.value:
-                data["end_time"] = str(datetime.now(timezone.utc))
+                data["end_time"] = (
+                    datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+                )
             if error_message is not None:
                 data["error_message"] = error_message
             self.file_handler.write_json(file_path, data)

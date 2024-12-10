@@ -140,7 +140,7 @@ async def post_transcription(
     data = TranscriptionData(
         transcription_id=transcription_id,
         status=TranscriptionStatus.IN_QUERY.value,
-        start_time=datetime.now(timezone.utc).isoformat() + "Z",
+        start_time=datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         settings=settings_dict,
         model=model,
         task=task,
