@@ -17,3 +17,7 @@ python ./benchmark.py --help
 ```
 
 Running the benchmark depending on your settings and size of dataset might take a while.
+
+## Notes
+
+When using the `--scale-percentage` parameter keep in mind that results of this are only compareable to datasets that are read in the same order.
