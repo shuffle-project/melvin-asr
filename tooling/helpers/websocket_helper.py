@@ -6,7 +6,6 @@ from pydub import AudioSegment
 import requests
 import json
 from http import HTTPStatus
-
 from helpers.WER_helper import TRANSFORM_DEFAULT
 
 TRANSCRIPTION_WEBSOCKET_TIMEOUT = 15.0

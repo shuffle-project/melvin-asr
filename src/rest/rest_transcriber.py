@@ -111,7 +111,7 @@ class Transcriber:
     ) -> dict:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
-        result = model.transcribe_stable(audio, **settings)
+        result = model.transcribe(audio, **settings)
         data = parse_stable_whisper_result(result)
 
         return data

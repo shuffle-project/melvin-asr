@@ -7,6 +7,7 @@ import traceback
 from pydub import AudioSegment
 from src.helper import logger
 from src.helper.data_handler import DataHandler
+from src.helper.local_agreement import LocalAgreement
 from src.websocket.stream_transcriber import Transcriber
 
 # To Calculate the seconds of audio in a chunk of 16000 Hz, 2 bytes per sample and 1 channel (as typically used in Whisper):
@@ -24,7 +25,7 @@ PARTIAL_TRANSCRIPTION_TIMEOUT = 1
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int):
-        self.logger = logger.get_logger_with_id(__name__, id)
+        self.logger = logger.get_logger_with_id(__name__, str(id))
         self.transcriber = transcriber
         self.id = id
         self.close_stream = False
@@ -55,6 +56,8 @@ class Stream:
         self.final_treshold = BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
         self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
 
+        self.agreement = LocalAgreement()
+
     async def echo(self, websocket, path) -> None:
         while self.close_stream is False:
             try:
@@ -84,6 +87,7 @@ class Stream:
                         )
                         self.recently_added_chunk_cache = b""
                         self.chunk_cache = b""
+                        self.agreement.clear()
 
                     # Partial will be created
                     if len(self.recently_added_chunk_cache) >= self.partial_treshold:
@@ -136,11 +140,11 @@ class Stream:
 
     async def transcribe_all_chunk_cache(
         self, websocket, chunk_cache, recent_cache, skip_send=False
-    ) -> str:
+    ) -> None:
         """Function to transcribe a chunk of audio"""
         try:
             start_time = time.time()
-            result: str = ""
+            result = {}
             bytes_to_transcribe = self.last_final_bytes + chunk_cache
             data = self.transcriber._transcribe(
                 bytes_to_transcribe,
@@ -184,7 +188,6 @@ class Stream:
                             "result": words,
                             "text": " ".join([x["word"] for x in words]),
                         }
-
                 # Save text and bytes for later use
                 self.last_final_result_object = result
                 self.last_final_bytes = chunk_cache
@@ -204,25 +207,33 @@ class Stream:
 
     async def transcribe_chunk_partial(
         self, websocket, chunk_cache, recent_cache
-    ) -> str:
+    ) -> None:
         try:
             start_time = time.time()
             result: str = "Missing data"
 
-            data = self.transcriber._transcribe(
+            # idc about info
+            segments, _ = self.transcriber._transcribe_raw(
                 chunk_cache,
             )
             self.adjust_threshold_on_latency()
             self.overall_transcribed_bytes += recent_cache
-            if "segments" in data:
-                text = ""
-                for segment in data["segments"]:
-                    text += segment["text"]
+            new_words = []
+            for segment in list(segments):
+                if segment.words is None:
+                    continue
+                for word in segment.words:
+                    new_words.append(word)
+
+            self.agreement.merge(new_words)
+            text = self.agreement.get_confirmed_text()
+            if len(text) > 0:
                 result = json.dumps({"partial": text}, indent=2)
             else:
-                self.logger.error("Transcription Data is empty, no segments found")
+                self.logger.error(
+                    f"Transcription Data is empty, no segments found {text}"
+                )
             await websocket.send(result)
-
             end_time = time.time()
             self.logger.debug(
                 "Partial transcription took {:.2f} s".format(end_time - start_time)
