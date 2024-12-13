@@ -1,22 +1,20 @@
 import argparse
-
-import tqdm
 import time
-import jiwer
 
+import jiwer
+import tqdm
 from helpers.file_helper import (
+    get_expected_transcription,
     get_file_name,
     load_file_list,
-    get_expected_transcription,
 )
-
 from helpers.rest_helper import transcribe_file_rest
+from helpers.table_helpers import ERR_CODE, render_table
 from helpers.websocket_helper import (
     TRANSCRIPTION_WEBSOCKET_TIMEOUT,
     evaluate_partial_websocket,
     transcribe_file_websocket,
 )
-from helpers.table_helpers import render_table, ERR_CODE
 from helpers.WER_helper import TRANSFORM_DEFAULT
 
 
