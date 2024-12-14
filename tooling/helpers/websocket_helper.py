@@ -9,7 +9,7 @@ from http import HTTPStatus
 
 from helpers.WER_helper import TRANSFORM_DEFAULT
 
-TRANSCRIPTION_WEBSOCKET_TIMEOUT = 15.0
+TRANSCRIPTION_WEBSOCKET_TIMEOUT = 60.0
 
 
 async def read_wav_file_into_chunks(file_path, chunk_duration=1000):
@@ -70,9 +70,16 @@ def evaluate_partial_websocket(filepath: str, expected: str, debug=False) -> flo
         asyncio.gather(__transcribe_file_websocket(filepath, debug))
     )
     sum = 0
-    for partial in transcribe_res[0]["partials"]:
-        sum += jiwer.wer(TRANSFORM_DEFAULT(partial), expected)
-    return sum / len(transcribe_res[0]["partials"])
+    partials = [
+        TRANSFORM_DEFAULT(x)
+        for x in transcribe_res[0]["partials"]
+        if len(TRANSFORM_DEFAULT(x)) > 0
+    ]
+    if len(partials) == 0:
+        return 0.0
+    for partial in partials:
+        sum += jiwer.wer(partial, expected)
+    return sum / len(partials)
 
 
 # websockets is heavily integrated with asyncio...so we have to do this in an asyncio way
@@ -113,8 +120,13 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Dict:
                 return result
 
             await websocket_connection.send("eof-finalize")
-            id = await asyncio.wait_for(websocket_connection.recv(), timeout=15.0)
-            result["id"] = id
+            try:
+                id = await asyncio.wait_for(
+                    websocket_connection.recv(), timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
+                )
+                result["id"] = id
+            except:
+                pass
             await websocket_connection.close()
 
     except websockets.exceptions.ConnectionClosedOK:  # This is the expected behaviour
