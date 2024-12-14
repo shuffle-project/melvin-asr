@@ -2,9 +2,8 @@
 
 import logging
 
-from faster_whisper.transcribe import TranscriptionOptions
 import stable_whisper
-from faster_whisper import WhisperModel
+from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from src.helper.model_handler import ModelHandler
 from src.helper.segment_info_parser import parse_stable_whisper_result
@@ -115,8 +114,12 @@ class Transcriber:
         # cannot use transcribe_stable because it performs illegal actions on segment
         # issue likely resides here:
         # https://github.com/jianfch/stable-ts/blob/9fe1bf511862dccb669ff27f5fae9ae206b91a10/stable_whisper/whisper_word_level/faster_whisper.py#L204
-        result = model.transcribe(audio, **settings)
-        result = {"segments": result[0]}
+
+        batched_model = BatchedInferencePipeline(model=model)
+        segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
+
+        #result = model.transcribe(audio, **settings)
+        result = {"segments": segments}
         # TODO: Maybe alignint the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
         data = parse_stable_whisper_result(result)
         return data
