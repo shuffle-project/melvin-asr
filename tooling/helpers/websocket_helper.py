@@ -125,7 +125,7 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Dict:
                     websocket_connection.recv(), timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
                 )
                 result["id"] = id
-            except:
+            except Exception:
                 pass
             await websocket_connection.close()
 
