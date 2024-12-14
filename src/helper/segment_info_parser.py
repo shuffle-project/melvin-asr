@@ -23,8 +23,7 @@ def parse_transcription_info_to_dict(info) -> dict:
         json_list = asdict(options)
         # should return a list of values
         if not isinstance(json_list, list):
-            print("parse_transcription_info_to_dict: options is not a list")
-            return options
+            return json_list
 
         filtered_options = []
         for item in json_list:
