@@ -41,5 +41,5 @@ def transcribe_file_rest(filepath: str, api_key: str) -> str:
     )
     try:
         return transcription_result.json()["transcript"]["text"]
-    except:
+    except Exception:
         return ""
