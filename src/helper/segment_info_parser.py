@@ -18,23 +18,6 @@ def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
 def parse_transcription_info_to_dict(info) -> dict:
     """Parses the transcription info to a dictionary"""
 
-    def filter_infinity_values(options):
-        """Filters out infinity values or replaces them with a string representation."""
-        json_list = asdict(options)
-        # should return a list of values
-        if not isinstance(json_list, list):
-            return json_list
-
-        filtered_options = []
-        for item in json_list:
-            if isinstance(item, float) and math.isinf(item):
-                filtered_options.append("Infinity" if item > 0 else "-Infinity")
-            elif isinstance(item, float) and math.isnan(item):
-                filtered_options.append("NaN")
-            else:
-                filtered_options.append(item)
-        return filtered_options
-
     info_dict = {
         "language": info.language,
         "language_probability": info.language_probability,
@@ -42,8 +25,12 @@ def parse_transcription_info_to_dict(info) -> dict:
         "duration_after_vad": info.duration_after_vad,
         # do not include all_language_probs because it is too large
         # "all_language_probs": info.all_language_probs,
-        "transcription_options": filter_infinity_values(info.transcription_options),
-        "vad_options": filter_infinity_values(info.vad_options),
+        "transcription_options": asdict(info.transcription_options)
+        if info.transcription_options is not None
+        else None,
+        "vad_options": asdict(info.vad_options)
+        if info.vad_options is not None
+        else None,
     }
     return info_dict
 
