@@ -1,6 +1,5 @@
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
-import math
 from dataclasses import asdict
 
 

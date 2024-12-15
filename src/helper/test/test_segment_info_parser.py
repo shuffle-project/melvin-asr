@@ -1,6 +1,5 @@
 """This File contains tests for the parser functions."""
 
-from math import inf
 import pytest
 from faster_whisper.transcribe import (
     TranscriptionInfo,
