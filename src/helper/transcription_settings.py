@@ -20,7 +20,7 @@
 #     below this value, treat as failed.
 #   - no_speech_threshold: If the no_speech probability is higher than this value AND
 #     the average log probability over sampled tokens is below log_prob_threshold, consider the segment as silent.
-#   - log_progress: whether to show progress bar or not.
+#   - log_progress: whether or not to show the progress bar.
 #   - condition_on_previous_text: If True, the previous output of the model is provided
 #     as a prompt for the next window; disabling may make the text inconsistent across windows, but the model becomes less prone to getting stuck in a failure loop, such as repetition looping or timestamps going out of sync.
 #   - prompt_reset_on_temperature: Resets prompt if temperature is above this value.
