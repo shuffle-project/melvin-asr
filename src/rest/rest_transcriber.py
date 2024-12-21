@@ -120,7 +120,7 @@ class Transcriber:
 
         #result = model.transcribe(audio, **settings)
         result = {"segments": segments}
-        # TODO: Maybe alignint the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
+        # TODO: Maybe aligning the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
         data = parse_stable_whisper_result(result)
         return data
 
