@@ -1,9 +1,9 @@
-# config_dev.yml
+# config.local.yml
 # This file is used to configure the service locally for development
 
 log_level: DEBUG
 host: "localhost"
-api_keys: 
+api_keys:
   - "shuffle2024"
   - "api_key_1"
   - "api_key_2"
@@ -21,15 +21,15 @@ transcription_default:
 
 websocket_stream:
   cpu:
-    # Loads a model on CPU that is used for transcription of the audio stream, 
+    # Loads a model on CPU that is used for transcription of the audio stream,
     # if GPU is active as well this is the fallback.
     active: True
     # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
     model: tiny
     # cpu_threads: Only for CPU, depends on the type of CPU, try out different values to find the best one
-        # for 128 cores, use 8/16
-        # for 64 cores, use 4/8
-        # for 32 cores, use 2/4
+    # for 128 cores, use 8/16
+    # for 64 cores, use 4/8
+    # for 32 cores, use 2/4
     cpu_threads: 4
     # Number of streams that can be processed in parallel by the CPU
     worker_seats: 2
@@ -44,18 +44,18 @@ websocket_stream:
     worker_seats: 1
 
 rest_runner:
-      # device: "cpu" or "cuda"
-  -   device: cpu
-      # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
-      model: large-v3-turbo
-      # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
-      compute_type: int8
-      # device_index: Only for Cuda, device_index is the index of the GPU, see CLI "nvidia-smi"
-      device_index: 0
-      # num_workers: Only for CPU, in our setup it should always be 1 or 2
-      num_workers: 1
-      # cpu_threads: Only for CPU, depends on the type of CPU, try out different values to find the best one
-        # for 128 cores, use 8/16
-        # for 64 cores, use 4/8
-        # for 32 cores, use 2/4
-      cpu_threads: 4
+  # device: "cpu" or "cuda"
+  - device: cpu
+    # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
+    model: large-v3-turbo
+    # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
+    compute_type: int8
+    # device_index: Only for Cuda, device_index is the index of the GPU, see CLI "nvidia-smi"
+    device_index: 0
+    # num_workers: Only for CPU, in our setup it should always be 1 or 2
+    num_workers: 1
+    # cpu_threads: Only for CPU, depends on the type of CPU, try out different values to find the best one
+    # for 128 cores, use 8/16
+    # for 64 cores, use 4/8
+    # for 32 cores, use 2/4
+    cpu_threads: 4
