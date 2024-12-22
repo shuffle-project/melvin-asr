@@ -189,3 +189,52 @@ async def get_stream_audio_export(transcription_id: str):
             "Content-Disposition": f"attachment; filename={transcription_id}.wav",
         },
     )
+
+
+@app.get("/translate/{target_language}", dependencies=[Depends(require_api_key)])
+async def translate_text(target_language: str, file: UploadFile = File(...)):
+    """Translate text to a target language."""
+    if target_language not in config["supported_language_codes"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported language code: {target_language}",
+        )
+
+    try:
+        file_content = await file.read()
+        transcription_data = json.loads(file_content)
+
+        # Validate the data against the TranscriptionData model
+        transcription = TranscriptionData(**transcription_data)
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid JSON format. Please upload a valid JSON file.",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing file: {e}")
+
+    if not transcription.text:
+        raise HTTPException(
+            status_code=400,
+            detail="No text provided in the transcription data to translate.",
+        )
+
+    # TODO: Replace mock translation logic
+    translated_text = f"Translated '{transcription.text}' to {target_language}"
+
+    response_data = TranscriptionData(
+        transcription_id=transcription.transcription_id,
+        status=transcription.status,
+        start_time=transcription.start_time,
+        settings=transcription.settings,
+        model=transcription.model,
+        task=transcription.task,
+        text=translated_text,
+        language=target_language,
+    )
+
+    return JSONResponse(
+        content=response_data.model_dump(),
+        status_code=200,
+    )
