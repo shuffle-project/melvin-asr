@@ -191,7 +191,7 @@ async def get_stream_audio_export(transcription_id: str):
     )
 
 
-@app.get("/translate/{target_language}", dependencies=[Depends(require_api_key)])
+@app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
 async def translate_text(target_language: str, file: UploadFile = File(...)):
     """Translate text to a target language."""
     if target_language not in config["supported_language_codes"]:
@@ -230,9 +230,12 @@ async def translate_text(target_language: str, file: UploadFile = File(...)):
         settings=transcription.settings,
         model=transcription.model,
         task=transcription.task,
-        text=translated_text,
+        text=transcription.text,
         language=target_language,
     )
+    response_data.transcript = {
+        "text": translated_text
+    }  # TODO: add segments and end_time
 
     return JSONResponse(
         content=response_data.model_dump(),
