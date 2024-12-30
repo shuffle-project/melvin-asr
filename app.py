@@ -5,6 +5,7 @@ import multiprocessing
 import os
 import signal
 import sys
+from src.helper.data_handler import DataHandler
 from src.helper.logger import init_logger, set_global_loglevel
 from src.helper.config import CONFIG
 from src.rest.run import run_rest_api
@@ -42,6 +43,7 @@ def run(port, websocket_port, host):
 if __name__ == "__main__":
     set_global_loglevel(CONFIG.get("log_level", "INFO"))
     LOGGER.debug(str(CONFIG))
+    DataHandler.cleanup_interrupted_jobs()
     try:
         run(CONFIG["rest_port"], CONFIG["websocket_port"], CONFIG["host"])
     except KeyboardInterrupt:
