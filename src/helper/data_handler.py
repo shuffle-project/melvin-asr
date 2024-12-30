@@ -4,7 +4,6 @@ import io
 import json
 import logging
 import os
-from os.path import isfile
 import time
 from datetime import datetime, timezone
 
