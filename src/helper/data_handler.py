@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import os
+from os.path import isfile
 import time
 from datetime import datetime, timezone
 
@@ -253,3 +254,43 @@ class DataHandler:
             audio.export(buffer, format="wav")
             return buffer.getvalue()
         return None
+
+    @staticmethod
+    def cleanup_interrupted_jobs() -> None:
+        """
+        Finds and removes jobs/status files for jobs that were running when a previous instance terminated.
+        These jobs could never be recovered and stuck in "in_progress"
+        """
+        # no join because the provided status file path has the format of an absolute path
+        status_dir_base_path = os.getcwd() + CONFIG["status_file_path"]
+        existing_status_files = [
+            x
+            for x in os.listdir(status_dir_base_path)
+            if os.path.isfile(os.path.join(status_dir_base_path, x))
+        ]
+
+        # Files that are stuck in progress
+        removed_stuck_counter = 0
+        # Files with unreadable json
+        removed_corrupted_counter = 0
+        for file in existing_status_files:
+            # This file is allowed to be there even though it is not valid json
+            if file == ".gitignore":
+                continue
+            filepath = os.path.join(status_dir_base_path, file)
+            try:
+                with open(filepath) as f:
+                    data = json.load(f)
+            except json.JSONDecodeError:
+                os.remove(filepath)
+                removed_corrupted_counter += 1
+                continue
+            print(data["status"])
+            if data["status"] != TranscriptionStatus.IN_PROGRESS.value:
+                continue
+            os.remove(filepath)
+            removed_stuck_counter += 1
+
+        logging.getLogger(__name__).info(
+            f"Initial file cleanup removed {removed_stuck_counter+removed_corrupted_counter} Status files ({removed_corrupted_counter} corrupted files, {removed_stuck_counter} irrecoverable files)"
+        )

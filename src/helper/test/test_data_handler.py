@@ -277,3 +277,29 @@ def test_export_dict_to_json_file_success(cleanup_data: None):
 
     # Cleanup
     os.remove(export_path)
+
+
+def test_cleanup_interrupted_jobs():
+    """
+    Tests cleaning up on instance start
+
+    This test specifically ignores the impact on the status file directory to not delete existing files
+    """
+
+    base_amount = len(os.listdir(DATA_HANDLER.status_path))
+
+    DATA_HANDLER.write_status_file("example_irrecoverable", {"status": "in_progress"})
+    DATA_HANDLER.write_status_file("example_fine", {"status": "error"})
+    file_path = os.path.join(DATA_HANDLER.status_path, "invalid_json")
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write("no json")
+
+    assert DATA_HANDLER.get_status_file_by_id("example_irrecoverable") is not None
+    assert DATA_HANDLER.get_status_file_by_id("example_fine") is not None
+    assert len(os.listdir(DATA_HANDLER.status_path)) == base_amount + 3
+
+    DATA_HANDLER.cleanup_interrupted_jobs()
+    assert DATA_HANDLER.get_status_file_by_id("example_irrecoverable") is None
+    assert DATA_HANDLER.get_status_file_by_id("example_fine") is not None
+    # 2 Files should be cleaned up
+    assert len(os.listdir(DATA_HANDLER.status_path)) == base_amount + 1
