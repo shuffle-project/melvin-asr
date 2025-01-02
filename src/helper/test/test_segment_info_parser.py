@@ -78,8 +78,8 @@ VAD_OPTIONS_SAMPLE: VadOptions = VadOptions()
 
 # These values are hardcoded within the data class
 VAD_OPTIONS_SAMPLE_EXPECTED_DICT = {
-    "onset": 0.5,
-    "offset": 0.35,
+    "threshold": 0.5,
+    "neg_threshold": None,
     "min_speech_duration_ms": 0,
     "max_speech_duration_s": float("inf"),
     "min_silence_duration_ms": 2000,
