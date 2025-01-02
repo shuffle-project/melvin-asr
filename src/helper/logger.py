@@ -69,7 +69,9 @@ def init_logger() -> None:
     console = logging.StreamHandler()
     # set a format which is simpler for console use
     # Note: identifier is only given by some classes that use this similar to a traceID
-    formatter = LogFormatter("[%(asctime)s %(name)s] %(levelname)s %(message)s")
+    formatter = LogFormatter(
+        "[%(asctime)s %(name)s:%(lineno)d] %(levelname)s %(message)s"
+    )
     # tell the handler to use this format
     console.setFormatter(formatter)
     # set to be the only logger
@@ -84,7 +86,7 @@ def get_logger_with_id(name: str, id: str) -> logging.LoggerAdapter:
     additional_data = {"identifier": f"({id})"}
     base_logger = logging.getLogger(name)
     formatter = LogFormatter(
-        "[%(asctime)s %(name)s] %(levelname)s %(message)s (%(identifier)s)"
+        "[%(asctime)s %(name)s:%(lineno)d] %(levelname)s %(message)s (%(identifier)s)"
     )
     console = logging.StreamHandler()
     console.setFormatter(formatter)

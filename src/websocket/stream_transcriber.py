@@ -3,7 +3,7 @@
 import io
 import wave
 
-from faster_whisper import WhisperModel
+from faster_whisper import WhisperModel, BatchedInferencePipeline
 from faster_whisper.utils import logging
 
 from src.helper.model_handler import ModelHandler
@@ -43,6 +43,8 @@ class Transcriber:
         self._cpu_threads = cpu_threads
         self._num_workers = num_workers
         self._model: WhisperModel = self._load_model()
+        self._batched_model = BatchedInferencePipeline(model=self._model)
+
 
     @classmethod
     def for_gpu(cls, model_name: str, device_index: list):
@@ -100,6 +102,6 @@ class Transcriber:
             settings = TranscriptionSettings().get_and_update_settings(
                 {"initial_prompt": prompt}
             )
-            segments, info = self._model.transcribe(wav_io, **settings)
+            segments, info = self._batched_model.transcribe(wav_io, batch_size=16, **settings)
             result = parse_segments_and_info_to_dict(segments, info)
         return result

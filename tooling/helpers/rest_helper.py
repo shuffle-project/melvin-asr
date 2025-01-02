@@ -39,4 +39,7 @@ def transcribe_file_rest(filepath: str, api_key: str) -> str:
         f"http://localhost:8393/transcriptions/{id}",
         headers={"Authorization": api_key},
     )
-    return transcription_result.json()["transcript"]["text"]
+    try:
+        return transcription_result.json()["transcript"]["text"]
+    except Exception:
+        return ""
