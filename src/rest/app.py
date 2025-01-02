@@ -1,5 +1,6 @@
 import json
 import logging
+from random import choices
 import time
 import uuid
 from datetime import datetime, timezone
@@ -106,7 +107,9 @@ async def post_transcription(
     file: UploadFile = File(...),
     language: str | None = Form("en"),
     settings: str | None = Form("{}"),
-    model: str | None = Form("large-v3-turbo"),  # TODO: Make this dynamic
+    # Random selection of available models.
+    # This should prevent requests without specified model from 'clogging' the runner of one specific model
+    model: str | None = Form(choices(config["rest_models"])),
     task: str = Form("transcribe"),
     text: str | None = Form(""),
 ):
