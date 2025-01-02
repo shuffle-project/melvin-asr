@@ -106,7 +106,7 @@ async def post_transcription(
     file: UploadFile = File(...),
     language: str | None = Form("en"),
     settings: str | None = Form("{}"),
-    model: str | None = Form("large-v3"),
+    model: str | None = Form("large-v3-turbo"),  # TODO: Make this dynamic
     task: str = Form("transcribe"),
     text: str | None = Form(""),
 ):
@@ -115,6 +115,12 @@ async def post_transcription(
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported language code: {language}",
+        )
+
+    if model and model not in config["rest_models"]:
+        raise HTTPException(
+            status_code=418,
+            detail=f'Requested Model not available. Requested: {model} Configured Models: {", ".join(config["rest_models"])}. A teapot cannot brew coffee.',
         )
 
     transcription_id = str(uuid.uuid4())
