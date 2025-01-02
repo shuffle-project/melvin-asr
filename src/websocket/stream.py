@@ -192,23 +192,16 @@ class Stream:
             start_time = time.time()
             result: str = "Missing data"
 
-            # idc about info
-            segments, _ = self.transcriber._transcribe_raw(
-                chunk_cache,
-            )
+            # Pass the chunk to the transcriber
+            data = self.transcriber._transcribe(chunk_cache + recent_cache)
+
             self.adjust_threshold_on_latency()
 
             self.overall_transcribed_bytes += recent_cache
-            new_words = []
-            for segment in list(segments):
-                if segment.words is None:
-                    continue
-                for word in segment.words:
-                    new_words.append(word)
-
-            self.agreement.merge(new_words)
-            text = self.agreement.get_confirmed_text()
-            if len(text) > 0:
+            if "segments" in data:
+                text = ""
+                for segment in data["segments"]:
+                    text += segment["text"]
                 result = json.dumps({"partial": text}, indent=2)
             else:
                 self.logger.error("Transcription Data is empty, no segments found")
