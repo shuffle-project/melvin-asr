@@ -9,7 +9,6 @@ from faster_whisper.utils import logging
 from faster_whisper.transcribe import TranscriptionInfo, Segment
 
 from src.helper.model_handler import ModelHandler
-from src.helper.segment_info_parser import parse_segments_and_info_to_dict
 from src.helper.transcription_settings import TranscriptionSettings
 
 LOGGER = logging.getLogger(__name__)
