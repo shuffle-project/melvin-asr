@@ -111,14 +111,14 @@ class Transcriber:
     ) -> dict:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
+
         # cannot use transcribe_stable because it performs illegal actions on segment
         # issue likely resides here:
         # https://github.com/jianfch/stable-ts/blob/9fe1bf511862dccb669ff27f5fae9ae206b91a10/stable_whisper/whisper_word_level/faster_whisper.py#L204
-
         batched_model = BatchedInferencePipeline(model=model)
         segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
 
-        #result = model.transcribe(audio, **settings)
+        # result = model.transcribe(audio, **settings)
         result = {"segments": segments}
         # TODO: Maybe aligning the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
         data = parse_stable_whisper_result(result)

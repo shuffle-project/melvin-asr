@@ -284,7 +284,6 @@ class DataHandler:
                 os.remove(filepath)
                 removed_corrupted_counter += 1
                 continue
-            print(data["status"])
             if data["status"] != TranscriptionStatus.IN_PROGRESS.value:
                 continue
             os.remove(filepath)

@@ -27,7 +27,7 @@ websocket_stream:
     # Loads a model on CPU that is used for transcription of the audio stream, 
     # if GPU is active as well this is the fallback.
     active: True
-    # model: tiny, small, medium, large, large-v3 (https://huggingface.co/Systran)
+    # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
     model: tiny
     # cpu_threads: Only for CPU, depends on the type of CPU, try out different values to find the best one
         # for 128 cores, use 8/16
@@ -39,7 +39,7 @@ websocket_stream:
 
   cuda:
     active: False
-    # model: tiny, small, medium, large, large-v3 (https://huggingface.co/Systran)
+    # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
     model: tiny
     # device_index: Only for Cuda, device_index is the index of the GPU, see CLI "nvidia-smi"
     device_index: 0
@@ -49,7 +49,7 @@ websocket_stream:
 rest_runner:
       # device: "cpu" or "cuda"
   -   device: cpu
-      # model: tiny, small, medium, large, large-v3 (https://huggingface.co/Systran)
+      # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
       model: large-v3
       # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
       compute_type: int8

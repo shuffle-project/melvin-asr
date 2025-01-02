@@ -125,7 +125,7 @@ async function requestTranscription() {
     formData.append('test', 'test');
     formData.append('language', 'en');
     formData.append('settings', '{"test": "test"}');
-    formData.append('model', 'large-v3');
+    formData.append('model', 'large-v3-turbo');
 
     responseContainer.textContent = 'Calling API...';
 
