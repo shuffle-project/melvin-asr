@@ -3,7 +3,6 @@ import json
 import time
 import uuid
 import traceback
-import uuid
 
 from fastapi import WebSocket, WebSocketDisconnect
 from pydub import AudioSegment
