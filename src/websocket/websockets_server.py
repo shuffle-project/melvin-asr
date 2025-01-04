@@ -39,10 +39,7 @@ class WebSocketServer:
 
         # Setup GPU Transcriber
         if self.gpu_config["active"]:
-            if not all(
-                self.gpu_config.get(key)
-                for key in ["model", "device_index", "worker_seats"]
-            ):
+            if not all (key in list(self.gpu_config.keys()) for key in ["model", "device_index", "worker_seats"]):
                 LOGGER.warning("GPU Config is not set correctly")
                 raise ValueError("GPU Config is not set correctly")
             self.gpu_transcriber = Transcriber.for_gpu(
