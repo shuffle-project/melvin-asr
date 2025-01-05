@@ -1,12 +1,31 @@
-from pydantic import BaseModel
+from typing import Dict, List, Optional, TypedDict
 
 
-class TranscriptionData(BaseModel):
+class Word(TypedDict):
+    text: str
+    start: float
+    end: float
+    probability: float
+
+
+class Segment(TypedDict):
+    text: str
+    start: float
+    end: float
+    words: List[Word]
+
+
+class Transcript(TypedDict):
+    text: str
+    segments: List[Segment]
+
+
+class TranscriptionData(TypedDict):
     transcription_id: str
     status: str
     start_time: str
-    settings: dict | None = None
-    model: str | None = None
+    settings: Dict[str, object]
+    model: str
     task: str
-    text: str | None = None
-    language: str | None = None
+    language: str
+    transcript: Transcript
