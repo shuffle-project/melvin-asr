@@ -14,6 +14,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.time_it import time_it
+from src.helper.translate import translate_text
 from src.helper.types.transcription_data import TranscriptionData
 from src.helper.types.transcription_status import TranscriptionStatus
 
@@ -191,8 +192,9 @@ async def get_stream_audio_export(transcription_id: str):
     )
 
 
+@time_it
 @app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
-async def translate_text(target_language: str, file: UploadFile = File(...)):
+async def translate(target_language: str, file: UploadFile = File(...)):
     """Translate text to a target language."""
     if target_language not in config["supported_language_codes"]:
         raise HTTPException(
@@ -203,8 +205,6 @@ async def translate_text(target_language: str, file: UploadFile = File(...)):
     try:
         file_content = await file.read()
         transcription_data = json.loads(file_content)
-
-        # Validate the data against the TranscriptionData model
         transcription = TranscriptionData(**transcription_data)
     except json.JSONDecodeError:
         raise HTTPException(
@@ -214,30 +214,24 @@ async def translate_text(target_language: str, file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing file: {e}")
 
-    if not transcription.text:
+    if not transcription["transcript"]["text"]:
         raise HTTPException(
             status_code=400,
             detail="No text provided in the transcription data to translate.",
         )
 
-    # TODO: Replace mock translation logic
-    translated_text = f"Translated '{transcription.text}' to {target_language}"
-
-    response_data = TranscriptionData(
-        transcription_id=transcription.transcription_id,
-        status=transcription.status,
-        start_time=transcription.start_time,
-        settings=transcription.settings,
-        model=transcription.model,
-        task=transcription.task,
-        text=transcription.text,
-        language=target_language,
+    translated_text = translate_text(
+        transcription["transcript"]["text"], transcription["language"], target_language
     )
-    response_data.transcript = {
-        "text": translated_text
-    }  # TODO: add segments and end_time
 
-    return JSONResponse(
-        content=response_data.model_dump(),
-        status_code=200,
-    )
+    attributes = {**transcription}
+    attributes["language"] = target_language
+    attributes["transcript"]["text"] = translated_text
+
+    # Adding placeholder for segments and end_time if needed
+    # attributes["transcript"].setdefault("segments", [])
+    # attributes.setdefault("end_time", "00:00:00")
+
+    response_data = TranscriptionData(**attributes)
+
+    return JSONResponse(content=response_data, status_code=200)
