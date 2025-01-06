@@ -23,3 +23,10 @@ def get_expected_transcription(path: str):
 
 def get_file_name(path, scale):
     return path.replace(f"{os.path.join(DATA_BASE_PATH, scale)}/", "")
+
+def clean_export_dir():
+    dir = os.path.join(os.getcwd(), "export")
+    for f in os.listdir(dir):
+        if not f.endswith(".json"):
+            continue
+        os.remove(os.path.join(dir, f))

@@ -1,5 +1,8 @@
+from http import HTTPStatus
 import requests
 import time
+
+from helpers.data_helper import RestResult
 
 
 def await_transcription_finish(id: str, api_key: str):
@@ -21,7 +24,9 @@ def await_transcription_finish(id: str, api_key: str):
                 is_finished = True
 
 
-def transcribe_file_rest(filepath: str, api_key: str) -> str:
+def transcribe_file_rest(filepath: str, api_key: str) -> RestResult:
+    result = RestResult()
+    start_time = time.time()
     r = None
     with open(filepath, "rb") as f:
         r = requests.post(
@@ -29,10 +34,10 @@ def transcribe_file_rest(filepath: str, api_key: str) -> str:
             files={"file": f},
             headers={"Authorization": api_key},
         )
-    if r.status_code != 200:
-        print(r.status_code)
-        print("Something went wrong")
-        return ""
+    if r.status_code != HTTPStatus.OK:
+        print(f"Unexpected HTTP response from REST: Wanted {HTTPStatus.OK} got {r.status_code}")
+        result.faulty = True
+        return result
     id = r.json()["transcription_id"]
     await_transcription_finish(id, api_key)
     transcription_result = requests.get(
@@ -40,6 +45,8 @@ def transcribe_file_rest(filepath: str, api_key: str) -> str:
         headers={"Authorization": api_key},
     )
     try:
-        return transcription_result.json()["transcript"]["text"]
+        result.transcript = transcription_result.json()["transcript"]["text"]
+        result.duration = time.time() - start_time
     except Exception:
-        return ""
+        result.faulty = True
+    return result

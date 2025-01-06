@@ -1,13 +1,12 @@
 import asyncio
-from typing import Dict
-import jiwer
+import time
+from typing import List, Tuple
+from helpers.data_helper import WebsocketResult, WebsocketResultBlock
 import websockets
 from pydub import AudioSegment
 import requests
 import json
 from http import HTTPStatus
-
-from helpers.WER_helper import TRANSFORM_DEFAULT
 
 TRANSCRIPTION_WEBSOCKET_TIMEOUT = 60.0
 
@@ -31,7 +30,7 @@ def safe_to_json(text: str) -> dict | None:
 
 
 # TODO: this function can be merged with the rest transcription once the export apis for rest and websockets have been unified
-def fetch_transcription(id: str, api_key: str):
+def fetch_transcription(id: str, api_key: str) -> str:
     # This means the returned id is NOT! a transcription id
     if len(id) > 32 or len(id) == 0 or not id.isalnum():
         return ""
@@ -53,40 +52,37 @@ def fetch_transcription(id: str, api_key: str):
     # Faulty files are marked in the final table either way
     return ""
 
-
-# Wrap asyncio execution
-def transcribe_file_websocket(filepath: str, api_key: str, debug=False) -> str:
+def transcribe_file_websocket(filepath: str, api_key:str, debug=False) -> WebsocketResult:
+    result = WebsocketResult()
+    start_time = time.time()
     loop = asyncio.get_event_loop()
-    transcribe_res = loop.run_until_complete(
+    res = loop.run_until_complete(
         asyncio.gather(__transcribe_file_websocket(filepath, debug))
     )
-    result = fetch_transcription(transcribe_res[0]["id"], api_key)
+    partials, transciption_id  = res[0]
+    if  partials is None or len(transciption_id) == 0:
+        result.faulty = True
+        return result
+
+    result.partial_blocks = partials
+    result.duration = time.time() - start_time
+
+    fetched_transcript = fetch_transcription(transciption_id, api_key)
+
+    if len(fetched_transcript) == 0:
+        result.faulty = True
+        return result
+
+    result.combined_transcript = fetched_transcript 
+
     return result
 
-
-def evaluate_partial_websocket(filepath: str, expected: str, debug=False) -> float:
-    loop = asyncio.get_event_loop()
-    transcribe_res = loop.run_until_complete(
-        asyncio.gather(__transcribe_file_websocket(filepath, debug))
-    )
-    sum = 0
-    partials = [
-        TRANSFORM_DEFAULT(x)
-        for x in transcribe_res[0]["partials"]
-        if len(TRANSFORM_DEFAULT(x)) > 0
-    ]
-    if len(partials) == 0:
-        return 0.0
-    for partial in partials:
-        sum += jiwer.wer(partial, expected)
-    return sum / len(partials)
-
-
 # websockets is heavily integrated with asyncio...so we have to do this in an asyncio way
-async def __transcribe_file_websocket(filepath: str, debug=False) -> Dict:
+async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[WebsocketResultBlock] | None, str]:
     audio_data = await read_wav_file_into_chunks(filepath)
-    messages = []
-    result = {"id": "", "partials": []}
+    result: List[WebsocketResultBlock] = [WebsocketResultBlock()]
+    id: str = ""
+    message_count = 0
     try:
         async with websockets.connect("ws://localhost:8394") as websocket_connection:
             while True:
@@ -97,38 +93,37 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Dict:
                         websocket_connection.recv(),
                         timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT,
                     )
-                    messages.append(message)
+                    message_count+=1
                     try:
                         d = json.loads(message)
                         if "partial" in d:
-                            result["partials"].append(d["partial"])
+                            result[-1].partials.append(d["partial"])
                             if debug:
                                 print(f"Partial: {d['partial']}")
                         elif "text" in d:
-                            pass
-                            # result["partials"].append(d["text"])
-                            # if debug:
-                            # print(f"Final: {d['text']}")
+                            result[-1].final = d["text"]
+                            result.append(WebsocketResultBlock())
+                            if debug:
+                                print(f"Final: {d['text']}")
 
                     except json.JSONDecodeError:
                         pass
                 except asyncio.TimeoutError:
-                    if len(messages) != 0:
+                    if message_count != 0:
                         break
-            if len(messages) == 0:
+            if message_count == 0:
                 print(f"Empty messages for filepath {filepath}. This should not happen")
-                return result
+                return (None, id)
 
             await websocket_connection.send("eof-finalize")
             try:
                 id = await asyncio.wait_for(
                     websocket_connection.recv(), timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
                 )
-                result["id"] = id
             except Exception:
                 pass
             await websocket_connection.close()
-
     except websockets.exceptions.ConnectionClosedOK:  # This is the expected behaviour
         pass
-    return result
+    return (result, id)
+
