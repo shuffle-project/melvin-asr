@@ -1,7 +1,6 @@
 import os
 import time
 
-import scipy
 import torchaudio
 from transformers import AutoProcessor, SeamlessM4Tv2Model
 
