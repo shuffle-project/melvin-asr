@@ -196,6 +196,7 @@ async def get_stream_audio_export(transcription_id: str):
 @app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
 async def translate(target_language: str, file: UploadFile = File(...)):
     """Translate text to a target language."""
+    # TODO: Here the supported language codes might differ
     if target_language not in config["supported_language_codes"]:
         raise HTTPException(
             status_code=400,
@@ -220,18 +221,23 @@ async def translate(target_language: str, file: UploadFile = File(...)):
             detail="No text provided in the transcription data to translate.",
         )
 
+    transcription["start_time"] = (
+        datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    )
     translated_text = translate_text(
         transcription["transcript"]["text"], transcription["language"], target_language
     )
 
-    attributes = {**transcription}
-    attributes["language"] = target_language
-    attributes["transcript"]["text"] = translated_text
+    # aligned_text = align_text(transcription["transcript"], translated_text)
+    for segment in transcription["transcript"]["segments"]:
+        segment["text"] = translate_text(
+            segment["text"], transcription["language"], target_language
+        )
 
-    # Adding placeholder for segments and end_time if needed
-    # attributes["transcript"].setdefault("segments", [])
-    # attributes.setdefault("end_time", "00:00:00")
+    transcription["language"] = target_language
+    transcription["transcript"]["text"] = translated_text
+    transcription["end_time"] = (
+        datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    )
 
-    response_data = TranscriptionData(**attributes)
-
-    return JSONResponse(content=response_data, status_code=200)
+    return JSONResponse(content=transcription, status_code=200)
