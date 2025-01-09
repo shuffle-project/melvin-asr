@@ -52,8 +52,8 @@ def fetch_transcription(id: str, api_key: str) -> str:
     # Faulty files are marked in the final table either way
     return ""
 
-def transcribe_file_websocket(filepath: str, api_key:str, debug=False) -> WebsocketResult:
-    result = WebsocketResult()
+def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False) -> WebsocketResult:
+    result = WebsocketResult(scale=scale)
     start_time = time.time()
     loop = asyncio.get_event_loop()
     res = loop.run_until_complete(

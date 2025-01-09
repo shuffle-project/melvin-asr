@@ -9,11 +9,10 @@ from helpers.file_helper import (
     load_file_list,
 )
 from helpers.rest_helper import transcribe_file_rest
-from helpers.table_helpers import render_table
 from helpers.websocket_helper import (
     transcribe_file_websocket,
 )
-from helpers.data_helper import BenchmarkResult, RestResult, WebsocketResult
+from helpers.data_helper import BenchmarkResult
 from helpers.evaluate_helper import eval_export_dir
 
 def perform_fetches(settings):
@@ -28,20 +27,19 @@ def perform_fetches(settings):
     ):
         if settings.scale_percentage != "100" and count >= limit:
             break
-        rest_result = RestResult()
-        websocket_result = WebsocketResult()
+        rest_result = None
+        websocket_result = None
         if settings.target == "rest" or settings.target == "all":
             rest_result = transcribe_file_rest(
-                filepath, settings.overwrite_api_key
+                filepath, settings.overwrite_api_key, settings.scale
             )
         if settings.target == "websocket" or settings.target == "all":
             websocket_result = transcribe_file_websocket(
-                filepath, settings.overwrite_api_key, settings.debug
-            )
+                filepath, settings.overwrite_api_key, settings.scale, settings.debug)
         key = get_file_name(filepath, settings.scale)
         export_file = os.path.join(os.getcwd(), "export", f"{key[:-4]}.json")
 
-        grouped_result = BenchmarkResult(filename=key , rest=rest_result, websocket=websocket_result)
+        grouped_result = BenchmarkResult(filename=key , rest=rest_result, websocket=websocket_result, scale=settings.scale)
 
         with open(export_file, "w+") as f:
             json.dump(asdict(grouped_result),f)
@@ -55,7 +53,12 @@ def benchmark(settings):
     if not settings.skip_fetch:
         perform_fetches(settings)
 
-    eval_export_dir()
+    res = eval_export_dir()
+    print(f"{'-'*5} DATA {'-'*5}")
+    print(res)
+    print(f"{'-'*5} DESCR {'-'*5}")
+    print(res.describe())
+    res.to_csv("./export.csv")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

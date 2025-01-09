@@ -24,8 +24,8 @@ def await_transcription_finish(id: str, api_key: str):
                 is_finished = True
 
 
-def transcribe_file_rest(filepath: str, api_key: str) -> RestResult:
-    result = RestResult()
+def transcribe_file_rest(filepath: str, api_key: str, scale: str) -> RestResult:
+    result = RestResult(scale=scale)
     start_time = time.time()
     r = None
     with open(filepath, "rb") as f:
