@@ -11,6 +11,7 @@ from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
 from starlette.status import HTTP_401_UNAUTHORIZED
 
+from src.helper.align_translation_segments import align_segments
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.time_it import time_it
@@ -228,14 +229,16 @@ async def translate(target_language: str, file: UploadFile = File(...)):
         transcription["transcript"]["text"], transcription["language"], target_language
     )
 
-    # aligned_text = align_text(transcription["transcript"], translated_text)
-    for segment in transcription["transcript"]["segments"]:
-        segment["text"] = translate_text(
-            segment["text"], transcription["language"], target_language
-        )
+    aligned_transcript = align_segments(transcription["transcript"], translated_text)
+
+    # This is here to see the difference in segmented tranlation level
+    # for segment in transcription["transcript"]["segments"]:
+    #     segment["text"] = translate_text(
+    #         segment["text"], transcription["language"], target_language
+    #     )
 
     transcription["language"] = target_language
-    transcription["transcript"]["text"] = translated_text
+    transcription["transcript"] = aligned_transcript
     transcription["end_time"] = (
         datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     )
