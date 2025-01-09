@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, List, TypedDict
 
 
 class Word(TypedDict):
