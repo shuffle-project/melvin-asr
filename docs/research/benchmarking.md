@@ -25,3 +25,11 @@ Ideally the model would not have to revise words and be 100% accurate when match
 
 To measure the distance between partials we can simply use the Levenshtein distance. The Levenshtein distance is defined of the minimum transformation cost to get from string A to string B via the operators delete/add/replace on a character level. Using the Levenshtein Distance on partials directly however would always lead to a cost > 0, due to the fact that partials get longer over time.
 Therefore the comparison is done by comparing the first *n* characters of the partial at time *t+1* with the partial at *t* with n being the length of partial at time *t*.
+
+## Accuracy of transcription
+
+An accurate transcription of the audio is important in both websocket (i.e. real time) and rest scenarios.
+To measure the accuracy of transcriptions the word error rate (WER) metric is rather standard to use.    
+The WER is calculated by considering the words that have been changed (substitutions), words that have been added by the model (insertions) and words the model did not pick up on (deletions) when compared to the expected transcript.
+
+While for the rest evaluations just using the transcript returned is fine, for evaluating the quality of the websocket transcript the combination of all finals from the live transcription is used.
