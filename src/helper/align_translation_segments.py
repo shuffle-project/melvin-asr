@@ -37,7 +37,8 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
     """
 
     # Gather *all* original words into a flat list (tracking where they came from).
-    flat_words = []  # will hold tuples of (segment_index, word_index_in_segment, Word)
+    # I rather do that as a loop instead of splitting the original string and end up having some unexpected behaviour.
+    flat_words = []
     for seg_idx, seg in enumerate(original_transcript["segments"]):
         for w_idx, w in enumerate(seg["words"]):
             flat_words.append((seg_idx, w_idx, w))
