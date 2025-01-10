@@ -31,8 +31,8 @@ class RestResult:
 @dataclass
 class BenchmarkResult:
     filename: str
-    rest: RestResult
-    websocket: WebsocketResult
+    rest: RestResult | None
+    websocket: WebsocketResult | None
     scale: str
     def __post_init__(self):
         if isinstance(self.rest, dict):

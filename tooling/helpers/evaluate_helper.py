@@ -27,6 +27,7 @@ def eval_export_dir() -> pandas.DataFrame:
     websocket_df = pandas.DataFrame(columns=['file_id','duration','wer', 'average_levenshtein_distance'])
     for filepath in export_files:
         if (benchmark_res := load_benchmark_result_from_file(filepath)) is None:
+            print("None")
             continue
         if benchmark_res.rest is not None: 
             if benchmark_res.rest.faulty:
@@ -45,6 +46,10 @@ def eval_export_dir() -> pandas.DataFrame:
                     websocket_df.loc[len(websocket_df)] = {'file_id': get_file_id(filepath), 'duration': benchmark_res.rest.duration, 'wer': 'Err', 'average_levenshtein_distance': 'Err'}
                 else:
                     websocket_df.loc[len(websocket_df)] = asdict(res)
+    if rest_df.size == 0:
+        return websocket_df
+    if websocket_df.size == 0:
+        return websocket_df
     return pandas.merge(rest_df, websocket_df, on='file_id', how='inner', suffixes=('_rest', '_websocket'))
 
 def eval_rest(rest_benchmark_result: RestResult, result_filepath: str) -> RestEvalResult | None:

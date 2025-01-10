@@ -19,14 +19,14 @@ def perform_fetches(settings):
     clean_export_dir()
     audio_files = load_file_list(settings.scale)
     # calculate upper limit
-    limit = (int(settings.scale_percentage) / 100) * len(audio_files)
+    limit = int((int(settings.scale_percentage) / 100) * len(audio_files))
+    if settings.scale_percentage != 100:
+        audio_files = audio_files[:limit]
     for count, filepath in enumerate(
         tqdm.tqdm(
             audio_files, desc="Transcribing", disable=settings.disable_progress_bar
         )
     ):
-        if settings.scale_percentage != "100" and count >= limit:
-            break
         rest_result = None
         websocket_result = None
         if settings.target == "rest" or settings.target == "all":
@@ -46,7 +46,7 @@ def perform_fetches(settings):
 
     if settings.scale_percentage != "100":
         print(
-            f"Premature termination after {int(limit)} (dataset total length: {len(audio_files)}) evaluated audios. This was caused by the set limit percentage of {settings.scale_percentage}"
+            f"Premature termination after {limit} (dataset total length: {len(audio_files)}) evaluated audios. This was caused by the set limit percentage of {settings.scale_percentage}"
         )
 
 def benchmark(settings):
