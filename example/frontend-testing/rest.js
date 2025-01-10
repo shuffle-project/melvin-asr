@@ -11,6 +11,12 @@ const ERROR_MESSAGES = {
 let selectedFile = null;
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
+const loadingContainer = document.getElementById('loadingContainer');
+
+const loadingSVG =
+    `<svg class="spinner" width="65px" height="65px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+   <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+</svg>`;
 
 // Helper function to retrieve API key
 const getApiKey = () => localStorage.getItem('apiKey');
@@ -35,7 +41,7 @@ const displayError = (container, message) => {
  * On window load, retrieve and set the API key from localStorage.
  * If an API key is found, it is populated in the input field.
  */
-window.onload = function() {
+window.onload = function () {
     // Retrieve the stored API key from localStorage
     document.getElementById('apiKey').value = getApiKey();
 };
@@ -162,15 +168,19 @@ function requestTranscriptionText(transcription_id) {
         'Authorization': `${apiKey}`,
     };
 
+    loadingContainer.innerHTML = loadingSVG;
+
     /**
      * Handles the response data from the fetch request
      * @param {Object} transcriptionData - The data returned from the API
      */
     const handleResponse = (transcriptionData) => {
         if (transcriptionData.status === 'finished') {
+            loadingContainer.innerHTML = "";
             responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
             clearInterval(timer);
         } else if (transcriptionData.status === 'failed') {
+            loadingContainer.innerHTML = "";
             responseTextContainer.textContent = 'Transcription failed';
             clearInterval(timer);
         } else if (transcriptionData.status === 'in_query') {
