@@ -57,7 +57,9 @@ def translate_text(text, from_code, to_code):
     Returns:
         str: The translated text.
     """
+
     install_language_pack_if_needed(from_code, to_code)
+
     try:
         return argostranslate.translate.translate(text, from_code, to_code)
     except Exception as e:
