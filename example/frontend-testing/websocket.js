@@ -2,9 +2,21 @@
 const WS_URL = "ws://localhost:8394";
 let audioContext, audioProcessorNode, socket;
 let isStreaming = false;
+let accumulatedPartials = '';
+let accumulatedTranscription = '';
+let previousPartial = '';
+let previousFinal = '';
 
 document.getElementById("startRecording").addEventListener("click", startRecording);
 document.getElementById("stopRecording").addEventListener("click", stopRecording);
+const liveTranscriptOutput = document.getElementById('liveTranscriptOutput');
+
+/**
+ * @typedef {Object} WebSocketMessage
+ * @property {string} [partial] - The partial transcription text (optional).
+ * @property {string} [result] - The components of a transcription text (optional).
+ * @property {string} [text] - The final transcription text (optional)
+ */
 
 async function startRecording() {
   // Disable the Start button and enable the Stop button
@@ -39,12 +51,22 @@ async function startRecording() {
 
     // Handle incoming messages
     socket.onmessage = (event) => {
+       /** @type {WebSocketMessage} */
       const message = JSON.parse(event.data);
 
-      if (message.type === "partial") {
-        console.log("Partial Transcription:", message.text);
-      } else if (message.type === "final") {
+      if (message.partial && message.partial !== previousPartial) {
+        console.log("Partial Transcription:", message.partial);
+        previousPartial = message.partial;
+        accumulatedPartials += message.partial;
+        liveTranscriptOutput.textContent = accumulatedPartials;
+
+      } else if (message.hasOwnProperty('result')) {
         console.log("Final Transcription:", message.text);
+          if (message.text !== previousFinal && message.text !== '') {
+            accumulatedTranscription += ` ${message.text}`; // Space in between final transcriptions
+            liveTranscriptOutput.textContent = accumulatedTranscription;
+            previousFinal = message.text;
+          }
       }
     };
 
@@ -59,7 +81,7 @@ function stopRecording() {
 
   // Send EOF message to server
   if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: "eof" }));
+    socket.send(JSON.stringify({type: "eof"}));
     socket.close();
   }
 
