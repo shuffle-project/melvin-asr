@@ -11,7 +11,7 @@ Excluding benchmarking the solution for translation there are 4 areas that can a
 
 ## Quality of partials
 
-Partials (described in [websocket docs](./streaming_architecture.md)) are primarily used for displaying currently spoken words in video conferecing software.    
+Partials (described in [websocket docs](./streaming_architecture.md)) are primarily used for displaying currently spoken words in video conferencing software.    
 The main issue for partials is that they operate based on fairly small amounts of audio and therefore are prone to being inaccurate or wrong.    
 As a result of this partials may also change in retrospect. For instance:
 
