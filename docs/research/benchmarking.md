@@ -32,4 +32,4 @@ An accurate transcription of the audio is important in both websocket (i.e. real
 To measure the accuracy of transcriptions the word error rate (WER) metric is rather standard to use.    
 The WER is calculated by considering the words that have been changed (substitutions), words that have been added by the model (insertions) and words the model did not pick up on (deletions) when compared to the expected transcript.
 
-While for the rest evaluations just using the transcript returned is fine, for evaluating the quality of the websocket transcript the combination of all finals from the live transcription is used.
+While for the REST evaluations just using the transcript returned is fine, for evaluating the quality of the websocket transcript the combination of all finals from the live transcription is used.
