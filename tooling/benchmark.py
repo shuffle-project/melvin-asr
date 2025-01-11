@@ -61,7 +61,7 @@ def benchmark(settings):
         perform_fetches(settings)
 
     res = eval_export_dir()
-    print(f"{'-'*5} DATA {'-'*5}")
+    print("----- DATA -----")
     # To string should avoid print being split for big amounts of data
     print(res.to_string())
     print(f"{'-'*5} DESCR {'-'*5}")
