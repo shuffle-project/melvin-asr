@@ -32,7 +32,7 @@ def get_file_name(path, scale):
 
 def get_file_id(export_dir_path):
     p = export_dir_path.replace(f"{EXPORT_BASE_PATH}/", "")
-    return p[:len(p)-5]
+    return p.removesuffix(".json")
 
 def clean_export_dir():
     dir = os.path.join(os.getcwd(), "export")
