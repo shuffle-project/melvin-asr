@@ -23,7 +23,7 @@ Howard is
 In this case the model 'misunderstood' the words spoken at first and had to change these words later on.    
 Ideally the model would not have to revise words and be 100% accurate when matched to the corresponding final.
 
-To measure the distance between partials we can simply use the Levenshtein distance. The Levenshtein distance is defined of the minimum transformation cost to get from string A to string B via the operators delete/add/replace on a character level. Using the Levenshtein Distance on partials directly however would always lead to a cost > 0, due to the fact that partials get longer over time.
+To measure the distance between partials we can simply use the Levenshtein distance. The Levenshtein distance is defined by the minimum transformation cost to get from string A to string B via the operators delete/add/replace on a character level. Using the Levenshtein Distance on partials directly however would always lead to a cost > 0, due to the fact that partials get longer over time.
 Therefore the comparison is done by comparing the first *n* characters of the partial at time *t+1* with the partial at *t* with n being the length of partial at time *t*.
 
 ## Accuracy of transcription
