@@ -71,7 +71,6 @@ def eval_websocket_partial_block(block: WebsocketResultBlock) -> float:
         return 0
     res = 0
     for i in range(len(block.partials)-1):
-        #print(f"{block.partials[i]}\t{block.partials[i+1][:len(block.partials[i])]}")
         res += lev(block.partials[i], block.partials[i+1][:len(block.partials[i])])
     return res/len(block.partials)
 
