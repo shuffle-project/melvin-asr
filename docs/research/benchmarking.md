@@ -4,7 +4,7 @@ To properly and reliably evaluate approaches and general changes to the code bas
 
 Excluding benchmarking the solution for translation there are 4 areas that can and should be benchmarked:
 
-- Quality of Partials (How much to Partials change words that have already been displayed) (Websockets)
+- Quality of Partials (How much do Partials change words that have already been displayed) (Websockets)
 - Speed of translation (How fast is the transcription done) (primarily Websockets)
 - Accuracy of transcription (Does the transcription match the audio) (REST and Websockets)
 - Accuracy of timestamps (How well does the transcription line up) (REST only)
