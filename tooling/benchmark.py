@@ -1,110 +1,72 @@
 import argparse
-import time
-
-import jiwer
+from dataclasses import asdict
+import json
+import os
 import tqdm
 from helpers.file_helper import (
-    get_expected_transcription,
+    clean_export_dir,
     get_file_name,
     load_file_list,
+    get_corresponding_transcript
 )
 from helpers.rest_helper import transcribe_file_rest
-from helpers.table_helpers import ERR_CODE, render_table
 from helpers.websocket_helper import (
-    TRANSCRIPTION_WEBSOCKET_TIMEOUT,
-    evaluate_partial_websocket,
     transcribe_file_websocket,
 )
-from helpers.WER_helper import TRANSFORM_DEFAULT
+from helpers.data_helper import BenchmarkResult
+from helpers.evaluate_helper import eval_export_dir
 
-
-def benchmark(settings):
+def perform_fetches(settings):
+    clean_export_dir()
     audio_files = load_file_list(settings.scale)
-    results = {
-        "key": [],
-        "wer_rest": [],
-        "duration_rest": [],
-        "wer_websocket": [],
-        "duration_websocket": [],
-    }
     # calculate upper limit
-    limit = (int(settings.scale_percentage) / 100) * len(audio_files)
+    limit = int((int(settings.scale_percentage) / 100) * len(audio_files))
+    if settings.scale_percentage != 100:
+        audio_files = audio_files[:limit]
     for count, filepath in enumerate(
         tqdm.tqdm(
             audio_files, desc="Transcribing", disable=settings.disable_progress_bar
         )
     ):
-        if settings.scale_percentage != "100" and count >= limit:
-            break
-        rest_transcription = None
-        rest_duration = None
-        websocket_transcription = None
-        websocket_duration = None
-        websocket_partial_result = 0.0
-        expected = TRANSFORM_DEFAULT(get_expected_transcription(filepath))
+        rest_result = None
+        websocket_result = None
         if settings.target == "rest" or settings.target == "all":
-            start_time = time.time()
-            rest_transcription = transcribe_file_rest(
-                filepath, settings.overwrite_api_key
+            rest_result = transcribe_file_rest(
+                filepath, settings.overwrite_api_key, settings.scale
             )
-            rest_duration = time.time() - start_time
         if settings.target == "websocket" or settings.target == "all":
-            start_time = time.time()
-            if settings.use_partials_for_websocket:
-                websocket_partial_result = evaluate_partial_websocket(
-                    filepath, " ".join(expected), settings.debug
-                )
-            else:
-                websocket_transcription = transcribe_file_websocket(
-                    filepath, settings.overwrite_api_key, settings.debug
-                )
-            # During transcription we wait for timeout once
-            # Therefore we subtract it from the recorded transcription time
-            websocket_duration = (
-                time.time() - start_time - TRANSCRIPTION_WEBSOCKET_TIMEOUT
-            )
-        if settings.debug:
-            print(f"Expected: {expected}")
+            websocket_result = transcribe_file_websocket(
+                filepath, settings.overwrite_api_key, settings.scale, settings.debug)
+        key = get_file_name(filepath, settings.scale)
+        export_file = os.path.join(os.getcwd(), "export", f"{key[:-4]}.json")
 
-        results["key"] += [get_file_name(filepath, settings.scale)]
-        for val in [
-            (rest_transcription, rest_duration, "rest"),
-            (websocket_transcription, websocket_duration, "websocket"),
-        ]:
-            transcription, duration, method_key = val
+        grouped_result = BenchmarkResult(
+            filename=key , 
+            rest=rest_result, 
+            websocket=websocket_result, 
+            scale=settings.scale,
+            expected_transcription=get_corresponding_transcript(export_file, settings.scale)
+        )
 
-            if settings.use_partials_for_websocket and method_key == "websocket":
-                results[f"wer_{method_key}"] += [websocket_partial_result]
-                results[f"duration_{method_key}"] += [duration]
-                continue
-
-            if transcription is None or duration is None:
-                results[f"wer_{method_key}"] += [None]
-                results[f"duration_{method_key}"] += [None]
-                continue
-
-            results[f"duration_{method_key}"] += [duration]
-
-            # This can only happen if backend or benchmark encounter an error
-            # However it WOULD terminate the entire benchmarking process
-            if len(transcription) == 0:
-                results[f"wer_{method_key}"] += [ERR_CODE]
-                continue
-
-            transcription = TRANSFORM_DEFAULT(transcription)
-            if settings.debug:
-                print(f"Received({method_key}): {transcription}")
-
-            curr_wer = jiwer.wer(" ".join(transcription), " ".join(expected))
-            results[f"wer_{method_key}"] += [curr_wer]
+        with open(export_file, "w+") as f:
+            json.dump(asdict(grouped_result),f)
 
     if settings.scale_percentage != "100":
         print(
-            f"Premature termination after {int(limit)} (dataset total length: {len(audio_files)}) evaluated audios. This was caused by the set limit percentage of {settings.scale_percentage}"
+            f"Premature termination after {limit} (dataset total length: {len(audio_files)}) evaluated audios. This was caused by the set limit percentage of {settings.scale_percentage}"
         )
 
-    render_table(results, export=settings.export_markdown)
+def benchmark(settings):
+    if not settings.skip_fetch:
+        perform_fetches(settings)
 
+    res = eval_export_dir()
+    print("----- DATA -----")
+    # To string should avoid print being split for big amounts of data
+    print(res.to_string())
+    print("----- DESCR -----")
+    print(res.describe())
+    res.to_csv("./export.csv")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -153,8 +115,8 @@ if __name__ == "__main__":
         help="Export table as markdown to results.md",
     )
     parser.add_argument(
-        "--use-partials-for-websocket",
+        "--skip-fetch",
         action="store_true",
-        help="Overwrite websocket benchmark to the live partials and finals instead of the final transcription export. This will calculate the average over all partials and finals when compared to the whole expected text. Therefore this is NOT(!) meant to be compared to REST WER or the final export ws WER.",
+        help="Dont perform any requests but rather just use the data already present in the export dir",
     )
     benchmark(parser.parse_args())
