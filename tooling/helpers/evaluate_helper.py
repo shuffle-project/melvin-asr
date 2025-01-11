@@ -42,10 +42,10 @@ def eval_export_dir() -> pandas.DataFrame:
 
         if benchmark_res.websocket is not None: 
             if benchmark_res.websocket.faulty:
-                websocket_df.loc[len(websocket_df)] = {'file_id': get_file_id(filepath), 'duration': benchmark_res.rest.duration, 'wer': 'Err', 'average_levenshtein_distance': 'Err'}
+                websocket_df.loc[len(websocket_df)] = {'file_id': get_file_id(filepath), 'duration': benchmark_res.rest.duration, 'wer': None, 'average_levenshtein_distance': None}
             else:
                 if (res := eval_websocket(benchmark_res.websocket, filepath, benchmark_res.expected_transcription)) is None:
-                    websocket_df.loc[len(websocket_df)] = {'file_id': get_file_id(filepath), 'duration': benchmark_res.rest.duration, 'wer': 'Err', 'average_levenshtein_distance': 'Err'}
+                    websocket_df.loc[len(websocket_df)] = {'file_id': get_file_id(filepath), 'duration': benchmark_res.rest.duration, 'wer': None, 'average_levenshtein_distance': None}
                 else:
                     websocket_df.loc[len(websocket_df)] = asdict(res)
     if rest_df.size == 0:

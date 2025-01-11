@@ -64,7 +64,7 @@ def benchmark(settings):
     print("----- DATA -----")
     # To string should avoid print being split for big amounts of data
     print(res.to_string())
-    print(f"{'-'*5} DESCR {'-'*5}")
+    print("----- DESCR -----")
     print(res.describe())
     res.to_csv("./export.csv")
 
