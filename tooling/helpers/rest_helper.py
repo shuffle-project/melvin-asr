@@ -25,7 +25,7 @@ def await_transcription_finish(id: str, api_key: str) -> bool:
             if status["status"] not in ["in_progress", "in_query"]:
                 return True
         count+=1
-    print("Wait time for rest transcription was reached. This could be an error or your machine being slow (in the ladder case increase the limit)")
+    print("Wait time for rest transcription was reached. This could be an error or your machine being slow (in the latter case increase the limit)")
     return False
 
 
