@@ -2,7 +2,7 @@
 
 To properly and reliably evaluate approaches and general changes to the code base benchmarking techniques have to be defined.
 
-Excluding benchmarking the solution for translation there are 4 areas the can and should be benchmarked:
+Excluding benchmarking the solution for translation there are 4 areas that can and should be benchmarked:
 
 - Quality of Partials (How much to Partials change words that have already been displayed) (Websockets)
 - Speed of translation (How fast is the transcription done) (primarily Websockets)
