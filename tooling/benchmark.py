@@ -7,6 +7,7 @@ from helpers.file_helper import (
     clean_export_dir,
     get_file_name,
     load_file_list,
+    get_corresponding_transcript
 )
 from helpers.rest_helper import transcribe_file_rest
 from helpers.websocket_helper import (
@@ -39,7 +40,13 @@ def perform_fetches(settings):
         key = get_file_name(filepath, settings.scale)
         export_file = os.path.join(os.getcwd(), "export", f"{key[:-4]}.json")
 
-        grouped_result = BenchmarkResult(filename=key , rest=rest_result, websocket=websocket_result, scale=settings.scale)
+        grouped_result = BenchmarkResult(
+            filename=key , 
+            rest=rest_result, 
+            websocket=websocket_result, 
+            scale=settings.scale,
+            expected_transcription=get_corresponding_transcript(export_file, settings.scale)
+        )
 
         with open(export_file, "w+") as f:
             json.dump(asdict(grouped_result),f)
@@ -55,7 +62,8 @@ def benchmark(settings):
 
     res = eval_export_dir()
     print(f"{'-'*5} DATA {'-'*5}")
-    print(res)
+    # To string should avoid print being split for big amounts of data
+    print(res.to_string())
     print(f"{'-'*5} DESCR {'-'*5}")
     print(res.describe())
     res.to_csv("./export.csv")

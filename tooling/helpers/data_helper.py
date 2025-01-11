@@ -33,6 +33,7 @@ class BenchmarkResult:
     filename: str
     rest: RestResult | None
     websocket: WebsocketResult | None
+    expected_transcription: str
     scale: str
     def __post_init__(self):
         if isinstance(self.rest, dict):
