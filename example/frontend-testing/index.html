@@ -1,84 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>WhisperStream REST API / WebSocket Example</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header class="header">
-      <h1>WhisperStream</h1>
-      <div class="toggle">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<header class="header">
+    <h1>WhisperStream</h1>
+    <div class="toggle">
         <label for="toggleSwitch">REST</label>
         <label class="switch">
-          <input type="checkbox" id="toggleSwitch" />
-          <span class="slider"></span>
+            <input type="checkbox" id="toggleSwitch"/>
+            <span class="slider"></span>
         </label>
         <label for="toggleSwitch">WebSocket</label>
-      </div>
-    </header>
+    </div>
+</header>
 
-    <main class="content-panel">
-      <!-- REST Content -->
-      <div class="content rest active" id="restContent">
+<main class="content-panel">
+    <!-- REST Content -->
+    <div class="content rest active" id="restContent">
         <div class="column">
-          <h3>REST</h3>
-          <!-- Ask for API key and store it-->
-          <label for="apiKey">API Key:</label>
-          <input type="text" id="apiKey" placeholder="Enter your API key" />
-          <button onclick="saveApiKey()">Save Key</button>
+            <h3>REST</h3>
+            <!-- Ask for API key and store it-->
+            <label for="apiKey">API Key:</label>
+            <input type="text" id="apiKey" placeholder="Enter your API key"/>
+            <button onclick="saveApiKey()">Save Key</button>
 
-          <!-- Displays the status of the API -->
-          <div id="checkHealth"></div>
+            <!-- Displays the status of the API -->
+            <div id="checkHealth"></div>
 
-          <!-- Drop a file here or click to select a file -->
-          <div
-            id="dropZone"
-            ondrop="handleDrop(event)"
-            ondragover="allowDrop(event)"
-          >
-            Drop a file here or click to select a file
-          </div>
+            <!-- Drop a file here or click to select a file -->
+            <div
+                    id="dropZone"
+                    ondrop="handleDrop(event)"
+                    ondragover="allowDrop(event)"
+            >
+                Drop a file here or click to select a file
+            </div>
 
-          <!-- File input element -->
-          <input
-            type="file"
-            id="fileInput"
-            accept=".wav"
-            style="display: none"
-            onchange="handleFileSelect(event)"
-          />
+            <!-- File input element -->
+            <input
+                    type="file"
+                    id="fileInput"
+                    accept=".wav"
+                    style="display: none"
+                    onchange="handleFileSelect(event)"
+            />
 
-          <!-- Transcode button -->
-          <button onclick="requestTranscription()">Transcode</button>
+            <!-- Transcode button -->
+            <button onclick="requestTranscription()">Transcode</button>
 
-          <!-- Response div -->
-          <div id="response"></div>
+            <!-- Response div -->
+            <div id="response"></div>
         </div>
 
         <div class="column">
-          <h3>Transcription</h3>
-          <div id="transcriptionFileName"></div>
-          <br>
-          <div id="transcriptionResponse"></div>
-          <div id="loadingContainer"></div>
+            <h3>Transcription</h3>
+            <div id="transcriptionFileName"></div>
+            <br>
+            <div id="transcriptionResponse"></div>
+            <div id="loadingContainer"></div>
         </div>
-      </div>
+    </div>
 
-      <!-- WebSocket Content -->
-      <div class="content websocket" id="websocketContent">
-        <h2>WebSocket</h2>
-        <!-- WebSocket Start recording button -->
-        <button id="startRecording">Record</button>
-        <!-- Stop recording button -->
-        <button id="stopRecording">Stop</button>
+    <!-- WebSocket Content -->
+    <div class="content websocket" id="websocketContent">
+        <div id="websocketControl">
+            <!-- WebSocket Start recording button -->
+            <div class="micButton">
+            <button id="recordButton" type="button" class="mic">
+                <svg fill="#FFFFFF" height="50px" width="50px" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 512 512">
+                    <g>
+                        <g>
+                            <path d="m439.5,236c0-11.3-9.1-20.4-20.4-20.4s-20.4,9.1-20.4,20.4c0,70-64,126.9-142.7,126.9-78.7,0-142.7-56.9-142.7-126.9 0-11.3-9.1-20.4-20.4-20.4s-20.4,9.1-20.4,20.4c0,86.2 71.5,157.4 163.1,166.7v57.5h-23.6c-11.3,0-20.4,9.1-20.4,20.4 0,11.3 9.1,20.4 20.4,20.4h88c11.3,0 20.4-9.1 20.4-20.4 0-11.3-9.1-20.4-20.4-20.4h-23.6v-57.5c91.6-9.3 163.1-80.5 163.1-166.7z"/>
+                            <path d="m256,323.5c51,0 92.3-41.3 92.3-92.3v-127.9c0-51-41.3-92.3-92.3-92.3s-92.3,41.3-92.3,92.3v127.9c0,51 41.3,92.3 92.3,92.3zm-52.3-220.2c0-28.8 23.5-52.3 52.3-52.3s52.3,23.5 52.3,52.3v127.9c0,28.8-23.5,52.3-52.3,52.3s-52.3-23.5-52.3-52.3v-127.9z"/>
+                        </g>
+                    </g>
+                </svg>
+            </button>
+            </div>
+        </div>
         <div id="liveTranscriptOutput"></div>
-      </div>
-    </main>
+    </div>
+</main>
 
-    <script src="main.js"></script>
-    <script src="rest.js"></script>
-    <script src="websocket.js"></script>
-  </body>
+<script src="main.js"></script>
+<script src="rest.js"></script>
+<script src="websocket.js"></script>
+</body>
 </html>

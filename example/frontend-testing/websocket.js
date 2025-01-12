@@ -1,15 +1,12 @@
-// WebSocket URL
 const WS_URL = "ws://localhost:8394";
+const liveTranscriptOutput = document.getElementById('liveTranscriptOutput');
+const recordButton = document.getElementById("recordButton");
 let audioContext, audioProcessorNode, socket;
 let isStreaming = false;
 let accumulatedPartials = '';
 let accumulatedTranscription = '';
 let previousPartial = '';
 let previousFinal = '';
-
-document.getElementById("startRecording").addEventListener("click", startRecording);
-document.getElementById("stopRecording").addEventListener("click", stopRecording);
-const liveTranscriptOutput = document.getElementById('liveTranscriptOutput');
 
 /**
  * @typedef {Object} WebSocketMessage
@@ -18,11 +15,21 @@ const liveTranscriptOutput = document.getElementById('liveTranscriptOutput');
  * @property {string} [text] - The final transcription text (optional)
  */
 
-async function startRecording() {
-  // Disable the Start button and enable the Stop button
-  document.getElementById("startRecording").disabled = true;
-  document.getElementById("stopRecording").disabled = false;
+recordButton.addEventListener("click", toggleRecording);
 
+async function toggleRecording() {
+  if (!isStreaming) {
+    // Currently not recording, start recording
+    await startRecording();
+  } else {
+    // Currently recording, stop recording
+    stopRecording();
+  }
+  recordButton.classList.toggle("listening");
+  isStreaming = !isStreaming; // Toggle the recording state
+}
+
+async function startRecording() {
   // Initialize WebSocket
   socket = new WebSocket(WS_URL);
 
@@ -76,9 +83,6 @@ async function startRecording() {
 }
 
 function stopRecording() {
-  // Stop audio streaming
-  isStreaming = false;
-
   // Send EOF message to server
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify({type: "eof"}));
@@ -95,8 +99,4 @@ function stopRecording() {
   }
 
   console.log("Recording stopped, EOF sent");
-
-  // Enable the Start button and disable the Stop button
-  document.getElementById("startRecording").disabled = false;
-  document.getElementById("stopRecording").disabled = true;
 }
