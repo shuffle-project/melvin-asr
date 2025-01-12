@@ -25,7 +25,7 @@ async function toggleRecording() {
     // Currently recording, stop recording
     stopRecording();
   }
-  recordButton.classList.toggle("listening");
+  recordButton.classList.toggle("recording");
   isStreaming = !isStreaming; // Toggle the recording state
 }
 

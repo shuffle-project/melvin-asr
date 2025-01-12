@@ -258,13 +258,13 @@ button:hover {
 }
 
 /* Microphone Animation */
-
 .micButton {
   display: flex;
   justify-content: center;
   align-items: center;
   align-self: center;
   height: 100vh;
+  padding: 20px;
 }
 .mic {
   position: relative;
@@ -293,22 +293,20 @@ button:hover {
 }
 
 .mic:hover{
-    background-color: #ff6464;
+    background-color: #54a5e4;
 }
 
-.listening {
-  background-color: #ff0000;
-}
-.listening::before {
-  animation: listening 1.3s infinite;
-}
+.recording {
+  position: relative;
+  box-shadow: 0 0 0 0 #b10000;
+  cursor: pointer;
+  background:#ff0000;
+  animation: pulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
 
-@keyframes listening {
-  from {
-    opacity: 0.25;
-  }
-  to {
-    transform: scale(2);
-    opacity: 0;
+  &:hover {
+    animation: none;
+    background-color: #fd5656
+
   }
 }
+@keyframes pulse {to {box-shadow: 0 0 0 20px rgba(90, 0, 141, 0);}}
