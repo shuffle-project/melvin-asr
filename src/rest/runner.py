@@ -29,27 +29,27 @@ class Runner:
         """continuously checks for new transcriptions to process"""
         self.log.info("started")
 
-        cc = 0  # counter for clean up
+        start_time = time.time()
+        schedule = int(CONFIG["cleanup_schedule_in_minutes"]) * 60
         while True:
-            cc += 1
-            transcription_id = self.get_oldest_status_file_in_query()
+            now = time.time()
+            if now > start_time + schedule:
+                self.data_handler.clean_up_audio_and_status_files()
+                self.log.info("Status files cleaned up.")
+                start_time = now
 
             if transcription_id == "None":
-                time.sleep(0.1)
-
-                schedule = int(CONFIG["cleanup_schedule_in_minutes"]) * 10 * 60
-                if cc > schedule:
-                    self.data_handler.clean_up_audio_and_status_files()
-                    self.log.info("Status files cleaned up.")
-                    cc = 0
-
+                time.sleep(10)
                 continue
+
+            transcription_id = self.get_oldest_status_file_in_query()
 
             self.log.debug("Processing file: " + transcription_id)
             try:
                 self.data_handler.update_status_file(
                     TranscriptionStatus.IN_PROGRESS.value, transcription_id
                 )
+                # TODO: add check to run translation or transcribe
                 self.transcribe(transcription_id)
 
             except Exception as e:
