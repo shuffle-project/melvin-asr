@@ -1,5 +1,4 @@
 import json
-import os
 from typing import List, TypedDict
 
 from fastapi import HTTPException
@@ -46,7 +45,7 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
     if not flat_words or not translated_text.strip():
         raise HTTPException(
             status_code=400,
-            detail=f"Alignment not possible without translation or transcript",
+            detail="Alignment not possible without translation or transcript",
         )
 
     translated_tokens = translated_text.split()
