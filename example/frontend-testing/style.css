@@ -169,12 +169,23 @@ button:hover {
 
 /* WebSocket content (single column) */
 .content.websocket {
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
     text-align: center;
     width: 100%;
     height: 100%;
+}
+
+#liveTranscriptOutput {
+    max-width: 400px;
+    width: 100%;
+    padding: 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 2;
+    font-size: 20px;
+    text-align: left;
 }
 
 /* Hide inactive content */
@@ -185,3 +196,117 @@ button:hover {
 .content.active {
     display: flex;
 }
+
+/*Loading Spinner*/
+#loadingContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.spinner {
+    animation: rotator 1.4s linear infinite;
+    position: relative;
+    z-index: 1000;
+}
+
+@keyframes rotator {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(270deg);
+    }
+}
+
+.path {
+    stroke-dasharray: 187;
+    stroke-dashoffset: 0;
+    transform-origin: center;
+    animation: dash 1.4s ease-in-out infinite,
+    colors 5.6s ease-in-out infinite;
+}
+
+@keyframes colors {
+    0% {
+        stroke: #3F4C85;
+    }
+    33% {
+        stroke: #B94A40;
+    }
+    66% {
+        stroke: #EBCB54;
+    }
+    100% {
+        stroke: #527A62;
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dashoffset: 187;
+    }
+    50% {
+        stroke-dashoffset: 46.75;
+        transform: rotate(135deg);
+    }
+    100% {
+        stroke-dashoffset: 187;
+        transform: rotate(450deg);
+    }
+}
+
+/* Microphone Animation */
+.micButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+  height: 100vh;
+  padding: 20px;
+}
+.mic {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+  background-color: #1e88e5;
+  color: #fff;
+  font-size: 33px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+
+.mic::before {
+  content: "";
+  position: absolute;
+  width: inherit;
+  height: inherit;
+  border-radius: inherit;
+  background-color: inherit;
+  z-index: -1;
+}
+
+.mic:hover{
+    background-color: #54a5e4;
+}
+
+.recording {
+  position: relative;
+  box-shadow: 0 0 0 0 #b10000;
+  cursor: pointer;
+  background:#ff0000;
+  animation: pulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
+
+  &:hover {
+    animation: none;
+    background-color: #fd5656
+
+  }
+}
+@keyframes pulse {to {box-shadow: 0 0 0 20px rgba(90, 0, 141, 0);}}
