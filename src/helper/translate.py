@@ -12,13 +12,6 @@ def install_language_pack_if_needed(from_code, to_code):
         to_code (str): The code of the target language (e.g., 'de' for German).
     """
 
-    # TODO: error handling for:
-    # - language Code unavailable
-    # - package download failed
-    # - package installation failed
-    # - package installation successful but translation failed
-    # - package installation successful but translation successful
-
     try:
         installed_packages = argostranslate.package.get_installed_packages()
         if not any(
