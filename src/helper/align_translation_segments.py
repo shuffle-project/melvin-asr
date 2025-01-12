@@ -1,7 +1,8 @@
 import json
-from typing import List, TypedDict
+from typing import List
 
 from fastapi import HTTPException
+from typing_extensions import TypedDict
 
 
 class Word(TypedDict):
