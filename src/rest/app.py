@@ -20,11 +20,9 @@ from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from src.helper.align_translation_segments import align_segments
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.time_it import time_it
-from src.helper.translate import translate_text
 from src.helper.types.transcription_data import TranscriptionData
 from src.helper.types.transcription_status import TranscriptionStatus
 
