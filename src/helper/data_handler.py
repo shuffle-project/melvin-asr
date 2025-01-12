@@ -50,9 +50,9 @@ class DataHandler:
                 status_files.append(filename)
         return status_files
 
-    def write_status_file(self, id: str, data: dict) -> None:
+    def write_status_file(self, transcription_id: str, data: dict) -> None:
         """Writes the status file by the given transcription_id."""
-        file_name = f"{id}.json"
+        file_name = f"{transcription_id}.json"
         file_path = os.path.join(self.status_path, file_name)
         # Ensure the directory exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
