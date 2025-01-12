@@ -1,11 +1,20 @@
 import json
 import logging
-from random import choice
 import time
 import uuid
 from datetime import datetime, timezone
+from random import choice
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Security, UploadFile
+from fastapi import (
+    Body,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Security,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
@@ -157,7 +166,7 @@ async def post_transcription(
         task=task,
         text=text,
         language=language,
-    ).model_dump()
+    )
 
     DATA_HANDLER.write_status_file(transcription_id, data)
     return JSONResponse(content=data, status_code=200)
@@ -195,7 +204,10 @@ async def get_stream_audio_export(transcription_id: str):
 
 @time_it
 @app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
-async def translate(target_language: str, file: UploadFile = File(...)):
+async def translate(
+    target_language: str,
+    transcription: TranscriptionData = Body(...),
+):
     """Translate text to a target language."""
     # TODO: Here the supported language codes might differ
     if target_language not in config["supported_language_codes"]:
@@ -204,43 +216,26 @@ async def translate(target_language: str, file: UploadFile = File(...)):
             detail=f"Unsupported language code: {target_language}",
         )
 
-    try:
-        file_content = await file.read()
-        transcription_data = json.loads(file_content)
-        transcription = TranscriptionData(**transcription_data)
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid JSON format. Please upload a valid JSON file.",
-        )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error processing file: {e}")
-
     if not transcription["transcript"]["text"]:
         raise HTTPException(
             status_code=400,
             detail="No text provided in the transcription data to translate.",
         )
+    transcription_id = str(uuid.uuid4())
+    transcription["transcription_id"] = transcription_id
+    transcription["task"] = "translate"
+    transcription["target_language"] = target_language
+    transcription["status"] = TranscriptionStatus.IN_QUERY.value
+    DATA_HANDLER.write_status_file(transcription_id, transcription)
 
-    transcription["start_time"] = (
-        datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-    )
-    translated_text = translate_text(
-        transcription["transcript"]["text"], transcription["language"], target_language
-    )
+    return JSONResponse(content={"id": transcription_id}, status_code=200)
 
-    aligned_transcript = align_segments(transcription["transcript"], translated_text)
 
-    # This is here to see the difference in segmented tranlation level
-    # for segment in transcription["transcript"]["segments"]:
-    #     segment["text"] = translate_text(
-    #         segment["text"], transcription["language"], target_language
-    #     )
-
-    transcription["language"] = target_language
-    transcription["transcript"] = aligned_transcript
-    transcription["end_time"] = (
-        datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-    )
-
-    return JSONResponse(content=transcription, status_code=200)
+@time_it
+@app.get("/translate/{transcription_id}", dependencies=[Depends(require_api_key)])
+async def get_translated(transcription_id: str):
+    """Get the translated file for a specific ID."""
+    file = DATA_HANDLER.get_status_file_by_id(transcription_id)
+    if file:
+        return JSONResponse(content=file, status_code=200)
+    raise HTTPException(status_code=404, detail="Transcription ID not found")
