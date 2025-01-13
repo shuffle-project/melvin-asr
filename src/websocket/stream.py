@@ -196,7 +196,9 @@ class Stream:
             result: str = "Missing data"
 
             # Pass the chunk to the transcriber
-            segments, _ = self.transcriber._transcribe(chunk_cache)
+            segments, _ = self.transcriber._transcribe(
+                chunk_cache,
+            )
 
             self.adjust_threshold_on_latency()
 
