@@ -1,13 +1,14 @@
 """Module to handle the transcription process"""
 
 import io
+from typing import Iterable, Tuple
 import wave
 
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 from faster_whisper.utils import logging
+from faster_whisper.transcribe import TranscriptionInfo, Segment
 
 from src.helper.model_handler import ModelHandler
-from src.helper.segment_info_parser import parse_segments_and_info_to_dict
 from src.helper.transcription_settings import TranscriptionSettings
 
 LOGGER = logging.getLogger(__name__)
@@ -44,7 +45,6 @@ class Transcriber:
         self._num_workers = num_workers
         self._model: WhisperModel = self._load_model()
         self._batched_model = BatchedInferencePipeline(model=self._model)
-
 
     @classmethod
     def for_gpu(cls, model_name: str, device_index: list):
@@ -85,13 +85,12 @@ class Transcriber:
         self,
         audio_chunk: bytes,
         prompt: str = "",
-    ) -> dict:
+    ) -> Tuple[Iterable[Segment], TranscriptionInfo]:
         """Function to run the transcription process"""
         sample_rate = 16000
         num_channels = 1
         sampwidth = 2
 
-        result = "ERROR"
         with io.BytesIO() as wav_io:
             with wave.open(wav_io, "wb") as wav_file:
                 wav_file.setnchannels(num_channels)
@@ -102,6 +101,4 @@ class Transcriber:
             settings = TranscriptionSettings().get_and_update_settings(
                 {"initial_prompt": prompt}
             )
-            segments, info = self._batched_model.transcribe(wav_io, batch_size=16, **settings)
-            result = parse_segments_and_info_to_dict(segments, info)
-        return result
+            return self._batched_model.transcribe(wav_io, batch_size=16, **settings)
