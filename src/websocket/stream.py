@@ -43,7 +43,6 @@ class Stream:
         self.export_audio = b""
         self.overall_transcribed_bytes = b""
         self.overall_audio_bytes = b""
-        self.last_bytes_cached = b""
         # If the cache is larger than the threshold, we transcribe
         self.final_treshold = BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
         self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
@@ -75,7 +74,6 @@ class Stream:
                             )
                         )
                         self.recently_added_chunk_cache = b""
-                        self.last_bytes_cached = message
                         self.chunk_cache = b""
                         self.agreement.clear()
 
@@ -87,7 +85,7 @@ class Stream:
                         asyncio.ensure_future(
                             self.transcribe_chunk_partial(
                                 websocket,
-                                self.chunk_cache + self.last_bytes_cached,
+                                self.chunk_cache,
                                 self.recently_added_chunk_cache,
                             )
                         )
@@ -131,7 +129,7 @@ class Stream:
         try:
             start_time = time.time()
             result = {}
-            bytes_to_transcribe = self.last_bytes_cached + chunk_cache
+            bytes_to_transcribe = chunk_cache
             segments, info = self.transcriber._transcribe(
                 bytes_to_transcribe,
                 "Beginning of transcription:" + self.last_final_result_object["text"],
@@ -167,8 +165,8 @@ class Stream:
                             }
                         )
                 result = {"result": words, "text": " ".join([x["word"] for x in words])}
-                # Save text and bytes for later use
                 self.last_final_result_object = result
+                self.last_final_bytes = chunk_cache
                 self.final_transcriptions.append(result)
 
             if not skip_send:
