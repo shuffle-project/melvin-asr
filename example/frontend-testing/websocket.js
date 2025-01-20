@@ -1,11 +1,10 @@
 const WS_URL = "ws://localhost:8394";
-const liveTranscriptOutput = document.getElementById('liveTranscriptOutput');
+const liveTranscriptPartialOutput = document.getElementById('liveTranscriptPartialOutput');
+const liveTranscriptFinalOutput = document.getElementById('liveTranscriptFinalOutput');
 const recordButton = document.getElementById("recordButton");
 let audioContext, audioProcessorNode, socket;
 let isStreaming = false;
-let accumulatedPartials = '';
 let accumulatedTranscription = '';
-let previousPartial = '';
 let previousFinal = '';
 
 /**
@@ -61,17 +60,15 @@ async function startRecording() {
        /** @type {WebSocketMessage} */
       const message = JSON.parse(event.data);
 
-      if (message.partial && message.partial !== previousPartial) {
+      if (message.partial) {
         console.log("Partial Transcription:", message.partial);
-        previousPartial = message.partial;
-        accumulatedPartials += message.partial;
-        liveTranscriptOutput.textContent = accumulatedPartials;
+        liveTranscriptPartialOutput.textContent = message.partial;
 
       } else if (message.hasOwnProperty('result')) {
         console.log("Final Transcription:", message.text);
           if (message.text !== previousFinal && message.text !== '') {
             accumulatedTranscription += ` ${message.text}`; // Space in between final transcriptions
-            liveTranscriptOutput.textContent = accumulatedTranscription;
+            liveTranscriptFinalOutput.textContent = accumulatedTranscription;
             previousFinal = message.text;
           }
       }

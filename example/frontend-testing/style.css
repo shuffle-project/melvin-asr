@@ -169,20 +169,33 @@ button:hover {
 
 /* WebSocket content (single column) */
 .content.websocket {
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     width: 100%;
-    height: 100%;
+    height: 50%;
 }
 
-#liveTranscriptOutput {
-    max-width: 400px;
+#liveTranscriptPartialOutput {
+    max-width: 500px;
+    width: 100%;
+    padding: 10px;
+    word-wrap: break-word;
+    /*overflow-wrap: break-word;*/
+    line-height: 2;
+    font-size: 15px;
+    text-align: left;
+    color: rgba(255, 0, 0, 0.5);
+}
+#liveTranscriptFinalOutput {
+    max-width: 500px;
+    max-height: 600px;
     width: 100%;
     padding: 10px;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    overflow-y: auto;
     line-height: 2;
     font-size: 20px;
     text-align: left;
@@ -263,7 +276,6 @@ button:hover {
   justify-content: center;
   align-items: center;
   align-self: center;
-  height: 100vh;
   padding: 20px;
 }
 .mic {
