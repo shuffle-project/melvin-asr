@@ -78,6 +78,8 @@ async function startRecording() {
             previousFinal = message.text;
           }
       }
+
+      liveTranscriptOutput.scrollTop = liveTranscriptOutput.scrollHeight;
     };
 
     socket.onerror = (error) => console.error("WebSocket error:", error);

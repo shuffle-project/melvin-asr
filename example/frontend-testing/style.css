@@ -178,16 +178,15 @@ button:hover {
 }
 
 #liveTranscriptOutput {
-    max-width: 500px;
-    max-height: 600px;
+    max-width: 60%;
+    max-height: 700px;
     width: 100%;
     padding: 10px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
     overflow-y: auto;
     line-height: 2;
     font-size: 20px;
     text-align: left;
+    scroll-behavior: smooth;
 }
 
 .new-partial {
