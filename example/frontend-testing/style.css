@@ -177,18 +177,7 @@ button:hover {
     height: 50%;
 }
 
-#liveTranscriptPartialOutput {
-    max-width: 500px;
-    width: 100%;
-    padding: 10px;
-    word-wrap: break-word;
-    /*overflow-wrap: break-word;*/
-    line-height: 2;
-    font-size: 15px;
-    text-align: left;
-    color: rgba(255, 0, 0, 0.5);
-}
-#liveTranscriptFinalOutput {
+#liveTranscriptOutput {
     max-width: 500px;
     max-height: 600px;
     width: 100%;
@@ -199,6 +188,14 @@ button:hover {
     line-height: 2;
     font-size: 20px;
     text-align: left;
+}
+
+.new-partial {
+    font-style: italic;
+}
+
+.transcript {
+    font-style: normal;
 }
 
 /* Hide inactive content */
