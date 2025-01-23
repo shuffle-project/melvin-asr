@@ -181,20 +181,24 @@ button:hover {
     max-width: 60%;
     max-height: 700px;
     width: 100%;
-    padding: 10px;
+    padding: 30px;
     overflow-y: auto;
     line-height: 2;
-    font-size: 20px;
+    font-size: 24px;
     text-align: left;
     scroll-behavior: smooth;
+    overflow: hidden;
 }
 
 .new-partial {
     font-style: italic;
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.2), 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 .transcript {
     font-style: normal;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 2px rgba(255, 255, 255, 0.6);
 }
 
 /* Hide inactive content */
