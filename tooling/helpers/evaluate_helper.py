@@ -70,8 +70,9 @@ def eval_websocket_partial_block(block: WebsocketResultBlock) -> float:
     if len(block.partials) <= 1:
         return 0
     res = 0
-    for i in range(len(block.partials)-1):
-        res += lev(block.partials[i], block.partials[i+1][:len(block.partials[i])])
+    partials = block.partials + [block.final]
+    for i in range(len(partials)-1):
+        res += lev(partials[i], partials[i+1][:len(partials[i])])
     return res/len(block.partials)
 
 def eval_websocket(websocket_benchmark_result: WebsocketResult, result_filepath: str, expected: str) -> WebsocketEvalResult | None:
