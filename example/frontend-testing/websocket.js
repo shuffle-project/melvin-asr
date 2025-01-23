@@ -19,14 +19,12 @@ recordButton.addEventListener("click", toggleRecording);
 
 async function toggleRecording() {
     if (!isStreaming) {
-        // Currently not recording, start recording
         await startRecording();
     } else {
-        // Currently recording, stop recording
         stopRecording();
     }
     recordButton.classList.toggle("recording");
-    isStreaming = !isStreaming; // Toggle the recording state
+    isStreaming = !isStreaming;
 }
 
 async function startRecording() {
@@ -84,32 +82,14 @@ async function startRecording() {
                 // Update only if the final text is new and not empty
                 if (message.text !== previousFinal && message.text.trim() !== '') {
                     accumulatedTranscription = `${accumulatedTranscription} ${message.text}`.trim(); // Append final transcript
-                    previousFinal = message.text; // Update the current final
+                    previousFinal = message.text;
 
                     // Clear partials and update the display with final transcript
                     accumulatedPartials = '';
                     liveTranscriptOutput.innerHTML = `<span class="transcript">${accumulatedTranscription}</span>`;
                 }
             }
-
-            /*if (message.partial) {
-              console.log("Partial Transcription:", message.partial);
-              if (message.text !== previousPartial && message.text !== '') {
-                accumulatedPartials += `${accumulatedTranscription} ${message.text}`
-                liveTranscriptOutput.innerHTML = `<span class="new-partial">${accumulatedPartials}</span> `;
-                previousPartial = message.partial;
-              }
-
-            } else if (message.hasOwnProperty('result')) {
-              console.log("Final Transcription:", message.text);
-                if (message.text !== previousFinal && message.text !== '') {
-                  accumulatedTranscription += ` ${message.text}`; // Space in between final transcriptions
-                  liveTranscriptOutput.innerHTML = `<span class="transcript">${accumulatedTranscription}</span> `;
-                  previousFinal = message.text;
-                  accumulatedPartials = '';
-                }
-            }*/
-
+            // Auto-scrolling of textbox
             liveTranscriptOutput.scrollTop = liveTranscriptOutput.scrollHeight;
         };
 
