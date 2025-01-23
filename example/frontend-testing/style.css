@@ -192,13 +192,13 @@ button:hover {
 
 .new-partial {
     font-style: italic;
-    color: rgba(255, 255, 255, 0.5);
-    text-shadow: 0 0 6px rgba(255, 255, 255, 0.2), 0 0 2px rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
 .transcript {
     font-style: normal;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 2px rgba(255, 255, 255, 0.6);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 /* Hide inactive content */
