@@ -37,11 +37,10 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
     """
 
     # Gather *all* original words into a flat list (tracking where they came from).
-    # I rather do that as a loop instead of splitting the original string and end up having some unexpected behaviour.
     flat_words = []
-    for seg_idx, seg in enumerate(original_transcript["segments"]):
-        for w_idx, w in enumerate(seg["words"]):
-            flat_words.append((seg_idx, w_idx, w))
+    for segment_index, seg in enumerate(original_transcript["segments"]):
+        for word_index, w in enumerate(seg["words"]):
+            flat_words.append((segment_index, word_index, w))
 
     if not flat_words or not translated_text.strip():
         raise HTTPException(
@@ -88,35 +87,27 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
         if i_end >= j_end and overlap <= 0:
             j += 1
 
-    new_transcript = {
-        "text": translated_text,
-        "segments": [],
-    }
+    new_transcript = Transcript(text=translated_text, segments=[])
 
     # Initialize new segments
     for seg in original_transcript["segments"]:
-        new_segment = {
-            "text": "",
-            "start": seg["start"],
-            "end": seg["end"],
-            "words": [],
-        }
-        new_transcript["segments"].append(new_segment)
+        new_segment = Segment(text="", start=seg["start"], end=seg["end"], words=[])
+        new_transcript.segments.append(new_segment)
 
     # Fill words
-    for idx, (seg_idx, w_idx, old_word) in enumerate(flat_words):
+    for idx, (segment_index, word_index, old_word) in enumerate(flat_words):
         new_word_text = " ".join(aligned_tokens_per_word[idx])
-        new_word = {
-            "text": new_word_text,
-            "start": old_word["start"],
-            "end": old_word["end"],
-            "probability": old_word["probability"],
-        }
-        new_transcript["segments"][seg_idx]["words"].append(new_word)
+        new_word = Word(
+            text=new_word_text,
+            start=old_word["start"],
+            end=old_word["end"],
+            probability=old_word["probability"],
+        )
+        new_transcript.segments[segment_index].words.append(new_word)
 
     # Fix segment texts
-    for seg in new_transcript["segments"]:
-        seg["text"] = " ".join(word["text"] for word in seg["words"] if word["text"])
+    for seg in new_transcript.segments:
+        seg.text = " ".join(word.text for word in seg.words if word.text)
 
     return new_transcript
 
@@ -126,7 +117,7 @@ def load_status_file(file_path: str) -> dict:
         return json.load(file)
 
 
-# ## THIS IS TESTING
+# ## THIS IS FOR TESTING
 
 # script_dir = os.path.dirname(os.path.abspath(__file__))
 
