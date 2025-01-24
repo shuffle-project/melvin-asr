@@ -115,13 +115,11 @@ On our side, we had to expose the docker port for the transcription service and 
 
 ### Local Agreement
 
-Local agreement is a strategy for determining the longest common prefix for n audio chunks during sequence to sequence speech recognition. See also the [corresponding paper](https://www.isca-archive.org/interspeech_2020/liu20s_interspeech.pdf). At the core of Local agreement is the idea that if a "hypothesis" i.e. a transcription of a sequence is validated/reinforced by additonal subsequent inputs it is unlikely to change (or need to be changed) and therefore can be considered promising.
+Local agreement is a strategy for determining the longest common prefix among n audio chunks during sequence-to-sequence speech recognition. See also the corresponding [paper](https://www.isca-archive.org/interspeech_2020/liu20s_interspeech.pdf). At the core of local agreement is the idea that if a "hypothesis" (i.e., a transcription of a sequence) is validated or reinforced by additional subsequent inputs, it is unlikely to change (or need to be changed) and can therefore be considered promising.
 
-However this approach automatically also results in a system that can only give a definite for the audio chunk n once the audio chunk n+1 has been transcribed. Before the transcription n+1 the conditions that would make the transcription of n "promising" are not met.
+However, this approach inherently results in a system that can only provide a definitive transcription for audio chunk n once audio chunk n+1 has been transcribed. Before the transcription of n+1, the conditions required for the transcription of n to be deemed "promising" are not yet satisfied.
 
-Our first step was applying local agreement to partials directly without further changes to the partial <-> final system in place. This alread yielded improvements over the baseline (see below).
-
-<details>
+Our first step was to apply local agreement to partial transcriptions directly, without making further changes to the partial-to-final system already in place. This already yielded improvements over the baseline (see below). The use of local agreement stabilized partial transcriptions and eliminated jitter between them, albeit with the tradeoff of some added latency.<details>
 
   <summary>benchmarking results</summary>
 
