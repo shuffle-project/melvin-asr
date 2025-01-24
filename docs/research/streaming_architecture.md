@@ -112,3 +112,45 @@ In the BBB configuration file, we need to specify which transcription method we 
 Then we configured an additional service called `bbb-transcription-controller`. We set the websocket domain (our transcription endpoint) to the German translation. This can be done inside the repo's config yaml file. This was a bit tricky, because if you clone the official repo, change the configuration and run the `app.js` it won't work. We had to do `sudo apt install bbb-transcription-controller` and configure the files in the folder of the apt installation.
 
 On our side, we had to expose the docker port for the transcription service and add a subdomain in nginx to forward this port.
+
+### Local Agreement
+
+Local agreement is a strategy for determining the longest common prefix for n audio chunks during sequence to sequence speech recognition. See also the [corresponding paper](https://www.isca-archive.org/interspeech_2020/liu20s_interspeech.pdf). At the core of Local agreement is the idea that if a "hypothesis" i.e. a transcription of a sequence is validated/reinforced by additonal subsequent inputs it is unlikely to change (or need to be changed) and therefore can be considered promising.
+
+However this approach automatically also results in a system that can only give a definite for the audio chunk n once the audio chunk n+1 has been transcribed. Before the transcription n+1 the conditions that would make the transcription of n "promising" are not met.
+
+Our first step was applying local agreement to partials directly without further changes to the partial <-> final system in place. This alread yielded improvements over the baseline (see below).
+
+<details>
+
+  <summary>benchmarking results</summary>
+
+Reference Value (main at commit 39a75f9d6ff436121b055fb7911a1b1345635539)
+
+| Statistic                          | Duration     | WER         | Average Levenshtein Distance | Average WER Last Partial to Final |
+|------------------------------------|--------------|-------------|------------------------------|------------------------------------|
+| Count                              | 184.000000   | 184.000000  | 184.000000                   | 184.000000                        |
+| Mean                               | 142.204907   | 0.507875    | 9.211218                     | 9.211218                          |
+| Standard Deviation (Std)           | 77.758936    | 0.188119    | 2.381541                     | 2.381541                          |
+| Minimum (Min)                      | 67.450931    | 0.020468    | 4.271429                     | 4.271429                          |
+| 25th Percentile (25%)              | 104.875387   | 0.362659    | 7.618866                     | 7.618866                          |
+| Median (50%)                       | 120.544210   | 0.481180    | 8.864444                     | 8.864444                          |
+| 75th Percentile (75%)              | 150.024140   | 0.647103    | 10.028701                    | 10.028701                         |
+| Maximum (Max)                      | 621.784362   | 0.983399    | 18.133333                    | 18.133333                         |
+
+
+Local Agreement (same partial <-> final system as above)
+
+| Statistic                          | Duration     | WER         | Average Levenshtein Distance | Average WER Last Partial to Final |
+|------------------------------------|--------------|-------------|------------------------------|------------------------------------|
+| Count                              | 184.000000   | 184.000000  | 184.000000                   | 184.000000                        |
+| Mean                               | 135.436777   | 0.236248    | 5.831115                     | 5.831115                          |
+| Standard Deviation (Std)           | 70.528878    | 0.211362    | 1.380471                     | 1.380471                          |
+| Minimum (Min)                      | 63.915297    | 0.014451    | 2.814286                     | 2.814286                          |
+| 25th Percentile (25%)              | 100.581711   | 0.076304    | 5.018676                     | 5.018676                          |
+| Median (50%)                       | 115.228423   | 0.147290    | 5.625143                     | 5.625143                          |
+| 75th Percentile (75%)              | 142.558473   | 0.324637    | 6.441364                     | 6.441364                          |
+| Maximum (Max)                      | 580.561308   | 0.879463    | 14.750000                    | 14.750000                         |
+
+
+</details>
