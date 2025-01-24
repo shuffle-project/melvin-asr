@@ -94,7 +94,6 @@ class Runner:
         """Translates the audio file with the given transcription_id."""
         transcription = self.data_handler.get_status_file_by_id(task_id)
 
-        # TODO: Move the following in the runner handler
         transcription["start_time"] = (
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
@@ -108,7 +107,7 @@ class Runner:
             transcription["transcript"], translated_text
         )
 
-        # This is here to see the difference in segmented tranlation level
+        # This is here to see the difference in segmented tranlation level if used
         # for segment in transcription["transcript"]["segments"]:
         #     segment["text"] = translate_text(
         #         segment["text"], transcription["language"], target_language

@@ -1,3 +1,5 @@
+# This was an attempt to align using tokenized strings for a more precise alignment
+# This did not seem to be in anyway more useful than just percent based alignment
 import numpy as np
 import torch
 from transformers import AutoModel, AutoTokenizer
