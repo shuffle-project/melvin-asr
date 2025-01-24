@@ -56,4 +56,4 @@ def translate_text(text, from_code, to_code):
     try:
         return argostranslate.translate.translate(text, from_code, to_code)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error during translation: {e}")
+        raise HTTPException(status_code=500, detail=f"Error during translation: {e}")
