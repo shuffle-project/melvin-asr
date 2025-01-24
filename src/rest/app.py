@@ -229,6 +229,7 @@ async def translate(
     return JSONResponse(content={"id": transcription_id}, status_code=200)
 
 
+# This could be merged with other requests, but that also requires fixing the demo so it will stay here for now
 @time_it
 @app.get("/translate/{transcription_id}", dependencies=[Depends(require_api_key)])
 async def get_translated(transcription_id: str):
