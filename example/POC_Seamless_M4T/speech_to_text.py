@@ -5,7 +5,7 @@ import torchaudio
 from transformers import AutoProcessor, SeamlessM4Tv2Model
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-relative_path = "../../src/helper/test_base/example.wav"
+relative_path = "./example.wav"
 absolute_path = os.path.abspath(os.path.join(script_dir, relative_path))
 
 # Load audio
