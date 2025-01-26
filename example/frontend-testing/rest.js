@@ -1,19 +1,49 @@
+const API_URL = 'http://localhost:8393/transcriptions/';
+const DEFAULT_LANGUAGE = 'en';
+const DEFAULT_MODEL = 'large-v3-turbo';
+const SETTINGS = '{"test": "test"}';
+const ERROR_MESSAGES = {
+    NO_FILE: 'Please upload a file first.',
+    MISSING_API_KEY: 'API key is missing. Please save your API key first.',
+    INVALID_API_KEY: 'Invalid API key. Please save your API key first.',
+};
+
 let selectedFile = null;
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
+const loadingContainer = document.getElementById('loadingContainer');
+
+const loadingSVG =
+    `<svg class="spinner" width="65px" height="65px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+   <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+</svg>`;
+
+// Helper function to retrieve API key
+const getApiKey = () => localStorage.getItem('apiKey');
+
+// Helper function to create FormData
+const createFormData = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('test', 'test');
+    formData.append('language', DEFAULT_LANGUAGE);
+    formData.append('settings', SETTINGS);
+    formData.append('model', DEFAULT_MODEL);
+    return formData;
+};
+
+// Helper function to handle API error response display
+const displayError = (container, message) => {
+    container.textContent = message;
+};
 
 /**
  * On window load, retrieve and set the API key from localStorage.
  * If an API key is found, it is populated in the input field.
  */
-window.onload = function() {
+window.onload = function () {
     // Retrieve the stored API key from localStorage
-    const storedApiKey = localStorage.getItem('apiKey');
-    
-    // If an API key exists, set it in the input field
-    if (storedApiKey) {
-        document.getElementById('apiKey').value = storedApiKey;
-    }
+    document.getElementById('apiKey').value = getApiKey();
 };
 
 /**
@@ -24,7 +54,7 @@ window.onload = async function checkHealth() {
     const responseContainer = document.getElementById('checkHealth');
     responseContainer.textContent = 'Checking API status...';
 
-    const apiKey = localStorage.getItem('apiKey');  // Retrieve the saved API key
+    const apiKey = getApiKey();  // Retrieve the saved API key
     if (!apiKey) {
         responseContainer.textContent = 'API key is missing. Please save your API key first.';
         return;
@@ -93,105 +123,91 @@ document.getElementById('dropZone').addEventListener('click', () => {
     document.getElementById('fileInput').click();  // Open file selector dialog
 });
 
-/**
- * Function to start transcription by sending a selected file to the API.
- * Displays the response or error in the 'response' element.
- */
+// Main transcription function
 async function requestTranscription() {
     const responseContainer = document.getElementById('response');
+    const apiKey = getApiKey();
 
-    // Check if a file is selected
+    // Guard clauses for early exit
     if (!selectedFile) {
-        responseContainer.textContent = 'Please upload a file first.';
-        return;
+        return displayError(responseContainer, ERROR_MESSAGES.NO_FILE);
     }
-
-    const formData = new FormData();
-
-    const apiKey = localStorage.getItem('apiKey');  // Retrieve the saved API key
     if (!apiKey) {
-        responseContainer.textContent = 'API key is missing. Please save your API key first.';
-        return;
+        return displayError(responseContainer, ERROR_MESSAGES.MISSING_API_KEY);
     }
-
-    // Verify selected file is valid
-    if (selectedFile === null || selectedFile === undefined) {
-        responseContainer.textContent = 'No file selected.';
-        return;
-    }
-    
-    // Append necessary data to FormData object
-    formData.append('file', selectedFile);
-    formData.append('test', 'test');
-    formData.append('language', 'en');
-    formData.append('settings', '{"test": "test"}');
-    formData.append('model', 'large-v3-turbo');
 
     responseContainer.textContent = 'Calling API...';
 
     try {
-        // Make POST request to transcription API
-        const response = await fetch('http://localhost:8393/transcriptions', {
+        const formData = createFormData(selectedFile);
+        const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Authorization': `${apiKey}`
-            },
-            body: formData
+            headers: {'Authorization': apiKey},
+            body: formData,
         });
 
-        // Check response status
         if (!response.ok) {
             throw new Error(`Error: ${response.status}`);
         }
 
-        // Parse and display response data
         const data = await response.json();
         responseContainer.textContent = JSON.stringify(data, null, 2);
         transcriptionFileName.textContent = "File name: " + selectedFile.name;
-        responseTextContainer.textContent = data['transcription_id'];
+
+        // Delegate transcription ID handling to the appropriate function
+        requestTranscriptionText(data['transcription_id']);
     } catch (error) {
-        // Display error message on failure
-        responseContainer.textContent = error.message;
+        displayError(responseContainer, ERROR_MESSAGES.INVALID_API_KEY);
     }
 }
 
-submitButton.addEventListener('click', () => {
-    userInputValue = inputField.value; // Get the input value
-    console.log("User Input:", userInputValue); // Log it to the console
-    // You can now use `userInputValue` in your script
-});
+function requestTranscriptionText(transcription_id) {
 
-async function requestTranscriptionText() {
+    const apiKey = localStorage.getItem('apiKey');
+    const HEADERS = {
+        'Authorization': `${apiKey}`,
+    };
 
-    const transcription_id = document.getElementById('transcriptionID').value;
-    const apiKey = localStorage.getItem('apiKey');  // Retrieve the saved API key
-    if (!apiKey) {
-        responseContainer.textContent = 'API key is missing. Please save your API key first.';
-        return;
-    }
+    loadingContainer.innerHTML = loadingSVG;
 
-    responseTextContainer.textContent = 'Calling API...';
-
-    try {
-        // Make POST request to transcription API
-        const response = await fetch(`http://localhost:8393/transcriptions/${transcription_id}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `${apiKey}`
-            },
-        });
-
-        // Check response status
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
+    /**
+     * Handles the response data from the fetch request
+     * @param {Object} transcriptionData - The data returned from the API
+     */
+    const handleResponse = (transcriptionData) => {
+        if (transcriptionData.status === 'finished') {
+            loadingContainer.innerHTML = "";
+            responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
+            clearInterval(timer);
+        } else if (transcriptionData.status === 'failed') {
+            loadingContainer.innerHTML = "";
+            responseTextContainer.textContent = 'Transcription failed';
+            clearInterval(timer);
+        } else if (transcriptionData.status === 'in_query') {
+            responseTextContainer.textContent = 'Transcription in progress';
         }
+    };
 
-        // Parse and display response data
-        const data = await response.json();
-
-        responseTextContainer.textContent = JSON.stringify(data['transcript']['text'], null, 2); //data['transcript']['text'];
-    } catch (error) {
-        // Display error message on failure
-        responseTextContainer.textContent = error.message;
+    function pollTranscription(transcription_id) {
+        fetch(`${API_URL}${transcription_id}`, {
+            method: 'GET',
+            headers: HEADERS,
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(transcriptionData => {
+                handleResponse(transcriptionData);
+            })
+            .catch(error => {
+                clearInterval(timer);
+                responseTextContainer.textContent = 'Transcription failed';
+                console.log('Error:', error);
+            });
     }
+
+    const timer = setInterval(() => pollTranscription(transcription_id), 1000);
 }

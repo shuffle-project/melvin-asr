@@ -77,6 +77,10 @@ The project uses Ruff for linting and formating code, Pytest for Unit tests. See
 
 The project is delivered and deployed as a docker container. Depending on the usage of GPU or CPU, there are different factors that come in play. See [Deployment Documentation](docs/deployment.md)
 
+## Demo-Frontend
+
+We have integrated a simple demo website to easily show and test the functionalities. Reference the [Readme](docs/demo-frontend.md) 
+
 ## Code Integration
 
 We are maintaining our code following trunk based development. This means we are working on features branches, integrating into one trunk, the main branch. Please keep your side branches small, and bring them back to main as soon as possible.
