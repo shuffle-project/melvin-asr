@@ -1,18 +1,22 @@
 const API_URL = 'http://localhost:8393/transcriptions/';
+const API_URL_TRANSLATION = 'http://localhost:8393/translate/de';
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_MODEL = 'large-v3-turbo';
-const SETTINGS = '{"test": "test"}';
+//const SETTINGS = '{"test": "test"}';
 const ERROR_MESSAGES = {
     NO_FILE: 'Please upload a file first.',
     MISSING_API_KEY: 'API key is missing. Please save your API key first.',
     INVALID_API_KEY: 'Invalid API key. Please save your API key first.',
+    TRANSLATION: 'Could not translate the current text'
 };
 
 let selectedFile = null;
 const apiResponse = document.getElementById('apiResponse');
+const translationResponse = document.getElementById('translationResponse')
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
 const loadingContainer = document.getElementById('loadingContainer');
+let transcription_buffer = null;
 
 const loadingSVG =
     `<svg class="spinner" width="65px" height="65px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
@@ -26,9 +30,9 @@ const getApiKey = () => localStorage.getItem('apiKey');
 const createFormData = (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('test', 'test');
+    //formData.append('test', 'test');
     formData.append('language', DEFAULT_LANGUAGE);
-    formData.append('settings', SETTINGS);
+    //formData.append('settings', SETTINGS);
     formData.append('model', DEFAULT_MODEL);
     return formData;
 };
@@ -52,12 +56,12 @@ window.onload = function () {
  * Updates the 'checkHealth' element with the status of the service.
  */
 window.onload = async function checkHealth() {
-    const responseContainer = document.getElementById('checkHealth');
-    responseContainer.textContent = 'Checking API status...';
+    const apiResponse = document.getElementById('checkHealth');
+    apiResponse.textContent = 'Checking API status...';
 
     const apiKey = getApiKey();  // Retrieve the saved API key
     if (!apiKey) {
-        responseContainer.textContent = 'API key is missing. Please save your API key first.';
+        apiResponse.textContent = 'API key is missing. Please save your API key first.';
         return;
     }
 
@@ -75,11 +79,11 @@ window.onload = async function checkHealth() {
             throw new Error(`Error: ${response.status}`);
         } else {
             // Update the response container with the service status
-            responseContainer.textContent = 'Authorized - Service is running';
+            apiResponse.textContent = 'Authorized - Service is running';
         }
     } catch (error) {
         // Display error message in case of request failure
-        responseContainer.textContent = 'Could not reach API / API Key missing';
+        apiResponse.textContent = 'Could not reach API / API Key missing';
     }
 }
 
@@ -91,11 +95,11 @@ function saveApiKey() {
     const apiKey = document.getElementById('apiKey').value;
     if (apiKey) {
         localStorage.setItem('apiKey', apiKey);
-        const responseContainer = document.getElementById('checkHealth');
-        responseContainer.textContent = "API Key saved successfully!";
+        const apiResponse = document.getElementById('checkHealth');
+        apiResponse.textContent = "API Key saved successfully!";
     } else {
-        const responseContainer = document.getElementById('checkHealth');
-        responseContainer.textContent = "Please enter a valid API key first.";
+        const apiResponse = document.getElementById('checkHealth');
+        apiResponse.textContent = "Please enter a valid API key first.";
     }
 }
 
@@ -126,7 +130,6 @@ document.getElementById('dropZone').addEventListener('click', () => {
 
 // Main transcription function
 async function requestTranscription() {
-    const responseContainer = document.getElementById('response');
     const apiKey = getApiKey();
 
     // Guard clauses for early exit
@@ -152,13 +155,13 @@ async function requestTranscription() {
         }
 
         const data = await response.json();
-        responseContainer.textContent = JSON.stringify(data, null, 2);
+        apiResponse.textContent = JSON.stringify(data, null, 2);
         transcriptionFileName.textContent = "File name: " + selectedFile.name;
 
         // Delegate transcription ID handling to the appropriate function
         requestTranscriptionText(data['transcription_id']);
     } catch (error) {
-        displayError(responseContainer, ERROR_MESSAGES.INVALID_API_KEY);
+        displayError(apiResponse, ERROR_MESSAGES.INVALID_API_KEY);
     }
 }
 
@@ -179,6 +182,7 @@ function requestTranscriptionText(transcription_id) {
         if (transcriptionData.status === 'finished') {
             loadingContainer.innerHTML = "";
             responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
+            transcription_buffer = transcriptionData;
             clearInterval(timer);
         } else if (transcriptionData.status === 'failed') {
             loadingContainer.innerHTML = "";
@@ -216,23 +220,19 @@ function requestTranscriptionText(transcription_id) {
 async function requestTranslation() {
 
     const apiKey = getApiKey();
-
-    // Guard clauses for early exit
-    if (!selectedFile) {
-        return displayError(responseContainer, ERROR_MESSAGES.NO_FILE);
-    }
     if (!apiKey) {
-        return displayError(responseContainer, ERROR_MESSAGES.MISSING_API_KEY);
+        return displayError(apiResponse, ERROR_MESSAGES.MISSING_API_KEY);
     }
 
-    responseContainer.textContent = 'Calling API...';
-
+    apiResponse.textContent = 'Translating...';
+    console.log(transcription_buffer);
+    console.log(typeof(transcription_buffer));
+    console.log(JSON.stringify(transcription_buffer))
     try {
-        const formData = createFormData(selectedFile);
-        const response = await fetch(API_URL, {
+        const response = await fetch(API_URL_TRANSLATION, {
             method: 'POST',
             headers: {'Authorization': apiKey},
-            body: formData,
+            body: JSON.stringify(transcription_buffer),
         });
 
         if (!response.ok) {
@@ -240,13 +240,13 @@ async function requestTranslation() {
         }
 
         const data = await response.json();
-        responseContainer.textContent = JSON.stringify(data, null, 2);
-        transcriptionFileName.textContent = "File name: " + selectedFile.name;
+        translationResponse.textContent = JSON.stringify(data, null, 2);
+        console.log(data);
 
         // Delegate transcription ID handling to the appropriate function
-        requestTranscriptionText(data['transcription_id']);
+        requestTranslationText(data['transcription_id']);
     } catch (error) {
-        displayError(responseContainer, ERROR_MESSAGES.INVALID_API_KEY);
+        displayError(apiResponse, ERROR_MESSAGES.TRANSLATION);
     }
 }
 
@@ -298,6 +298,6 @@ function requestTranslationText() {
             });
     }
 
-    const timer = setInterval(() => pollTranscription(transcription_id), 1000);
+    const timer = setInterval(() => pollTranslation(transcription_id), 1000);
 
 }
