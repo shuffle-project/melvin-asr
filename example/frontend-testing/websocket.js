@@ -1,4 +1,5 @@
 const WS_URL = "ws://localhost:8394";
+const websocketPage = document.getElementById('websocketContent');
 const liveTranscriptOutput = document.getElementById('liveTranscriptOutput');
 const recordButton = document.getElementById("recordButton");
 let audioContext, audioProcessorNode, socket;
@@ -91,6 +92,10 @@ async function startRecording() {
             }
             // Auto-scrolling of textbox
             liveTranscriptOutput.scrollTop = liveTranscriptOutput.scrollHeight;
+
+            if (getComputedStyle(websocketPage).display === 'none') { // Stop recording once websocket page is hidden
+            stopRecording();
+            }
         };
 
         socket.onerror = (error) => console.error("WebSocket error:", error);
