@@ -9,6 +9,7 @@ const ERROR_MESSAGES = {
 };
 
 let selectedFile = null;
+const apiResponse = document.getElementById('apiResponse');
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
 const loadingContainer = document.getElementById('loadingContainer');
@@ -130,13 +131,13 @@ async function requestTranscription() {
 
     // Guard clauses for early exit
     if (!selectedFile) {
-        return displayError(responseContainer, ERROR_MESSAGES.NO_FILE);
+        return displayError(apiResponse, ERROR_MESSAGES.NO_FILE);
     }
     if (!apiKey) {
-        return displayError(responseContainer, ERROR_MESSAGES.MISSING_API_KEY);
+        return displayError(apiResponse, ERROR_MESSAGES.MISSING_API_KEY);
     }
 
-    responseContainer.textContent = 'Calling API...';
+    apiResponse.textContent = 'Calling API...';
 
     try {
         const formData = createFormData(selectedFile);
@@ -210,4 +211,93 @@ function requestTranscriptionText(transcription_id) {
     }
 
     const timer = setInterval(() => pollTranscription(transcription_id), 1000);
+}
+
+async function requestTranslation() {
+
+    const apiKey = getApiKey();
+
+    // Guard clauses for early exit
+    if (!selectedFile) {
+        return displayError(responseContainer, ERROR_MESSAGES.NO_FILE);
+    }
+    if (!apiKey) {
+        return displayError(responseContainer, ERROR_MESSAGES.MISSING_API_KEY);
+    }
+
+    responseContainer.textContent = 'Calling API...';
+
+    try {
+        const formData = createFormData(selectedFile);
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {'Authorization': apiKey},
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        responseContainer.textContent = JSON.stringify(data, null, 2);
+        transcriptionFileName.textContent = "File name: " + selectedFile.name;
+
+        // Delegate transcription ID handling to the appropriate function
+        requestTranscriptionText(data['transcription_id']);
+    } catch (error) {
+        displayError(responseContainer, ERROR_MESSAGES.INVALID_API_KEY);
+    }
+}
+
+function requestTranslationText() {
+
+    const apiKey = localStorage.getItem('apiKey');
+    const HEADERS = {
+        'Authorization': `${apiKey}`,
+    };
+
+    loadingContainer.innerHTML = loadingSVG;
+
+    /**
+     * Handles the response data from the fetch request
+     * @param {Object} translationData - The data returned from the API
+     */
+    const handleResponse = (translationData) => {
+        if (translationData.status === 'finished') {
+            loadingContainer.innerHTML = "";
+            responseTextContainer.textContent = JSON.stringify(translationData.transcript.text, null, 2)
+            clearInterval(timer);
+        } else if (translationData.status === 'failed') {
+            loadingContainer.innerHTML = "";
+            responseTextContainer.textContent = 'Transcription failed';
+            clearInterval(timer);
+        } else if (translationData.status === 'in_query') {
+            responseTextContainer.textContent = 'Transcription in progress';
+        }
+    }
+
+    function pollTranslation(transcription_id) {
+        fetch(`${API_URL}${transcription_id}`, {
+            method: 'GET',
+            headers: HEADERS,
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(transcriptionData => {
+                handleResponse(transcriptionData);
+            })
+            .catch(error => {
+                clearInterval(timer);
+                responseTextContainer.textContent = 'Transcription failed';
+                console.log('Error:', error);
+            });
+    }
+
+    const timer = setInterval(() => pollTranscription(transcription_id), 1000);
+
 }

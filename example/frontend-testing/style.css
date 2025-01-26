@@ -112,12 +112,12 @@ button:hover {
 }
 
 /* Response section */
-#response {
+#apiResponse {
     margin-top: 20px;
     font-family: monospace;
     white-space: pre-wrap;
     text-align: left;
-    color: #cfcfcf; /* Softer light text */
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* Drop zone styles */
@@ -306,6 +306,7 @@ button:hover {
 
 .mic:hover{
     background-color: #54a5e4;
+    transform: scale(1.1);
 }
 
 .recording {
