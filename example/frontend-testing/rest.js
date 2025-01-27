@@ -1,5 +1,5 @@
 const API_URL = 'http://localhost:8393/transcriptions/';
-const API_URL_TRANSLATION = 'http://localhost:8393/translate/de';
+const API_URL_TRANSLATION = 'http://localhost:8393/translate/';
 const DEFAULT_LANGUAGE = 'en';
 const DEFAULT_MODEL = 'large-v3-turbo';
 //const SETTINGS = '{"test": "test"}';
@@ -229,9 +229,9 @@ async function requestTranslation() {
     console.log(typeof(transcription_buffer));
     console.log(JSON.stringify(transcription_buffer))
     try {
-        const response = await fetch(API_URL_TRANSLATION, {
+        const response = await fetch(`${API_URL_TRANSLATION}de`, {
             method: 'POST',
-            headers: {'Authorization': apiKey},
+            headers: {'Authorization': apiKey, 'Content-Type': 'application/json'},
             body: JSON.stringify(transcription_buffer),
         });
 
@@ -244,17 +244,17 @@ async function requestTranslation() {
         console.log(data);
 
         // Delegate transcription ID handling to the appropriate function
-        requestTranslationText(data['transcription_id']);
+        requestTranslationText(data['id']);
     } catch (error) {
         displayError(apiResponse, ERROR_MESSAGES.TRANSLATION);
     }
 }
 
-function requestTranslationText() {
+function requestTranslationText(translation_id) {
 
     const apiKey = localStorage.getItem('apiKey');
     const HEADERS = {
-        'Authorization': `${apiKey}`,
+        'Authorization': `${apiKey}`, 'Content-Type': 'application/json'
     };
 
     loadingContainer.innerHTML = loadingSVG;
@@ -266,19 +266,19 @@ function requestTranslationText() {
     const handleResponse = (translationData) => {
         if (translationData.status === 'finished') {
             loadingContainer.innerHTML = "";
-            responseTextContainer.textContent = JSON.stringify(translationData.transcript.text, null, 2)
+            translationResponse.textContent = JSON.stringify(translationData.transcript.text, null, 2)
             clearInterval(timer);
         } else if (translationData.status === 'failed') {
             loadingContainer.innerHTML = "";
-            responseTextContainer.textContent = 'Transcription failed';
+            translationResponse.textContent = 'Translation failed';
             clearInterval(timer);
         } else if (translationData.status === 'in_query') {
-            responseTextContainer.textContent = 'Transcription in progress';
+            translationResponse.textContent = 'Translation in progress';
         }
     }
 
-    function pollTranslation(transcription_id) {
-        fetch(`${API_URL}${transcription_id}`, {
+    function pollTranslation(translation_id) {
+        fetch(`${API_URL_TRANSLATION}${translation_id}`, {
             method: 'GET',
             headers: HEADERS,
         })
@@ -293,11 +293,11 @@ function requestTranslationText() {
             })
             .catch(error => {
                 clearInterval(timer);
-                responseTextContainer.textContent = 'Transcription failed';
+                translationResponse.textContent = 'Transcription failed';
                 console.log('Error:', error);
             });
     }
 
-    const timer = setInterval(() => pollTranslation(transcription_id), 1000);
+    const timer = setInterval(() => pollTranslation(translation_id), 1000);
 
 }
