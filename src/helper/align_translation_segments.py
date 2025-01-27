@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List
 
 from fastapi import HTTPException
@@ -22,6 +23,9 @@ class Segment(TypedDict):
 class Transcript(TypedDict):
     text: str
     segments: List[Segment]
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def align_segments(original_transcript: Transcript, translated_text: str) -> Transcript:
@@ -92,7 +96,7 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
     # Initialize new segments
     for seg in original_transcript["segments"]:
         new_segment = Segment(text="", start=seg["start"], end=seg["end"], words=[])
-        new_transcript.segments.append(new_segment)
+        new_transcript["segments"].append(new_segment)
 
     # Fill words
     for idx, (segment_index, word_index, old_word) in enumerate(flat_words):
@@ -103,11 +107,11 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
             end=old_word["end"],
             probability=old_word["probability"],
         )
-        new_transcript.segments[segment_index].words.append(new_word)
+        new_transcript["segments"][segment_index]["words"].append(new_word)
 
     # Fix segment texts
-    for seg in new_transcript.segments:
-        seg.text = " ".join(word.text for word in seg.words if word.text)
+    for seg in new_transcript["segments"]:
+        seg["text"] = " ".join(word["text"] for word in seg["words"] if word["text"])
 
     return new_transcript
 
