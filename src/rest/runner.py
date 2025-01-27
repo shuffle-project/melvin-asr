@@ -148,7 +148,6 @@ class Runner:
                     current_status = data.get("status")
                     start_time = data.get("start_time")
                     model = data.get("model")
-                    task = data.get("task")
 
                     if start_time is None or current_status is None:
                         continue
@@ -166,6 +165,7 @@ class Runner:
                     ):
                         oldest_start_time = current_datetime
                         oldest_transcription_id = data.get("transcription_id")
+                        task = data.get("task")
 
             except Exception as e:
                 self.log.error(
