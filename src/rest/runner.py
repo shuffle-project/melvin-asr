@@ -8,9 +8,9 @@ from typing import Tuple
 
 from src.helper import logger
 from src.helper.align_translation_segments import align_segments
+from src.helper.argos_translate import translate_text
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.translate import translate_text
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.rest.rest_transcriber import Transcriber
 
@@ -97,12 +97,14 @@ class Runner:
         transcription["start_time"] = (
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
+        self.log.debug("translating: " + task_id)
         translated_text = translate_text(
             transcription["transcript"]["text"],
             transcription["language"],
             transcription["target_language"],
         )
 
+        self.log.debug("aligning: " + task_id)
         transcription["transcript"] = align_segments(
             transcription["transcript"], translated_text
         )
