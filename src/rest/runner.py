@@ -131,6 +131,7 @@ class Runner:
         """Gets the oldest transcription in query."""
         oldest_start_time = None
         oldest_transcription_id: str = None
+        task = {}
 
         files = os.listdir(data_handler.status_path)
         if len(files) == 0:
@@ -179,6 +180,6 @@ class Runner:
 
         return (
             (oldest_transcription_id, task)
-            if oldest_transcription_id
+            if oldest_transcription_id and task
             else ("None", task)
         )
