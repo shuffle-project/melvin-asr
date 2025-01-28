@@ -223,13 +223,26 @@ button:hover {
     display: flex;
 }
 
+.translation {
+    display: none;
+}
+
+.translation.active {
+    display: flex;
+    flex-direction: column;
+}
+
 /*Loading Spinner*/
-#loadingContainer1 #loadingContainer2 {
+#loadingContainer1, #loadingContainer2 {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 15px;
     margin: 20px;
+}
+
+#loadingContainer1.inactive, #loadingContainer2.inactive {
+    display: none;
 }
 
 .spinner {
@@ -348,6 +361,11 @@ hr {
 /* Hide the original radio buttons */
     .radio input[type="radio"] {
       display: none;
+    }
+
+    .radio {
+        margin-top: 10px;
+        margin-top: 10px;
     }
 
     /* Style the labels as buttons */

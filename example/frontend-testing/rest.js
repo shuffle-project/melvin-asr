@@ -14,6 +14,7 @@ let selectedLanguage = null;
 
 let selectedFile = null;
 const apiResponse = document.getElementById('apiResponse');
+const translationContainer = document.getElementById('translationContainer')
 const translationResponse = document.getElementById('translationResponse')
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
@@ -52,6 +53,8 @@ const displayError = (container, message) => {
 window.onload = function () {
     // Retrieve the stored API key from localStorage
     document.getElementById('apiKey').value = getApiKey();
+    loadingContainer.classList.add('inactive');
+    loadingContainer2.classList.add('inactive');
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -185,6 +188,7 @@ function requestTranscriptionText(transcription_id) {
     };
 
     loadingContainer.innerHTML = loadingSVG;
+    translationContainer.classList.remove('active')
 
     /**
      * Handles the response data from the fetch request
@@ -192,12 +196,13 @@ function requestTranscriptionText(transcription_id) {
      */
     const handleResponse = (transcriptionData) => {
         if (transcriptionData.status === 'finished') {
-            loadingContainer.innerHTML = "";
+            loadingContainer.classList.add('inactive');
             responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
             transcription_buffer = transcriptionData;
+            translationContainer.classList.add('active')
             clearInterval(timer);
         } else if (transcriptionData.status === 'failed') {
-            loadingContainer.innerHTML = "";
+            loadingContainer.classList.add('inactive');
             responseTextContainer.textContent = 'Transcription failed';
             clearInterval(timer);
         } else if (transcriptionData.status === 'in_query') {
@@ -250,8 +255,6 @@ async function requestTranslation() {
         }
 
         const data = await response.json();
-        translationResponse.textContent = JSON.stringify(data, null, 2);
-        console.log(data);
 
         // Delegate transcription ID handling to the appropriate function
         requestTranslationText(data['id']);
@@ -268,6 +271,7 @@ function requestTranslationText(translation_id) {
     };
 
     loadingContainer2.innerHTML = loadingSVG;
+    loadingContainer2.classList.remove('inactive');
 
     /**
      * Handles the response data from the fetch request
@@ -275,11 +279,12 @@ function requestTranslationText(translation_id) {
      */
     const handleResponse = (translationData) => {
         if (translationData.status === 'finished') {
-            loadingContainer2.innerHTML = "";
+            loadingContainer2.classList.add('inactive');
             translationResponse.textContent = JSON.stringify(translationData.transcript.text, null, 2)
+            apiResponse.textContent = 'Done.';
             clearInterval(timer);
         } else if (translationData.status === 'failed') {
-            loadingContainer2.innerHTML = "";
+            loadingContainer2.classList.add('inactive');
             translationResponse.textContent = 'Translation failed';
             clearInterval(timer);
         } else if (translationData.status === 'in_query') {
