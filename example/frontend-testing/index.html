@@ -61,11 +61,43 @@
             <h3>Transcription</h3>
             <div id="transcriptionFileName"></div>
             <br>
-            <div id="transcriptionResponse"></div>
-            <div id="loadingContainer"></div>
+            <div class='transcript' id="transcriptionResponse"></div>
+            <div id="loadingContainer1"></div>
+
+            <hr>
+
             <!-- Translation button -->
-            <button onclick="requestTranslation()">Translate DE</button>
-            <div id="translationResponse"></div>
+            <div class="container">
+
+        <form id="languageSelect" class="radio">
+
+            <input type="radio" id="choice1" name="choice" value="de" checked>
+            <label for="choice1">DE</label>
+
+            <input type="radio" id="choice2" name="choice" value="en">
+            <label for="choice2">EN</label>
+
+            <input type="radio" id="choice3" name="choice" value="nl">
+            <label for="choice3">NL</label>
+
+            <input type="radio" id="choice4" name="choice" value="es">
+            <label for="choice4">ES</label>
+
+            <input type="radio" id="choice5" name="choice" value="tr">
+            <label for="choice5">TR</label>
+
+            <input type="radio" id="choice6" name="choice" value="ru">
+            <label for="choice6">RU</label>
+
+            <input type="radio" id="choice7" name="choice" value="zh">
+            <label for="choice7">CN</label>
+
+        </form>
+
+    </div>
+            <button onclick="requestTranslation()">Translate</button>
+            <div id="loadingContainer2"></div>
+            <div class='transcript' id="translationResponse"></div>
         </div>
     </div>
 

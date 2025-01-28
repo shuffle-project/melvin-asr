@@ -10,12 +10,15 @@ const ERROR_MESSAGES = {
     TRANSLATION: 'Could not translate the current text'
 };
 
+let selectedLanguage = null;
+
 let selectedFile = null;
 const apiResponse = document.getElementById('apiResponse');
 const translationResponse = document.getElementById('translationResponse')
 const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
-const loadingContainer = document.getElementById('loadingContainer');
+const loadingContainer = document.getElementById('loadingContainer1');
+const loadingContainer2 = document.getElementById('loadingContainer2');
 let transcription_buffer = null;
 
 const loadingSVG =
@@ -50,6 +53,15 @@ window.onload = function () {
     // Retrieve the stored API key from localStorage
     document.getElementById('apiKey').value = getApiKey();
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    const languageSelect = document.getElementById("languageSelect");
+    selectedLanguage = languageSelect.value;
+
+    languageSelect.addEventListener("change", (event) => {
+        selectedLanguage = event.target.value;
+    });
+});
 
 /**
  * Function to check the health status of the API on window load.
@@ -223,13 +235,11 @@ async function requestTranslation() {
     if (!apiKey) {
         return displayError(apiResponse, ERROR_MESSAGES.MISSING_API_KEY);
     }
-
+    console.log(`Requesting Translation for ${selectedLanguage}`);
     apiResponse.textContent = 'Translating...';
-    console.log(transcription_buffer);
-    console.log(typeof(transcription_buffer));
-    console.log(JSON.stringify(transcription_buffer))
+
     try {
-        const response = await fetch(`${API_URL_TRANSLATION}de`, {
+        const response = await fetch(`${API_URL_TRANSLATION}${selectedLanguage}`, {
             method: 'POST',
             headers: {'Authorization': apiKey, 'Content-Type': 'application/json'},
             body: JSON.stringify(transcription_buffer),
@@ -257,7 +267,7 @@ function requestTranslationText(translation_id) {
         'Authorization': `${apiKey}`, 'Content-Type': 'application/json'
     };
 
-    loadingContainer.innerHTML = loadingSVG;
+    loadingContainer2.innerHTML = loadingSVG;
 
     /**
      * Handles the response data from the fetch request
@@ -265,11 +275,11 @@ function requestTranslationText(translation_id) {
      */
     const handleResponse = (translationData) => {
         if (translationData.status === 'finished') {
-            loadingContainer.innerHTML = "";
+            loadingContainer2.innerHTML = "";
             translationResponse.textContent = JSON.stringify(translationData.transcript.text, null, 2)
             clearInterval(timer);
         } else if (translationData.status === 'failed') {
-            loadingContainer.innerHTML = "";
+            loadingContainer2.innerHTML = "";
             translationResponse.textContent = 'Translation failed';
             clearInterval(timer);
         } else if (translationData.status === 'in_query') {
