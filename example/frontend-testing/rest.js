@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:8393/transcriptions/';
 const API_URL_TRANSLATION = 'http://localhost:8393/translate/';
 const DEFAULT_LANGUAGE = 'en';
-const DEFAULT_MODEL = 'large-v3-turbo';
+const DEFAULT_MODEL = 'large-v3';
 //const SETTINGS = '{"test": "test"}';
 const ERROR_MESSAGES = {
     NO_FILE: 'Please upload a file first.',
@@ -45,6 +45,17 @@ const createFormData = (file) => {
 const displayError = (container, message) => {
     container.textContent = message;
 };
+
+// Helper function to return a html string with timestamps per word as tooltip
+const translateResponseToTimestampedText = (segmentlist, addWhiteSpaces) => {
+    let buffer = ""
+    for (const segment of segmentlist){
+        for (const word of segment.words){
+            buffer += `<span class="tooltip">${word.text.replace(/\s/g, '&nbsp;')}${addWhiteSpaces? '&nbsp;':''}<span class="tooltiptext">${word.start}-${word.end}</span></span>`
+        }
+    }
+    return buffer
+}
 
 /**
  * On window load, retrieve and set the API key from localStorage.
@@ -197,7 +208,9 @@ function requestTranscriptionText(transcription_id) {
     const handleResponse = (transcriptionData) => {
         if (transcriptionData.status === 'finished') {
             loadingContainer.classList.add('inactive');
-            responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
+            //responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
+            responseTextContainer.innerHTML = translateResponseToTimestampedText(transcriptionData.transcript.segments, false)
+
             transcription_buffer = transcriptionData;
             translationContainer.classList.add('active')
             clearInterval(timer);
@@ -280,7 +293,8 @@ function requestTranslationText(translation_id) {
     const handleResponse = (translationData) => {
         if (translationData.status === 'finished') {
             loadingContainer2.classList.add('inactive');
-            translationResponse.textContent = JSON.stringify(translationData.transcript.text, null, 2)
+            //translationResponse.textContent = JSON.stringify(translationData.transcript.text, null, 2)
+            translationResponse.innerHTML = translateResponseToTimestampedText(translationData.transcript.segments, true)
             apiResponse.textContent = 'Done.';
             clearInterval(timer);
         } else if (translationData.status === 'failed') {
@@ -316,3 +330,4 @@ function requestTranslationText(translation_id) {
     const timer = setInterval(() => pollTranslation(translation_id), 1000);
 
 }
+
