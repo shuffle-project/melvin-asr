@@ -58,13 +58,18 @@
         </div>
 
         <div class="column">
-            <h3>Transcription</h3>
+            <div class="header-container">
+                <h3>Transcription</h3>
+                <button onclick="runVisualization()">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                </button>
+            </div>
             <div id="transcriptionFileName"></div>
             <br>
             <div class='transcript' id="transcriptionResponse"></div>
             <div id="loadingContainer1"></div>
-
-
 
             <!-- Translation -->
             <div class="translation" id="translationContainer">

@@ -427,6 +427,18 @@ hr {
   z-index: 1;
 }
 
+.active-visualize {
+  color: #1e88e5;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;  /* Aligns items vertically */
+    justify-content: space-between; /* Ensures spacing */
+    gap: 10px; /* Adds some space between h3 and button */
+}
+
+
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover {
   color: #1e88e5;

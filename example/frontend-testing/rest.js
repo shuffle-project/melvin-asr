@@ -113,6 +113,32 @@ window.onload = async function checkHealth() {
     }
 }
 
+async function runVisualization(){
+    if (translationResponse.innerHTML.length == 0 || responseTextContainer.innerHTML.length == 0){
+        alert("Visualization not possible")
+        return
+    }
+    document.querySelectorAll(".tooltip").forEach((tooltip) => {
+        const tooltipText = tooltip.querySelector(".tooltiptext");
+        if (tooltipText) {
+            const match = tooltipText.textContent.match(/([\d.]+)-([\d.]+)/);
+        
+            if (match) {
+                const startTime = parseFloat(match[1]) * 1000; // Convert to milliseconds
+                const endTime = parseFloat(match[2]) * 1000; // Convert to milliseconds
+
+                setTimeout(() => {
+                    tooltip.classList.add("active-visualize");
+                }, startTime);
+
+                setTimeout(() => {
+                    tooltip.classList.remove("active-visualize");
+                }, endTime);
+            }
+        }
+     });
+}
+
 /**
  * Save the API key to localStorage
  * @param {string} apiKey - The API key to save
