@@ -111,6 +111,10 @@ button:hover {
     background-color: #1565c0; /* Even darker blue for hover */
 }
 
+.small-button {
+    padding: 0.25rem 0.75rem;
+}
+
 #checkHealth {
     margin-top: 20px;
 }
