@@ -20,12 +20,26 @@ const responseTextContainer = document.getElementById('transcriptionResponse');
 const transcriptionFileName = document.getElementById('transcriptionFileName');
 const loadingContainer = document.getElementById('loadingContainer1');
 const loadingContainer2 = document.getElementById('loadingContainer2');
+const visualizationButton = document.getElementById('visualizationButton');
 let transcription_buffer = null;
+let isVisualizationRunning = false;
 
 const loadingSVG =
     `<svg class="spinner" width="65px" height="65px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
    <circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
 </svg>`;
+
+const playSVG = `
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 5v14l11-7z"></path>
+    </svg>
+`
+
+const stopSVG =  `
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 6h12v12H6z"></path>
+    </svg>
+`
 
 // Helper function to retrieve API key
 const getApiKey = () => localStorage.getItem('apiKey');
@@ -51,7 +65,7 @@ const translateResponseToTimestampedText = (segmentlist, addWhiteSpaces) => {
     let buffer = ""
     for (const segment of segmentlist){
         for (const word of segment.words){
-            buffer += `<span class="tooltip">${word.text.replace(/\s/g, '&nbsp;')}${addWhiteSpaces? '&nbsp;':''}<span class="tooltiptext">${word.start}-${word.end}</span></span>`
+            buffer += `<span class="tooltip" start="${word.start}" end="${word.end}">${word.text.replace(/\s/g, '&nbsp;')}${addWhiteSpaces? '&nbsp;':''}<span class="tooltiptext">${word.start}-${word.end}</span></span>`
         }
     }
     return buffer
@@ -113,32 +127,6 @@ window.onload = async function checkHealth() {
     }
 }
 
-async function runVisualization(){
-    if (translationResponse.innerHTML.length == 0 || responseTextContainer.innerHTML.length == 0){
-        alert("Visualization not possible")
-        return
-    }
-    document.querySelectorAll(".tooltip").forEach((tooltip) => {
-        const tooltipText = tooltip.querySelector(".tooltiptext");
-        if (tooltipText) {
-            const match = tooltipText.textContent.match(/([\d.]+)-([\d.]+)/);
-        
-            if (match) {
-                const startTime = parseFloat(match[1]) * 1000; // Convert to milliseconds
-                const endTime = parseFloat(match[2]) * 1000; // Convert to milliseconds
-
-                setTimeout(() => {
-                    tooltip.classList.add("active-visualize");
-                }, startTime);
-
-                setTimeout(() => {
-                    tooltip.classList.remove("active-visualize");
-                }, endTime);
-            }
-        }
-     });
-}
-
 /**
  * Save the API key to localStorage
  * @param {string} apiKey - The API key to save
@@ -194,6 +182,8 @@ async function requestTranscription() {
 
     apiResponse.textContent = 'Calling API...';
 
+    cleanupVisualization();
+
     try {
         const formData = createFormData(selectedFile);
         const response = await fetch(API_URL, {
@@ -234,7 +224,7 @@ function requestTranscriptionText(transcription_id) {
     const handleResponse = (transcriptionData) => {
         if (transcriptionData.status === 'finished') {
             loadingContainer.classList.add('inactive');
-            //responseTextContainer.textContent = JSON.stringify(transcriptionData.transcript.text, null, 2)
+
             responseTextContainer.innerHTML = translateResponseToTimestampedText(transcriptionData.transcript.segments, false)
 
             transcription_buffer = transcriptionData;
@@ -281,6 +271,8 @@ async function requestTranslation() {
     }
     console.log(`Requesting Translation for ${selectedLanguage}`);
     apiResponse.textContent = 'Translating...';
+
+    cleanupVisualization();
 
     try {
         const response = await fetch(`${API_URL_TRANSLATION}${selectedLanguage}`, {
@@ -356,4 +348,63 @@ function requestTranslationText(translation_id) {
     const timer = setInterval(() => pollTranslation(translation_id), 1000);
 
 }
+
+/*
+ * Playback toggle for subtitle time visualization
+*/
+async function handlePlaybackClick(){
+    if (!isVisualizationRunning){
+        runVisualization()
+    } else {
+        cleanupVisualization()
+    }
+}
+
+async function runVisualization(){
+    if (translationResponse.innerHTML.length == 0 || responseTextContainer.innerHTML.length == 0){
+        alert("Visualization not possible");
+        return;
+    }
+    let lastEnd = 0;
+    document.querySelectorAll(".tooltip").forEach((tooltip) => {
+            const startTime = parseFloat(tooltip.getAttribute("start")) * 1000; // Convert to milliseconds
+            const endTime = parseFloat(tooltip.getAttribute("end")) * 1000; // Convert to milliseconds
+            lastEnd = endTime > lastEnd? endTime : lastEnd
+
+            setTimeout(() => {
+                tooltip.classList.add("active-visualize");
+            }, startTime);
+
+            setTimeout(() => {
+                tooltip.classList.remove("active-visualize");
+            }, endTime);
+     });
+    isVisualizationRunning = true;
+
+    visualizationButton.innerHTML = stopSVG;
+
+    setTimeout(() => {
+        cleanupVisualization()
+    }, lastEnd + 1);
+}
+
+async function cleanupVisualization(){
+    if (!isVisualizationRunning) return
+
+    document.querySelectorAll(".tooltip").forEach((tooltip) => {
+        tooltip.classList.remove("active-visualize");
+    })
+
+    isVisualizationRunning = false;
+
+    visualizationButton.innerHTML = playSVG ;
+
+    // clear all timeouts by reverse iterating the id
+    let id = window.setTimeout(function() {}, 0);
+
+    while (id--) {
+        window.clearTimeout(id); 
+    }
+}
+
 
