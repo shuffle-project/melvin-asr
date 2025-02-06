@@ -36,7 +36,7 @@ jobs:
         run: ruff check ./tooling
 
       - name: Run PyTest
-        run: pytest --cov=src
+        run: python3.11 -m pytest --cov=src
 
       - name: Test Code Coverage /src
         run: coverage report --fail-under=70
