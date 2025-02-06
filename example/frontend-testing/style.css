@@ -16,7 +16,7 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 10px 20px;
+    padding: 15px 20px;
     background-color: #1c1c1c; /* Slightly lighter than the body */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     gap: 20px; /* Space between elements */
@@ -25,7 +25,7 @@ body {
 .header h1 {
     font-size: 1.8rem;
     width: calc(100% - 40px); /* Match content panel padding */
-    padding: 10px 20px;
+    padding: 10px 25px;
     margin: 0 auto;
 }
 
@@ -96,7 +96,7 @@ input[type="text"] {
 
 /* Button styles */
 button {
-    margin: 20px;
+    margin-top: 20px;
     padding: 10px 20px;
     font-size: 1rem;
     cursor: pointer;
@@ -111,13 +111,21 @@ button:hover {
     background-color: #1565c0; /* Even darker blue for hover */
 }
 
+.small-button {
+    padding: 0.25rem 0.75rem;
+}
+
+#checkHealth {
+    margin-top: 20px;
+}
+
 /* Response section */
-#response {
+#apiResponse {
     margin-top: 20px;
     font-family: monospace;
     white-space: pre-wrap;
     text-align: left;
-    color: #cfcfcf; /* Softer light text */
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* Drop zone styles */
@@ -129,10 +137,19 @@ button:hover {
     color: #1e88e5;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    text-align: center;
 }
 
 #dropZone:hover {
     background-color: #292929; /* Slightly lighter on hover */
+}
+
+#transcriptionResponse {
+    margin: 20px;
+}
+
+#translationResponse {
+    margin: 20px;
 }
 
 /* Content panel styles */
@@ -143,7 +160,7 @@ button:hover {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     overflow: hidden;
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -154,15 +171,15 @@ button:hover {
 /* REST content (two columns) */
 .content.rest {
     grid-template-columns: auto;
-    gap: 20px;
+    gap: 25px;
     width: 100%;
     height: 100%;
 }
 
 .content.rest .column {
-    width: 40%;
+    width: 50%;
     background-color: #2b2b2b;
-    padding: 15px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -210,12 +227,26 @@ button:hover {
     display: flex;
 }
 
+.translation {
+    display: none;
+}
+
+.translation.active {
+    display: flex;
+    flex-direction: column;
+}
+
 /*Loading Spinner*/
-#loadingContainer {
+#loadingContainer1, #loadingContainer2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 15px;
+    margin: 20px;
+}
+
+#loadingContainer1.inactive, #loadingContainer2.inactive {
+    display: none;
 }
 
 .spinner {
@@ -306,6 +337,7 @@ button:hover {
 
 .mic:hover{
     background-color: #54a5e4;
+    transform: scale(1.1);
 }
 
 .recording {
@@ -322,3 +354,100 @@ button:hover {
   }
 }
 @keyframes pulse {to {box-shadow: 0 0 0 20px rgba(90, 0, 141, 0);}}
+
+hr {
+  border: none;
+  height: 2px;
+  background: #a5a5a5;
+  margin: 20px 0;
+}
+
+/* Hide the original radio buttons */
+    .radio input[type="radio"] {
+      display: none;
+    }
+
+    .radio {
+        margin-top: 10px;
+        margin-top: 10px;
+    }
+
+    /* Style the labels as buttons */
+    .radio label {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 0;
+      font-size: 16px;
+      font-weight: bold;
+      color: #555;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Remove spacing between buttons */
+    .radio label:not(:first-of-type) {
+      border-left: none;
+    }
+
+    /* Highlight the selected label */
+    .radio input[type="radio"]:checked + label {
+      background-color: #1e88e5;
+      color: #fff;
+    }
+
+    /* Add rounded corners for the first and last buttons */
+    .radio label:first-of-type {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+    }
+
+    .radio label:last-of-type {
+      border-top-right-radius: 5px;
+      border-bottom-right-radius: 5px;
+    }
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+.active-visualize {
+  color: #1e88e5;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;  /* Aligns items vertically */
+    justify-content: space-between; /* Ensures spacing */
+    gap: 10px; /* Adds some space between h3 and button */
+}
+
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover {
+  color: #1e88e5;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
