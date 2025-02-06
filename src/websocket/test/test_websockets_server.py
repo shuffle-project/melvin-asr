@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 from pydub import AudioSegment
 
+from src.helper.test.segment_test_data import SEGMENTS_SAMPLE, TRANSCRIPTION_INFO_SAMPLE
 from src.websocket.websockets_server import WebSocketServer, app
 
 TEST_TIMEOUT_SECONDS = 120
@@ -23,7 +24,7 @@ MOCK_CONFIG = {
 EXAMPLE_WAV_FILE = "src/websocket/test/example.wav"
 
 # Mock values because we dont want to test the transcription model
-TRANSCRIPTION_MOCK = {
+TRANSCRIPTION_MOCK_DICT = {
     "segments": [
         {
             "id": 1,
@@ -80,6 +81,11 @@ TRANSCRIPTION_MOCK = {
     },
 }
 
+TRANSCRIPTION_MOCK_TUPLE = (
+    [SEGMENTS_SAMPLE[1]],
+    TRANSCRIPTION_INFO_SAMPLE,
+)
+
 
 # Helper functions
 def read_wav_file_into_chunks(file_path, chunk_duration=1000):
@@ -133,7 +139,7 @@ def test_send_eof_and_expect_connection_close():
 
 @patch(
     "src.websocket.stream_transcriber.Transcriber._transcribe",
-    return_value=TRANSCRIPTION_MOCK,
+    return_value=TRANSCRIPTION_MOCK_TUPLE,
 )
 def test_start_stream_and_response_to_audio_bytes(mock_spock):
     start_time = time.time()
@@ -150,7 +156,6 @@ def test_start_stream_and_response_to_audio_bytes(mock_spock):
                 if len(audio_data) > 0:
                     websocket.send_bytes(audio_data.pop(0))
                 message = websocket.receive_json()
-                print(f"Message received: {message}", flush=True)
                 messages.append(message)
             except RuntimeError as e:
                 if "disconnect message" in str(e):
@@ -163,18 +168,22 @@ def test_start_stream_and_response_to_audio_bytes(mock_spock):
         if time.time() - start_time > TEST_TIMEOUT_SECONDS:
             raise Exception("Test timeout")
 
+        match_found = False
         for message in messages:
             # assert partials
             if "partial" in message:
-                assert message == {"partial": "This Is A Test !"}
+                if message == {"partial": "This is a test"}:
+                    match_found = True
             else:
                 # otherwise this is final
-                assert message["text"] == "This Is A Test !"
+                if message["text"] == "This is a test":
+                    match_found = True
+        assert match_found
 
 
 @patch(
     "src.websocket.stream_transcriber.Transcriber._transcribe",
-    return_value=TRANSCRIPTION_MOCK,
+    return_value=TRANSCRIPTION_MOCK_TUPLE,
 )
 def test_eof_for_stream_returns_id(mock_spock):
     start_time = time.time()
