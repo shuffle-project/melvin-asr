@@ -1,14 +1,13 @@
 faster-whisper==1.1.1
-
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 pydub==0.25.1
-pytest==7.4.4
-pytest-asyncio==0.23.2
-pytest-cov==4.1.0
-websockets==12.0
+pytest==8.3.4
+pytest-asyncio==0.25.3 
+pytest-cov==6.0.0
+websockets==14.2
 SpeechRecognition==3.10.1
 stable_ts_whisperless==2.18.3
-ruff==0.1.15
+ruff==0.9.4
 numpy<2
 ctranslate2==4.4.0 # 4.4 runs cuda 12 and cudnn 8 but installing cuda via torch requires cu12 and cnn9
 fastapi==0.115.4
