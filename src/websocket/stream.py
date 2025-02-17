@@ -127,7 +127,6 @@ class Stream:
             bytes_to_transcribe = self.last_final_bytes + chunk_cache
             data = self.transcriber._transcribe(
                 bytes_to_transcribe,
-                "Beginning of transcription:" + self.last_final_result_object["text"],
             )
             self.adjust_threshold_on_latency()
             overall_transcribed_seconds = (
