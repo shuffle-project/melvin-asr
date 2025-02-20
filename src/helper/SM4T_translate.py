@@ -206,7 +206,6 @@ language_map = {
     "yi": "yid",
     "yo": "yor",
     "zh": "cmn",
-    "yue": "yue",
     "afr": "afr",
     "amh": "amh",
     "arb": "arb",

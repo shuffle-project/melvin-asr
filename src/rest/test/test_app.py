@@ -219,8 +219,7 @@ def test_translation_with_wrong_language(rest_client):
         headers={"Authorization": EXAMPLE_AUTH_KEY},
         json=EXAMPLE_TRANSCRIPT,
     )
-    assert True
-    # assert response.status_code == 400
+    assert response.status_code == 400
 
 
 def test_working_translation(rest_client):
