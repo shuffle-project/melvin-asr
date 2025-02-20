@@ -1,11 +1,20 @@
 import json
 import logging
-from random import choice
 import time
 import uuid
 from datetime import datetime, timezone
+from random import choice
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Security, UploadFile
+from fastapi import (
+    Body,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Security,
+    UploadFile,
+)
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
@@ -155,7 +164,7 @@ async def post_transcription(
         task=task,
         text=text,
         language=language,
-    ).model_dump()
+    )
 
     DATA_HANDLER.write_status_file(transcription_id, data)
     return JSONResponse(content=data, status_code=200)
@@ -189,3 +198,43 @@ async def get_stream_audio_export(transcription_id: str):
             "Content-Disposition": f"attachment; filename={transcription_id}.wav",
         },
     )
+
+
+@time_it
+@app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
+async def translate(
+    target_language: str,
+    transcription: TranscriptionData = Body(...),
+):
+    """Translate text to a target language."""
+    # TODO: Here the supported language codes might differ
+    if target_language not in config["supported_language_codes"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported language code: {target_language}",
+        )
+
+    if not transcription["transcript"]["text"]:
+        raise HTTPException(
+            status_code=400,
+            detail="No text provided in the transcription data to translate.",
+        )
+    transcription_id = str(uuid.uuid4())
+    transcription["transcription_id"] = transcription_id
+    transcription["task"] = "translate"
+    transcription["target_language"] = target_language
+    transcription["status"] = TranscriptionStatus.IN_QUERY.value
+    DATA_HANDLER.write_status_file(transcription_id, transcription)
+
+    return JSONResponse(content={"id": transcription_id}, status_code=200)
+
+
+# This could be merged with other requests, but that also requires fixing the demo so it will stay here for now
+@time_it
+@app.get("/translate/{transcription_id}", dependencies=[Depends(require_api_key)])
+async def get_translated(transcription_id: str):
+    """Get the translated file for a specific ID."""
+    file = DATA_HANDLER.get_status_file_by_id(transcription_id)
+    if file:
+        return JSONResponse(content=file, status_code=200)
+    raise HTTPException(status_code=404, detail="Transcription ID not found")

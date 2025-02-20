@@ -265,7 +265,10 @@ class DataHandler:
         existing_status_files = [
             x
             for x in os.listdir(status_dir_base_path)
-            if os.path.isfile(os.path.join(status_dir_base_path, x))
+            if (
+                os.path.isfile(os.path.join(status_dir_base_path, x))
+                and x != ".gitkeep"
+            )
         ]
 
         # Files that are stuck in progress

@@ -3,6 +3,7 @@
 # ignore unused-import because of pytest fixtures
 # ruff: noqa: F811
 # ruff: noqa: F401
+import json
 import os
 
 import pytest
@@ -18,6 +19,12 @@ EXAMPLE_AUDIO_FILE_PATH = os.path.join(
 )
 EXAMPLE_AUTH_KEY = CONFIG["api_keys"][0]
 DATA_HANDLER = DataHandler()
+
+EXAMPLE_TRANSCRIPT_PATH = os.path.join(
+    os.getcwd(), "src", "helper", "test_base", "example.json"
+)
+
+EXAMPLE_TRANSCRIPT = json.load(open(EXAMPLE_TRANSCRIPT_PATH, "r"))
 
 
 @pytest.fixture
@@ -202,3 +209,38 @@ def test_post_transc_with_too_many_audio_files_stored_not_including_model(rest_c
     assert response.status_code == 200
     assert response_dict["status"] == "in_query"
     assert response_dict["transcription_id"] is not None
+
+
+# TODO (after SM4T implementation)
+# def test_translation_with_wrong_language(rest_client):
+#     """Test the translation endpoint with a wrong language"""
+#     response = rest_client.post(
+#         "/translate/falsch",
+#         headers={"Authorization": EXAMPLE_AUTH_KEY},
+#         json=EXAMPLE_TRANSCRIPT,
+#     )
+#     assert True
+#     # assert response.status_code == 400
+
+
+def test_working_translation(rest_client):
+    """Test the translation endpoint with a working translation"""
+    response = rest_client.post(
+        "/translate/de",
+        headers={"Authorization": EXAMPLE_AUTH_KEY},
+        json=EXAMPLE_TRANSCRIPT,
+    )
+    assert response.status_code == 200
+    assert response.json()["id"] is not None
+
+
+# TODO: (after SM4T implementation)
+# def test_fail_translate_with_invalid_original_language(rest_client):
+#     """Test the translation endpoint with a working translation"""
+#     response = rest_client.post(
+#         "/translate/de",
+#         headers={"Authorization ": EXAMPLE_AUTH_KEY},
+#         json=EXAMPLE_TRANSCRIPT,
+#     )
+#     assert True
+#     # assert response.status_code == 200

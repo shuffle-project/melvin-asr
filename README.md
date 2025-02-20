@@ -91,6 +91,6 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 ## Acknowledgements
 
-- [Flask](https://flask.palletsprojects.com/)
+- [FastAPI](https://github.com/fastapi/fastapi)
 - [FFmpeg](https://ffmpeg.org/)
 - [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
