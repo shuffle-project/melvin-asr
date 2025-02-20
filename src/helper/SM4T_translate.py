@@ -333,7 +333,7 @@ def translate_text(text, from_code, to_code):
 
         with torch.no_grad():
             outputs = model.generate(**inputs, tgt_lang=language_map[to_code])
-        return outputs
+        return tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during translation: {e}")
