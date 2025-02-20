@@ -3,7 +3,6 @@ import logging
 import time
 import uuid
 from datetime import datetime, timezone
-from http import HTTPStatus
 from random import choice
 
 from fastapi import (
