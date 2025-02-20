@@ -64,7 +64,7 @@ class LocalAgreement:
     def get_confirmed_length(self) -> int:
         return len(self.confirmed)
 
-    def confirmed_has_sentence_end(self) -> bool:
+    def contains_has_sentence_end(self) -> bool:
         return self.confirmed_contains_sentence_end
 
     def __norm_word(self, word) -> str:

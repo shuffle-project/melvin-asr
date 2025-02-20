@@ -185,3 +185,16 @@ Local Agreement (same partial <-> final system as above)
 
 
 </details>
+
+### Local Agreement partials
+
+The buffer within melvin used for transcription is divided into 3 parts:
+
+- *Finalized*: Already confirmed by local agreement and send as a final
+- *Pending*: Confirmed by local agreement but not yet send as a final
+- *Provisional*: Unconfirmed, send as a partial
+
+This leads to content from *Provisional* being promoted to *Pending* once confirmed by the local agreement and then to *Finalized* after it was send to the client as a final. 
+To prevent *Finalized* from reaching an unreasonable size *Finalized* is cut off at the front once reaching a size of *N* words.
+
+
