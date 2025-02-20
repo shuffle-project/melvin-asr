@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from typing import List
 
 from fastapi import HTTPException
@@ -121,21 +122,21 @@ def load_status_file(file_path: str) -> dict:
         return json.load(file)
 
 
-# ## THIS IS FOR TESTING
+# THIS IS FOR TESTING
+if __name__ == "__main__":
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the relative path to the JSON file
+    status_file_path = os.path.join(
+        script_dir, "../../data/status/ce0cf48e-6610-4996-9790-fbb77ed77e9b.json"
+    )
 
-# # Construct the relative path to the JSON file
-# status_file_path = os.path.join(
-#     script_dir, "../../data/status/ce0cf48e-6610-4996-9790-fbb77ed77e9b.json"
-# )
+    # Load the status file
+    status_data = load_status_file(status_file_path)
 
-# # Load the status file
-# status_data = load_status_file(status_file_path)
+    result = align_segments(
+        status_data["transcript"],
+        "Deshalb, liebe Mitbürgerinnen und Mitbürger, fragen Sie nicht, was Ihr Land für Sie tun kann, sondern was Sie für Ihr Land tun können.",
+    )
 
-# result = align_segments(
-#     status_data["transcript"],
-#     "Deshalb, liebe Mitbürgerinnen und Mitbürger, fragen Sie nicht, was Ihr Land für Sie tun kann, sondern was Sie für Ihr Land tun können.",
-# )
-
-# print(json.dumps(result, indent=4, ensure_ascii=False))
+    print(json.dumps(result, indent=4, ensure_ascii=False))
