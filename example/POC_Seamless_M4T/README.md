@@ -24,4 +24,12 @@ Run on CPU: AMD Ryzen 5 3600XT 6-Core Processor
 **Live Transcription**
 cloudn't get live transcription running with SeamlessM4T
 
+// TODO
+Test GPU
+Test how long loading time is
+Test how to switch model for runner in GPU
+Test if possible to 2 models in CUDA
 
+in die Yaml integrieren, dass Translation nicht aktiviert werden muss, ob mans will oder nicht, nochmal gemeinsam angucken.
+Cuda 0 for whisper and Cuda 1 for Seamless, oder beide auf Cuda 0
+Model mitgeben, damit schnell austauschbar ist.
