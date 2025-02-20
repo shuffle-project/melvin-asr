@@ -212,15 +212,15 @@ def test_post_transc_with_too_many_audio_files_stored_not_including_model(rest_c
 
 
 # TODO (after SM4T implementation)
-# def test_translation_with_wrong_language(rest_client):
-#     """Test the translation endpoint with a wrong language"""
-#     response = rest_client.post(
-#         "/translate/falsch",
-#         headers={"Authorization": EXAMPLE_AUTH_KEY},
-#         json=EXAMPLE_TRANSCRIPT,
-#     )
-#     assert True
-#     # assert response.status_code == 400
+def test_translation_with_wrong_language(rest_client):
+    """Test the translation endpoint with a wrong language"""
+    response = rest_client.post(
+        "/translate/falsch",
+        headers={"Authorization": EXAMPLE_AUTH_KEY},
+        json=EXAMPLE_TRANSCRIPT,
+    )
+    assert True
+    # assert response.status_code == 400
 
 
 def test_working_translation(rest_client):
