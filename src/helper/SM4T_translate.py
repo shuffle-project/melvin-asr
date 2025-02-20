@@ -306,12 +306,12 @@ language_map = {
 }
 
 
-def check_language_supported(from_code):
-    from_code = language_map[from_code] if from_code in language_map else from_code
-    if from_code not in possible_languages:
+def check_language_supported(language):
+    language = language_map[language] if language in language_map else language
+    if language not in possible_languages:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported language code: {from_code}, supported languages: {language_map}",
+            detail=f"Unsupported language code: {language}, supported languages: {language_map}",
         )
 
 
@@ -328,10 +328,11 @@ def translate_text(text, from_code, to_code):
         str: The translated text.
     """
     try:
-        inputs = tokenizer(text, return_tensors="pt", src_lang=from_code)
+
+        inputs = tokenizer(text, return_tensors="pt", src_lang=language_map[from_code])
 
         with torch.no_grad():
-            outputs = model.generate(**inputs, tgt_lang=to_code)
+            outputs = model.generate(**inputs, tgt_lang=language_map[to_code])
         return outputs
 
     except Exception as e:
