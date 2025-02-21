@@ -58,8 +58,12 @@ class LocalAgreement:
             self.unconfirmed = []
         return self.confirmed
 
-    def get_confirmed_text(self) -> str:
-        return " ".join([x.word for x in self.confirmed])
+    def get_confirmed_text(self, cutoff_timestamp = 0) -> str:
+        return " ".join([
+            x.word 
+            for x in self.confirmed
+            if x.end >= cutoff_timestamp
+        ])
 
     def get_confirmed_length(self) -> int:
         return len(self.confirmed)

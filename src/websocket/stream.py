@@ -3,6 +3,7 @@ import time
 from typing import Dict, List
 import uuid
 import traceback
+import asyncio
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
@@ -24,13 +25,13 @@ FINAL_TRANSCRIPTION_THRESHOLD = 6
 # Max size of window defined in bytes
 MAX_WINDOW_SIZE_BYTES = BYTES_PER_SECOND * 30
 
-# This is the number of seconds we wait before printing a partial transcription
-PARTIAL_TRANSCRIPTION_TIMEOUT = 1
+# Bytes after which a retranscription of the window is triggered
+PARTIAL_TRANSCRIPTION_BYTE_THRESHHOLD = BYTES_PER_SECOND * 1
 
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int):
-        self.logger = logger.get_logger_with_id(__name__, str(id))
+        self.logger = logger.get_logger_with_id(__name__, f"{id}")
         self.transcriber = transcriber
         self.id = id
         self.close_stream = False
@@ -59,13 +60,15 @@ class Stream:
                         self.export_audio, message
                     )
 
-                    if self.bytes_received_since_last_transcription >= PARTIAL_TRANSCRIPTION_TIMEOUT:
+                    if self.bytes_received_since_last_transcription >= PARTIAL_TRANSCRIPTION_BYTE_THRESHHOLD:
                         self.logger.info(
                             f"NEW PARTIAL: length of current window: {len(self.sliding_window)}"
                         )
-                        await self.transcribe_sliding_window(
-                            websocket,
-                            self.sliding_window
+                        asyncio.ensure_future(
+                            self.transcribe_sliding_window(
+                                websocket,
+                                self.sliding_window
+                            )
                         )
 
                     # Send final if either threshhold is reached or sentence ended
@@ -74,18 +77,13 @@ class Stream:
                             f"NEW FINAL: length of chunk cache: {len(self.sliding_window)}"
                         )
                         # does this need to be async?
-                        await self.flush_final(
-                            websocket,
-                            self.sliding_window,
+                        asyncio.ensure_future(
+                            self.flush_final(
+                                websocket,
+                            )
                         )
 
-                        # Move finalize and pending pointer
-                        if len(self.sliding_window) > MAX_WINDOW_SIZE_BYTES:
-                            bytes_to_cut_off = len(self.sliding_window) - MAX_WINDOW_SIZE_BYTES
-                            self.logger.debug(f"Reducing sliding window size by {bytes_to_cut_off} bytes")
-                            self.previous_byte_count += bytes_to_cut_off
-                            self.window_start_timestamp += bytes_to_cut_off / BYTES_PER_SECOND
-                            self.sliding_window = self.sliding_window[bytes_to_cut_off:]
+                        # TODO: detect if partial transcription lags behind and adapt threshhold?
 
                 elif "text" in message:
                     message = message["text"]
@@ -121,7 +119,7 @@ class Stream:
         return await self.build_result_from_words(current_transcript)
 
     async def flush_final(
-        self, websocket: WebSocket, chunk_cache
+        self, websocket: WebSocket
     ) -> None:
         """Function to transcribe a chunk of audio"""
         try:
@@ -132,9 +130,18 @@ class Stream:
                 agreed_results = self.agreement.flush_confirmed(FINAL_TRANSCRIPTION_THRESHOLD)
 
             result = await self.build_result_from_words(agreed_results)
-            self.last_final_result_object = result
-            self.last_final_bytes = chunk_cache
+            # The final did not contain anything to send
+            if len(result['result']) == 0:
+                return
             self.final_transcriptions.append(result)
+
+            # Shorten window if needed
+            if len(self.sliding_window) > MAX_WINDOW_SIZE_BYTES:
+                bytes_to_cut_off = len(self.sliding_window) - MAX_WINDOW_SIZE_BYTES
+                self.logger.debug(f"Reducing sliding window size by {bytes_to_cut_off} bytes")
+                self.previous_byte_count += bytes_to_cut_off
+                self.window_start_timestamp += bytes_to_cut_off / BYTES_PER_SECOND
+                self.sliding_window = self.sliding_window[bytes_to_cut_off:]
 
             await websocket.send_text(json.dumps(result, indent=2))
             self.logger.debug(
@@ -209,14 +216,18 @@ class Stream:
             text = ""
 
             if len(self.agreement.unconfirmed) > 0:
-                text = " ".join([w.word for w in new_words if w.start >= cutoff_timestamp])
+                text = " ".join([
+                    w.word 
+                    for w in new_words 
+                    if w.end >= cutoff_timestamp
+                ])
 
             self.agreement.merge(new_words)
 
             # Sometimes the local agreement cannot be sure for quite a while
             # Therefore we just overwrite it
             if len(self.agreement.get_confirmed_text()) > 0:
-                text = self.agreement.get_confirmed_text()
+                text = self.agreement.get_confirmed_text(cutoff_timestamp=cutoff_timestamp)
 
             result = json.dumps({"partial": text}, indent=2)
 
