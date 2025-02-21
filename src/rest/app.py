@@ -22,7 +22,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.SM4T_translate import check_language_supported
+from src.helper.SM4T_translate import check_language_supported_guard
 from src.helper.time_it import time_it
 from src.helper.types.transcription_data import TranscriptionData
 from src.helper.types.transcription_status import TranscriptionStatus
@@ -208,8 +208,10 @@ async def translate(
     transcription: TranscriptionData = Body(...),
 ):
     """Translate text to a target language."""
-    check_language_supported(target_language)
-    check_language_supported(transcription["language"])
+
+    # Raise Bad Request if Language is not supported
+    check_language_supported_guard(target_language)
+    check_language_supported_guard(transcription["language"])
 
     if not transcription["transcript"]["text"]:
         raise HTTPException(
