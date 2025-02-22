@@ -8,9 +8,9 @@ from typing import Tuple
 
 from src.helper import logger
 from src.helper.align_translation_segments import align_segments
-from src.helper.argos_translate import translate_text
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
+from src.helper.SM4T_translate import translate_text
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.rest.rest_transcriber import Transcriber
 
