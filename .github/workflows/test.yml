@@ -27,7 +27,7 @@ jobs:
       - name: Setup FFmpeg
         uses: AnimMouse/setup-ffmpeg@v1
         with:
-          version: 5.1
+          version: 7.1
 
       - name: Lint src with Ruff
         run: ruff check ./src
