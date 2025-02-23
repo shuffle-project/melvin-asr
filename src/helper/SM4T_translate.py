@@ -15,11 +15,12 @@ def check_language_supported_guard(language):
 
 
 class Translator:
-    def __init__(self):
+    def __init__(self, config: dict):
+        self.device = config["translation_device"]
         self.model = SeamlessM4Tv2ForTextToText.from_pretrained(
-            "facebook/seamless-m4t-v2-large"
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained("facebook/seamless-m4t-v2-large")
+            config["translation_model"]
+        ).to(self.device)
+        self.tokenizer = AutoTokenizer.from_pretrained(config["translation_model"])
 
     def translate_text(self, text, from_code, to_code):
         """
@@ -36,7 +37,7 @@ class Translator:
         try:
             inputs = self.tokenizer(
                 text, return_tensors="pt", src_lang=LANGUAGE_MAP[from_code]
-            )
+            ).to(self.device)
 
             with torch.no_grad():
                 outputs = self.model.generate(**inputs, tgt_lang=LANGUAGE_MAP[to_code])

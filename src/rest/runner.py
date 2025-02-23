@@ -27,7 +27,9 @@ class Runner:
 
         self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
-        self.translator = Translator() if config.get("translation_enabled") else None
+        self.translator = (
+            Translator(config) if config.get("translation_enabled") else None
+        )
 
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""

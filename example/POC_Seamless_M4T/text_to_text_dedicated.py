@@ -1,8 +1,11 @@
 import torch
-from fastapi import HTTPException
 from transformers import AutoTokenizer, SeamlessM4Tv2ForTextToText
 
-model = SeamlessM4Tv2ForTextToText.from_pretrained("facebook/seamless-m4t-v2-large")
+device = "cuda"  # "cuda" or "cpu"
+
+model = SeamlessM4Tv2ForTextToText.from_pretrained("facebook/seamless-m4t-v2-large").to(
+    device
+)
 tokenizer = AutoTokenizer.from_pretrained("facebook/seamless-m4t-v2-large")
 
 text = "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."
@@ -10,7 +13,7 @@ from_code = "eng"
 to_code = "deu"
 
 # Tokenize input
-inputs = tokenizer(text, return_tensors="pt", src_lang=from_code)
+inputs = tokenizer(text, return_tensors="pt", src_lang=from_code).to(device)
 
 # Generate translation
 with torch.no_grad():
@@ -19,3 +22,12 @@ with torch.no_grad():
 # Decode translated text
 translated_text = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
 print(translated_text)  # Translated sentence
+
+
+# To run on Windows
+
+# docker run --rm --gpus all --user root -v ${PWD}:/workspace -w /workspace nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04 bash -c "
+#     apt-get update && apt-get install -y python3 python3-pip &&
+#     pip3 install --upgrade pip &&
+#     pip3 install -r requirements.txt &&
+#     python3 example/POC_Seamless_M4T/text_to_text_dedicated.py"
