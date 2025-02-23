@@ -64,6 +64,6 @@ rest_runner:
     cpu_threads: 4
 
     # Translation stuff
-    enable_translation: False
-    translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large | facebook/hf-seamless-m4t-medium
+    translation_enabled: True
+    translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large
     translation_device: cpu # cpu | cuda

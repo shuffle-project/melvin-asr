@@ -10,7 +10,7 @@ from src.helper import logger
 from src.helper.align_translation_segments import align_segments
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.SM4T_translate import translate_text
+from src.helper.SM4T_translate import Translator
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.rest.rest_transcriber import Transcriber
 
@@ -27,6 +27,7 @@ class Runner:
 
         self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
+        self.translator = Translator() if config.get("translation_enabled") else None
 
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
@@ -98,7 +99,7 @@ class Runner:
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
         self.log.debug("translating: " + task_id)
-        translated_text = translate_text(
+        translated_text = self.translator.translate_text(
             transcription["transcript"]["text"],
             transcription["language"],
             transcription["target_language"],
@@ -111,7 +112,7 @@ class Runner:
 
         # This is here to see the difference in segmented tranlation level if used
         # for segment in transcription["transcript"]["segments"]:
-        #     segment["text"] = translate_text(
+        #     segment["text"] = self.translator.translate_text(
         #         segment["text"], transcription["language"], target_language
         #     )
 
@@ -122,6 +123,7 @@ class Runner:
         transcription["status"] = TranscriptionStatus.FINISHED.value
 
         self.data_handler.write_status_file(task_id, transcription)
+        self.log.debug("finished translation task: " + task_id)
 
     def get_oldest_status_file_in_query(
         self,
@@ -157,6 +159,9 @@ class Runner:
                         continue
 
                     if model != self.transcriber.model_name and model is not None:
+                        continue
+
+                    if self.translator is None and data.get("task") == "translate":
                         continue
 
                     current_datetime = datetime.fromisoformat(start_time)

@@ -63,6 +63,17 @@ async def require_api_key(api_key: str = Security(api_key_header)):
     return api_key
 
 
+def require_translation_enabled():
+    """Dependency to require translation to be enabled."""
+    if not any(
+        runner_config.get("translation_enabled", True)
+        for runner_config in CONFIG["rest_runner"]
+    ):
+        raise HTTPException(
+            status_code=400, detail="Translation is not enabled on this server."
+        )
+
+
 @time_it
 @app.get("/", response_class=JSONResponse, dependencies=[Depends(require_api_key)])
 async def show_config():
@@ -202,7 +213,10 @@ async def get_stream_audio_export(transcription_id: str):
 
 
 @time_it
-@app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
+@app.post(
+    "/translate/{target_language}",
+    dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
+)
 async def translate(
     target_language: str,
     transcription: TranscriptionData = Body(...),
@@ -230,7 +244,10 @@ async def translate(
 
 # This could be merged with other requests, but that also requires fixing the demo so it will stay here for now
 @time_it
-@app.get("/translate/{transcription_id}", dependencies=[Depends(require_api_key)])
+@app.get(
+    "/translate/{transcription_id}",
+    dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
+)
 async def get_translated(transcription_id: str):
     """Get the translated file for a specific ID."""
     file = DATA_HANDLER.get_status_file_by_id(transcription_id)
