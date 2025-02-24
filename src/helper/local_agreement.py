@@ -62,7 +62,7 @@ class LocalAgreement:
         return " ".join([
             x.word 
             for x in self.confirmed
-            if x.end >= cutoff_timestamp
+            if x.end > cutoff_timestamp
         ])
 
     def get_confirmed_length(self) -> int:

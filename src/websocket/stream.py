@@ -51,6 +51,8 @@ class Stream:
                 message = await websocket.receive()
                 websocket.client_state
 
+                self.logger.debug(f"received message of length {len(message)}")
+
                 if "bytes" in message:
                     message = message["bytes"]
                     self.bytes_received_since_last_transcription += len(message)
@@ -89,10 +91,9 @@ class Stream:
                     message = message["text"]
                     self.logger.debug(f"Received control message (string): {message}")
                     if "eof" in message:
-                        if "eof-finalize" in message and self.bytes_received_since_last_transcription > 0:
+                        if "eof-finalize" in message:
                             # Non default behaviour but useful for some scenarios, like testing
                             result = await self.finalize_transcript()
-                            self.last_final_result_object = result
                             self.final_transcriptions.append(result)
                         name = self.export_transcription_and_wav()
                         await websocket.send_text(name)
@@ -115,7 +116,9 @@ class Stream:
 
 
     async def finalize_transcript(self) -> Dict:
+        self.logger.debug("finalizing")
         current_transcript = self.agreement.flush_confirmed() + self.agreement.unconfirmed
+        self.logger.debug(f"Transcript to finalize: {current_transcript}")
         return await self.build_result_from_words(current_transcript)
 
     async def flush_final(
@@ -201,8 +204,6 @@ class Stream:
             cutoff_timestamp = 0
             if len(self.final_transcriptions) > 0:
                 # Absolute timestamp - thrown out bytes -> timestamp in the current window
-                self.logger.debug(len(self.final_transcriptions))
-                self.logger.debug(self.final_transcriptions[-1])
                 cutoff_timestamp = self.final_transcriptions[-1]["result"][-1]["end"] - (self.previous_byte_count / BYTES_PER_SECOND)
 
             new_words = []
@@ -219,7 +220,7 @@ class Stream:
                 text = " ".join([
                     w.word 
                     for w in new_words 
-                    if w.end >= cutoff_timestamp
+                    if w.end > cutoff_timestamp
                 ])
 
             self.agreement.merge(new_words)
@@ -227,7 +228,7 @@ class Stream:
             # Sometimes the local agreement cannot be sure for quite a while
             # Therefore we just overwrite it
             if len(self.agreement.get_confirmed_text()) > 0:
-                text = self.agreement.get_confirmed_text(cutoff_timestamp=cutoff_timestamp)
+                text = self.agreement.get_confirmed_text(cutoff_timestamp=cutoff_timestamp) + text
 
             result = json.dumps({"partial": text}, indent=2)
 
