@@ -57,6 +57,28 @@ def test_merge_with_sentence_end():
     assert testable.get_confirmed_text() == "This is a test."
     assert testable.contains_has_sentence_end() is True
 
+
+def test_text_cutoff():
+    constructed: List[Word] = [
+        Word(1.0 * i, 1.0 * (i + 1) - 0.1, EXAMPLE_SENTENCE[i], 0.9)
+        for i in range(len(EXAMPLE_SENTENCE))
+    ]
+    testable = LocalAgreement()
+
+    testable.unconfirmed = constructed
+
+    assert testable.get_confirmed_text(cutoff_timestamp=constructed[1].end) == ""
+
+    testable.unconfirmed = []
+    testable.confirmed = constructed
+
+    assert testable.get_confirmed_text() == "This is a test sentence for local agreement"
+
+    # Should cut off first 2 words
+    assert testable.get_confirmed_text(cutoff_timestamp=constructed[1].end) == "a test sentence for local agreement"
+
+
+
 def test_clear():
     partial: List[Word] = [
         Word(1.0 * i, 1.0 * (i + 1) - 0.1, EXAMPLE_SENTENCE[i], 0.9)
