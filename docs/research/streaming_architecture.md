@@ -188,13 +188,24 @@ Local Agreement (same partial <-> final system as above)
 
 ### Local Agreement partials
 
-The buffer within melvin used for transcription is divided into 3 parts:
+Up until this point, the partial-final logic has been implemented by transcribing an audio segment and, after a certain time, promoting the transcription to a final. Following this, the audio data was completely discarded, and the transcription process continued with a new audio segment. While this approach worked, it led to the issue of context being lost between segments. Additionally, using a fixed cutoff duration introduced the possibility of audio being cut off in the middle of a spoken word.
 
-- *Finalized*: Already confirmed by local agreement and send as a final
-- *Pending*: Confirmed by local agreement but not yet send as a final
-- *Provisional*: Unconfirmed, send as a partial
+#### Solution: Local Agreement-Based Buffering
 
-This leads to content from *Provisional* being promoted to *Pending* once confirmed by the local agreement and then to *Finalized* after it was send to the client as a final. 
-To prevent *Finalized* from reaching an unreasonable size *Finalized* is cut off at the front once reaching a size of *N* words.
+To address the above-described issue using local agreement, the buffer within *melvin* (used for transcription) is now divided into three parts:
 
+- **Finalized**: Already confirmed by local agreement and sent as a final.
+- **Pending**: Confirmed by local agreement but not yet sent as a final.
+- **Provisional**: Unconfirmed, sent as a partial.
+
+This means that content from **Provisional** is promoted to **Pending** once confirmed by local agreement and then to **Finalized** after being sent to the client as a final. 
+
+The promotion from **Pending** to **Finalized** (i.e., the condition that must be met for a final to be sent) occurs when either:  
+
+1. **Pending** reaches a length of > *N*, or  
+2. **Pending** contains a sentence-terminating character (`.` `!` `?`).
+
+#### Buffer Size Management
+
+To prevent the buffer (and **Finalized**) from growing indefinitely with long-running WebSocket connections, the buffer size is limited to a predefined maximum (in bytes).
 
