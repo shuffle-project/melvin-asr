@@ -1,12 +1,15 @@
 import torch
-from transformers import AutoTokenizer, SeamlessM4Tv2ForTextToText
+from transformers import SeamlessM4TTokenizer, SeamlessM4Tv2ForTextToText
 
 device = "cuda"  # "cuda" or "cpu"
 
-model = SeamlessM4Tv2ForTextToText.from_pretrained("facebook/seamless-m4t-v2-large").to(
-    device
+tokenizer = SeamlessM4TTokenizer.from_pretrained(
+    "facebook/seamless-m4t-v2-large", cache_dir="models"
 )
-tokenizer = AutoTokenizer.from_pretrained("facebook/seamless-m4t-v2-large")
+model = SeamlessM4Tv2ForTextToText.from_pretrained(
+    "facebook/seamless-m4t-v2-large",
+    cache_dir="models",
+).to(device)
 
 text = "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."
 from_code = "eng"
@@ -26,7 +29,7 @@ print(translated_text)  # Translated sentence
 
 # To run on Windows
 
-# docker run --rm --gpus all --user root -v ${PWD}:/workspace -w /workspace nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04 bash -c "
+# docker run --rm --gpus all --user root -v ${PWD}:/workspace -w /workspace nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04 bash -c "
 #     apt-get update && apt-get install -y python3 python3-pip &&
 #     pip3 install --upgrade pip &&
 #     pip3 install -r requirements.txt &&
