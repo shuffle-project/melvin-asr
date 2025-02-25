@@ -49,6 +49,7 @@ websocket_stream:
 rest_runner:
   # device: "cpu" or "cuda"
   - device: cpu
+    transcription_enabled: True
     # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
     model: large-v3-turbo
     # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
