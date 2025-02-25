@@ -23,7 +23,9 @@ class Runner:
     def __init__(self, config: dict, identifier: int):
         """Constructor of the Runner class."""
         self.identifier = identifier
-        self.transcriber = Transcriber(config)
+        self.transcriber = (
+            Transcriber(config) if config.get("transcription_enabled") else None
+        )
 
         self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
@@ -159,9 +161,13 @@ class Runner:
 
                     if current_status != TranscriptionStatus.IN_QUERY.value:
                         continue
-
-                    if model != self.transcriber.model_name and model is not None:
-                        continue
+                    # TODO: does align need the transcriber models?
+                    if data.get("task") == "transcribe" or data.get("task") == "align":
+                        if self.transcriber is None:
+                            continue
+                        # TODO: add dynamic switch here if mismatching models
+                        if model != self.transcriber.model_name and model is not None:
+                            continue
 
                     if self.translator is None and data.get("task") == "translate":
                         continue
@@ -182,6 +188,7 @@ class Runner:
                 )
                 transcription_id = filename.split(".")[0]
                 data_handler.delete_status_file(transcription_id)
+                # This throws an error if it is a translation task, but no good way to check
                 data_handler.delete_audio_file(transcription_id)
                 continue
 
