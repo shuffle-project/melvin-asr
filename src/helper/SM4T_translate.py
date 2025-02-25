@@ -1,7 +1,8 @@
 import torch
 from fastapi import HTTPException
-from transformers import AutoTokenizer, SeamlessM4Tv2ForTextToText
+from transformers import SeamlessM4TTokenizer, SeamlessM4Tv2ForTextToText
 
+from src.helper.config import CONFIG
 from src.helper.types.translation_consts import LANGUAGE_MAP, POSSIBLE_LANGUAGES
 
 
@@ -17,10 +18,13 @@ def check_language_supported_guard(language):
 class Translator:
     def __init__(self, config: dict):
         self.device = config["translation_device"]
+        self.tokenizer = SeamlessM4TTokenizer.from_pretrained(
+            config["translation_model"],
+            cache_dir=CONFIG["model_path"],
+        )
         self.model = SeamlessM4Tv2ForTextToText.from_pretrained(
-            config["translation_model"]
+            config["translation_model"], cache_dir=CONFIG["model_path"]
         ).to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(config["translation_model"])
 
     def translate_text(self, text, from_code, to_code):
         """
@@ -36,7 +40,9 @@ class Translator:
         """
         try:
             inputs = self.tokenizer(
-                text, return_tensors="pt", src_lang=LANGUAGE_MAP[from_code]
+                text,
+                return_tensors="pt",
+                src_lang=LANGUAGE_MAP[from_code],
             ).to(self.device)
 
             with torch.no_grad():
