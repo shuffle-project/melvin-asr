@@ -1,5 +1,6 @@
 import torch
 from fastapi import HTTPException
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from transformers import SeamlessM4TTokenizer, SeamlessM4Tv2ForTextToText
 
 from src.helper.config import CONFIG
@@ -17,14 +18,21 @@ def check_language_supported_guard(language):
 
 class Translator:
     def __init__(self, config: dict):
-        self.device = config["translation_device"]
+        self.device = (
+            f"cuda:{config['device_index']}"
+            if config["translation_device"] == "cuda"
+            else config["translation_device"]
+        )
         self.tokenizer = SeamlessM4TTokenizer.from_pretrained(
             config["translation_model"],
             cache_dir=CONFIG["model_path"],
         )
         self.model = SeamlessM4Tv2ForTextToText.from_pretrained(
             config["translation_model"], cache_dir=CONFIG["model_path"]
-        ).to(self.device)
+        )
+
+        self.model.config.max_new_tokens = 512
+        self.model.to(self.device)
 
     def translate_text(self, text, from_code, to_code):
         """
@@ -39,15 +47,26 @@ class Translator:
             str: The translated text.
         """
         try:
-            inputs = self.tokenizer(
-                text,
-                return_tensors="pt",
-                src_lang=LANGUAGE_MAP[from_code],
-            ).to(self.device)
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=512)
+            text_splitted = text_splitter.split_text(text)
+            translated_chunks = []
+            for chunk in text_splitted:
+                inputs = self.tokenizer(
+                    chunk,
+                    return_tensors="pt",
+                    src_lang=LANGUAGE_MAP[from_code],
+                ).to(self.device)
 
-            with torch.no_grad():
-                outputs = self.model.generate(**inputs, tgt_lang=LANGUAGE_MAP[to_code])
-            return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+                with torch.no_grad():
+                    outputs = self.model.generate(
+                        **inputs, tgt_lang=LANGUAGE_MAP[to_code]
+                    )
+                translated_text = self.tokenizer.batch_decode(
+                    outputs, skip_special_tokens=True
+                )[0]
+                translated_chunks.append(translated_text)
+
+            return " ".join(translated_chunks)
 
         except Exception as e:
             raise HTTPException(

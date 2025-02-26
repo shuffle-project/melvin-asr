@@ -114,12 +114,6 @@ class Runner:
             transcription["transcript"], translated_text
         )
 
-        # This is here to see the difference in segmented tranlation level if used
-        # for segment in transcription["transcript"]["segments"]:
-        #     segment["text"] = self.translator.translate_text(
-        #         segment["text"], transcription["language"], target_language
-        #     )
-
         transcription["language"] = transcription["target_language"]
         transcription["end_time"] = (
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
