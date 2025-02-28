@@ -23,6 +23,8 @@ transcription_default:
 # The max. count of runners for stream_runner is 1
 
 websocket_stream:
+  # Publish unconfirmed transcriptions as partials. This leads to more unstable and longer partials but also means that partials are published sooner
+  fast_partials: True
   cpu:
     # Loads a model on CPU that is used for transcription of the audio stream,
     # if GPU is active as well this is the fallback.

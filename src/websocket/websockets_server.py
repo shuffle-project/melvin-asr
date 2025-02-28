@@ -36,6 +36,7 @@ class WebSocketServer:
         LOGGER.info(f"GPU Config: {self.gpu_config}")
         self.cpu_config = config["websocket_stream"]["cpu"]
         LOGGER.info(f"CPU Config: {self.cpu_config}")
+        self.use_fast_partials = config["websocket_stream"]["fast_partials"]
 
         # Setup GPU Transcriber
         if self.gpu_config["active"]:
@@ -87,7 +88,11 @@ class WebSocketServer:
                 LOGGER.debug(f"Client {client_id} is using GPU worker")
                 searching = False
                 try:
-                    await Stream(transcriber=self.gpu_transcriber, id=client_id).echo(
+                    await Stream(
+                        transcriber=self.gpu_transcriber, 
+                        id=client_id,
+                        use_fast_partials=self.use_fast_partials,
+                    ).echo(
                         websocket=websocket
                     )
                 except Exception as e:
@@ -103,7 +108,11 @@ class WebSocketServer:
                 LOGGER.debug(f"Client {client_id} is using CPU worker")
                 searching = False
                 try:
-                    await Stream(transcriber=self.cpu_transcriber, id=id).echo(
+                    await Stream(
+                        transcriber=self.cpu_transcriber, 
+                        id=client_id,
+                        use_fast_partials=self.use_fast_partials,
+                    ).echo(
                         websocket=websocket
                     )
                 except Exception as e:

@@ -30,7 +30,7 @@ PARTIAL_TRANSCRIPTION_BYTE_THRESHHOLD = BYTES_PER_SECOND * 1
 
 
 class Stream:
-    def __init__(self, transcriber: Transcriber, id: int):
+    def __init__(self, transcriber: Transcriber, id: int, use_fast_partials = False):
         self.logger = logger.get_logger_with_id(__name__, f"{id}")
         self.transcriber = transcriber
         self.id = id
@@ -44,6 +44,10 @@ class Stream:
         self.final_transcriptions = []
         self.export_audio = b""
         self.previous_byte_count = 0
+        self.use_fast_partials = use_fast_partials
+
+        if self.use_fast_partials:
+            self.logger.info(f"Starting stream with fast partials")
 
     async def echo(self, websocket: WebSocket) -> None:
         try:
@@ -84,7 +88,6 @@ class Stream:
                                 websocket,
                             )
                         )
-
                         # TODO: detect if partial transcription lags behind and adapt threshhold?
 
                 elif "text" in message:
@@ -130,7 +133,12 @@ class Stream:
             if self.agreement.contains_has_sentence_end():
                 agreed_results = self.agreement.flush_at_sentence_end()
             else:
-                agreed_results = self.agreement.flush_confirmed(FINAL_TRANSCRIPTION_THRESHOLD)
+                # Try to cut off 80% of confirmed
+                cutoff_word_count = max(
+                    FINAL_TRANSCRIPTION_THRESHOLD, 
+                    int(self.agreement.get_confirmed_length() * 0.8)
+                )
+                agreed_results = self.agreement.flush_confirmed(cutoff_word_count)
 
             result = await self.build_result_from_words(agreed_results)
             # The final did not contain anything to send
@@ -228,6 +236,8 @@ class Stream:
             # Sometimes the local agreement cannot be sure for quite a while
             # Therefore we just overwrite it
             if len(self.agreement.get_confirmed_text()) > 0:
+                if not self.use_fast_partials:
+                    text = ""
                 text = self.agreement.get_confirmed_text(cutoff_timestamp=cutoff_timestamp) + text
 
             result = json.dumps({"partial": text}, indent=2)
