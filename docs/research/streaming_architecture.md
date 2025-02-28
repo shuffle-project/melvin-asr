@@ -93,6 +93,39 @@ It is possible to give the model an audio track that contains an already known p
 
 The prompt we are using is: `"Beginning of transcription:" + <Text of the previous final>`
 
+<details>
+
+  <summary>benchmarking results</summary>
+
+Reference Value (main at commit 39a75f9d6ff436121b055fb7911a1b1345635539)
+
+| Statistic                          | Duration     | WER         | Average Levenshtein Distance |
+|------------------------------------|--------------|-------------|------------------------------|
+| Count                              | 184.000000   | 184.000000  | 184.000000                   |
+| Mean                               | 142.204907   | 0.507875    | 9.211218                     |
+| Standard Deviation (Std)           | 77.758936    | 0.188119    | 2.381541                     |
+| Minimum (Min)                      | 67.450931    | 0.020468    | 4.271429                     |
+| 25th Percentile (25%)              | 104.875387   | 0.362659    | 7.618866                     |
+| Median (50%)                       | 120.544210   | 0.481180    | 8.864444                     |
+| 75th Percentile (75%)              | 150.024140   | 0.647103    | 10.028701                    |
+| Maximum (Max)                      | 621.784362   | 0.983399    | 18.133333                    |
+
+
+No prompting
+
+| Statistic                  | Duration | WER | Average Levenshtein Distance |
+|----------------------------|--------------------|--------------|----------------------------|
+| Count                      |  184.000000        | 184.000000   | 184.000000                 |
+| Mean                       |  137.807137        | 0.500073     | 14.538975                   |
+| Standard Deviation (Std)   |  69.722124         | 0.010093     | 2.465187                    |
+| Minimum (Min)              |  65.319508         | 0.429048     | 8.071429                    |
+| 25th Percentile (25%)      |  104.127028        | 0.496749     | 12.998778                   |
+| Median (50%)               |  118.233081        | 0.500727     | 14.239808                   |
+| 75th Percentile (75%)      |  142.518800        | 0.504331     | 15.513872                   |
+| Maximum (Max)              |  585.291125        | 0.529438     | 22.693333                   |
+
+</details>
+
 ## VAD
 
 Whisper VAD does run VAD automatically before running the transcription on the audio chunk. This does not help with context recognition but it does increase the transcription time. MacBook M2 on 1 second chunks at a tiny model: From 0,7-0,8sec transcription time to 0.5-0.6 transcription time.
