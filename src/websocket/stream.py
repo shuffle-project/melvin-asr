@@ -26,7 +26,7 @@ FINAL_TRANSCRIPTION_THRESHOLD = 6
 MAX_WINDOW_SIZE_BYTES = BYTES_PER_SECOND * 30
 
 # Bytes after which a retranscription of the window is triggered
-PARTIAL_TRANSCRIPTION_BYTE_THRESHHOLD = BYTES_PER_SECOND * 1
+PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD = BYTES_PER_SECOND * 1
 
 
 class Stream:
@@ -46,8 +46,10 @@ class Stream:
         self.previous_byte_count = 0
         self.use_fast_partials = use_fast_partials
 
+        self.partial_transcription_byte_threshold = PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD
+
         if self.use_fast_partials:
-            self.logger.info(f"Starting stream with fast partials")
+            self.logger.info("Starting stream with fast partials")
 
     async def echo(self, websocket: WebSocket) -> None:
         try:
@@ -66,7 +68,7 @@ class Stream:
                         self.export_audio, message
                     )
 
-                    if self.bytes_received_since_last_transcription >= PARTIAL_TRANSCRIPTION_BYTE_THRESHHOLD:
+                    if self.bytes_received_since_last_transcription >= self.partial_transcription_byte_threshold:
                         self.logger.info(
                             f"NEW PARTIAL: length of current window: {len(self.sliding_window)}"
                         )
@@ -250,11 +252,24 @@ class Stream:
             )
             self.bytes_received_since_last_transcription = 0
 
+            # adjust time between transcriptions
+            self.update_partial_threshold(end_time - start_time)
+
         except Exception:
             self.logger.error(
                 "Error while transcribing audio: {}".format(traceback.format_exc())
             )
             self.close_stream = True
+
+    def update_partial_threshold(self, last_run_duration: float):
+        # dont adjust any timings with a small window
+        # these adjustments would be overwritten anyway
+        if len(self.sliding_window) < MAX_WINDOW_SIZE_BYTES * 0.75 and last_run_duration < self.partial_transcription_byte_threshold / BYTES_PER_SECOND:
+            self.logger.info(f"Current window too small for adjustment ({len(self.sliding_window)}/{MAX_WINDOW_SIZE_BYTES * 0.75})")
+            return
+        new_threshold = (last_run_duration * BYTES_PER_SECOND) + 0.25
+        self.logger.info(f"Adjusted threshold duration to : {new_threshold / BYTES_PER_SECOND}")
+        self.partial_transcription_byte_threshold = new_threshold
 
     def export_transcription_and_wav(self):
         DATA_HANDLER = DataHandler()
