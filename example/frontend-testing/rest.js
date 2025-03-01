@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:8393/transcriptions/';
 const API_URL_TRANSLATION = 'http://localhost:8393/translate/';
 const DEFAULT_LANGUAGE = 'en';
-const DEFAULT_MODEL = 'large-v3';
+const DEFAULT_MODEL = 'large-v3-turbo';
 //const SETTINGS = '{"test": "test"}';
 const ERROR_MESSAGES = {
     NO_FILE: 'Please upload a file first.',
