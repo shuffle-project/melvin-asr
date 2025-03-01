@@ -35,10 +35,10 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
     words in `original_transcript`.
 
     Returns a *new* Transcript with the same structure, but each Word's `text`
-    replaced by the aligned translated tokens (joined by spaces).
+    replaced by the aligned translated words (joined by spaces).
 
-    If an original word has no overlap with any translated token, its text becomes "".
-    If multiple translated tokens map to the same original word, they are combined.
+    If an original word has no overlap with any translated word, its text becomes "".
+    If multiple translated words map to the same original word, they are combined.
     """
 
     # Gather *all* original words into a flat list (tracking where they came from).
@@ -53,23 +53,23 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
             detail="Alignment not possible without translation or transcript",
         )
 
-    translated_tokens = translated_text.split()
+    translated_words = translated_text.split()
 
     N = len(flat_words)
-    M = len(translated_tokens)
+    M = len(translated_words)
 
-    # We'll store, for each original word i, a list of translated tokens assigned.
-    aligned_tokens_per_word = [[] for _ in range(N)]
+    # We'll store, for each original word i, a list of translated words assigned.
+    aligned_words_per_word = [[] for _ in range(N)]
 
-    # Walk through original words (i) and translated tokens (j) in parallel.
+    # Walk through original words (i) and translated words (j) in parallel.
     i = 0  # index for original words
-    j = 0  # index for translated tokens
+    j = 0  # index for translated words
 
     # A function to get the fraction range of i-th original word => [i/N, (i+1)/N)
     def original_range(i):
         return (i / N, (i + 1) / N)
 
-    # A function to get the fraction range of j-th translated token => [j/M, (j+1)/M)
+    # A function to get the fraction range of j-th translated word => [j/M, (j+1)/M)
     def translated_range(j):
         return (j / M, (j + 1) / M)
 
@@ -83,7 +83,7 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
         overlap = overlap_end - overlap_start
 
         if overlap > 0:
-            aligned_tokens_per_word[i].append(translated_tokens[j])
+            aligned_words_per_word[i].append(translated_words[j])
             j += 1
 
         # Whichever fraction ends first, we advance that pointer
@@ -100,19 +100,47 @@ def align_segments(original_transcript: Transcript, translated_text: str) -> Tra
         new_transcript["segments"].append(new_segment)
 
     # Fill words
+    pending_start_time = None
     for idx, (segment_index, word_index, old_word) in enumerate(flat_words):
-        new_word_text = " ".join(aligned_tokens_per_word[idx])
+        new_word_text = " ".join(aligned_words_per_word[idx])
+
+        # If first word is empty, store its start time for the next word
+        if (
+            not new_word_text
+            and len(new_transcript["segments"][segment_index]["words"]) == 0
+        ):
+            pending_start_time = old_word["start"]
+            continue
+
+        # if word exists prior, replace prior end with this end
+        if not new_word_text and word_index > 0:
+            new_transcript["segments"][segment_index]["words"][-1]["end"] = old_word[
+                "end"
+            ]
+            continue
+
         new_word = Word(
             text=new_word_text,
-            start=old_word["start"],
+            start=pending_start_time if pending_start_time else old_word["start"],
             end=old_word["end"],
             probability=old_word["probability"],
         )
+        pending_start_time = None  # Reset after applying
         new_transcript["segments"][segment_index]["words"].append(new_word)
 
     # Fix segment texts
     for seg in new_transcript["segments"]:
         seg["text"] = " ".join(word["text"] for word in seg["words"] if word["text"])
+
+    # Squash segments in place (back to front)
+    i = len(new_transcript["segments"]) - 1  # Start from the end
+    while i > 0:
+        if not new_transcript["segments"][i]["text"]:
+            new_transcript["segments"][i - 1]["end"] = new_transcript["segments"][i][
+                "end"
+            ]
+            del new_transcript["segments"][i]
+        i -= 1
 
     return new_transcript
 
@@ -126,17 +154,20 @@ def load_status_file(file_path: str) -> dict:
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Construct the relative path to the JSON file
-    status_file_path = os.path.join(
-        script_dir, "../../data/status/ce0cf48e-6610-4996-9790-fbb77ed77e9b.json"
+    original_transcript = os.path.join(
+        script_dir, "../../src/helper/test_base/example-big-en.json"
     )
+    original_data = load_status_file(original_transcript)
 
-    # Load the status file
-    status_data = load_status_file(status_file_path)
+    translated_transcript = os.path.join(
+        script_dir, "../../src/helper/test_base/example-big-de.json"
+    )
+    translated_data = load_status_file(translated_transcript)
 
     result = align_segments(
-        status_data["transcript"],
-        "Deshalb, liebe Mitbürgerinnen und Mitbürger, fragen Sie nicht, was Ihr Land für Sie tun kann, sondern was Sie für Ihr Land tun können.",
+        original_data["transcript"],
+        "lalallalalllalallalala " * 100,
+        # translated_data["transcript"]["text"],
     )
 
     print(json.dumps(result, indent=4, ensure_ascii=False))
