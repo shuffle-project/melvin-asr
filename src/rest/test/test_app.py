@@ -211,7 +211,6 @@ def test_post_transc_with_too_many_audio_files_stored_not_including_model(rest_c
     assert response_dict["transcription_id"] is not None
 
 
-# TODO (after SM4T implementation)
 def test_translation_with_wrong_language(rest_client):
     """Test the translation endpoint with a wrong language"""
     response = rest_client.post(

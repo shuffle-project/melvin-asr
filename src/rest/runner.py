@@ -155,11 +155,10 @@ class Runner:
 
                     if current_status != TranscriptionStatus.IN_QUERY.value:
                         continue
-                    # TODO: does align need the transcriber models?
+
                     if data.get("task") == "transcribe" or data.get("task") == "align":
                         if self.transcriber is None:
                             continue
-                        # TODO: add dynamic switch here if mismatching models
                         if model != self.transcriber.model_name and model is not None:
                             continue
 
