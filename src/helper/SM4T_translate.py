@@ -1,3 +1,5 @@
+from typing import Dict
+
 import torch
 from fastapi import HTTPException
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -7,7 +9,7 @@ from src.helper.config import CONFIG
 from src.helper.types.translation_consts import LANGUAGE_MAP, POSSIBLE_LANGUAGES
 
 
-def check_language_supported_guard(language):
+def check_language_supported_guard(language: str):
     language = LANGUAGE_MAP[language] if language in LANGUAGE_MAP else language
     if language not in POSSIBLE_LANGUAGES:
         raise HTTPException(
@@ -17,8 +19,8 @@ def check_language_supported_guard(language):
 
 
 class Translator:
-    def __init__(self, config: dict):
-        self.device = (
+    def __init__(self, config: Dict[str, str]):
+        self.device: str = (
             f"cuda:{config['device_index']}"
             if config["translation_device"] == "cuda"
             else config["translation_device"]
@@ -34,7 +36,7 @@ class Translator:
         self.model.config.max_new_tokens = 512
         self.model.to(self.device)
 
-    def translate_text(self, text, from_code, to_code):
+    def translate_text(self, text: str, from_code: str, to_code: str) -> str:
         """
         Translates the given text from the origin language to the target language.
 
@@ -48,8 +50,8 @@ class Translator:
         """
         try:
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=512)
-            text_splitted = text_splitter.split_text(text)
-            translated_chunks = []
+            text_splitted: list[str] = text_splitter.split_text(text)
+            translated_chunks: list[str] = []
             for chunk in text_splitted:
                 inputs = self.tokenizer(
                     chunk,
@@ -61,7 +63,7 @@ class Translator:
                     outputs = self.model.generate(
                         **inputs, tgt_lang=LANGUAGE_MAP[to_code]
                     )
-                translated_text = self.tokenizer.batch_decode(
+                translated_text: str = self.tokenizer.batch_decode(
                     outputs, skip_special_tokens=True
                 )[0]
                 translated_chunks.append(translated_text)

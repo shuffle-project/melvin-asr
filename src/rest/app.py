@@ -66,7 +66,7 @@ async def require_api_key(api_key: str = Security(api_key_header)):
 def require_translation_enabled():
     """Dependency to require translation to be enabled."""
     if not any(
-        runner_config.get("translation_enabled", True)
+        runner_config.get("translation_enabled", False)
         for runner_config in CONFIG["rest_runner"]
     ):
         raise HTTPException(

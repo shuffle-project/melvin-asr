@@ -44,3 +44,15 @@ During testing it is unclear if the issue is the limited power of hardware `NVID
 
 **Loading**
 The model should be cached and loaded from there first if available. In tests with Docker, the cache was not used when the image was rebuilt, even though the model existed in the volume provided. This is important to note as the load time is significant and can be a bottleneck.
+
+### Text to Text Dedicated
+
+**To run on Windows** (using Docker) as a single run
+
+```sh
+docker run --rm --gpus all --user root -v ${PWD}:/workspace -w /workspace nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04 bash -c "
+    apt-get update && apt-get install -y python3 python3-pip &&
+    pip3 install --upgrade pip &&
+    pip3 install -r requirements.txt &&
+    python3 example/POC_Seamless_M4T/text_to_text_dedicated.py"
+```

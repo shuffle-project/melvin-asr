@@ -36,11 +36,3 @@ for chunk in text_splitted:
 
 # Decode translated text
 print(" ".join(translated_chunks))  # Translated sentence
-
-
-# To run on Windows
-# docker run --rm --gpus all --user root -v ${PWD}:/workspace -w /workspace nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04 bash -c "
-#     apt-get update && apt-get install -y python3 python3-pip &&
-#     pip3 install --upgrade pip &&
-#     pip3 install -r requirements.txt &&
-#     python3 example/POC_Seamless_M4T/text_to_text_dedicated.py"
