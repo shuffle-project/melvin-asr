@@ -55,7 +55,6 @@ class Stream:
         try:
             while not self.close_stream and websocket.client_state != WebSocketState.DISCONNECTED:
                 message = await websocket.receive()
-                websocket.client_state
 
                 self.logger.debug(f"received message of length {len(message)}")
 
@@ -67,6 +66,8 @@ class Stream:
                     self.export_audio = self.concatenate_audio_with_crossfade(
                         self.export_audio, message
                     )
+
+                    self.logger.debug(f"{self.bytes_received_since_last_transcription}/{self.partial_transcription_byte_threshold}")
 
                     if self.bytes_received_since_last_transcription >= self.partial_transcription_byte_threshold:
                         self.logger.info(

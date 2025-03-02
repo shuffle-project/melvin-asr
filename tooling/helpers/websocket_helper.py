@@ -91,7 +91,7 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                         await websocket_connection.send(audio_data.pop(0))
                     message = await asyncio.wait_for(
                         websocket_connection.recv(),
-                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT,
+                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT if len(audio_data) == 0 else TRANSCRIPTION_WEBSOCKET_TIMEOUT/4,
                     )
                     message_count+=1
                     try:
@@ -109,7 +109,7 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                     except json.JSONDecodeError:
                         pass
                 except asyncio.TimeoutError:
-                    if message_count != 0:
+                    if message_count != 0 and len(audio_data) == 0:
                         break
             if message_count == 0:
                 print(f"Empty messages for filepath {filepath}. This should not happen")
