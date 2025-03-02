@@ -23,7 +23,7 @@ BYTES_PER_SECOND = 32000
 FINAL_TRANSCRIPTION_THRESHOLD = 6
 
 # Max size of window defined in bytes
-MAX_WINDOW_SIZE_BYTES = BYTES_PER_SECOND * 30
+MAX_WINDOW_SIZE_BYTES = BYTES_PER_SECOND * 15
 
 # Bytes after which a retranscription of the window is triggered
 PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD = BYTES_PER_SECOND * 1
@@ -91,7 +91,6 @@ class Stream:
                                 websocket,
                             )
                         )
-                        # TODO: detect if partial transcription lags behind and adapt threshhold?
 
                 elif "text" in message:
                     message = message["text"]
