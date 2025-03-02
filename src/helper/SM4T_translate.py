@@ -1,5 +1,6 @@
 from typing import Dict
 
+import os
 import torch
 from fastapi import HTTPException
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -20,6 +21,7 @@ def check_language_supported_guard(language: str):
 
 class Translator:
     def __init__(self, config: Dict[str, str]):
+        full_model_path = os.path.join(os.getcwd(), CONFIG["model_path"])
         self.device: str = (
             f"cuda:{config['device_index']}"
             if config["translation_device"] == "cuda"
@@ -27,10 +29,10 @@ class Translator:
         )
         self.tokenizer = SeamlessM4TTokenizer.from_pretrained(
             config["translation_model"],
-            cache_dir=CONFIG["model_path"],
+            cache_dir=full_model_path
         )
         self.model = SeamlessM4Tv2ForTextToText.from_pretrained(
-            config["translation_model"], cache_dir=CONFIG["model_path"]
+            config["translation_model"], cache_dir=full_model_path
         )
 
         self.model.config.max_new_tokens = 512
