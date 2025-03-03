@@ -36,7 +36,6 @@ class WebSocketServer:
         LOGGER.info(f"GPU Config: {self.gpu_config}")
         self.cpu_config = config["websocket_stream"]["cpu"]
         LOGGER.info(f"CPU Config: {self.cpu_config}")
-        self.use_fast_partials = config["websocket_stream"]["fast_partials"]
 
         # Setup GPU Transcriber
         if self.gpu_config["active"]:
@@ -91,7 +90,6 @@ class WebSocketServer:
                     await Stream(
                         transcriber=self.gpu_transcriber, 
                         id=client_id,
-                        use_fast_partials=self.use_fast_partials,
                     ).echo(
                         websocket=websocket
                     )
@@ -111,7 +109,6 @@ class WebSocketServer:
                     await Stream(
                         transcriber=self.cpu_transcriber, 
                         id=client_id,
-                        use_fast_partials=self.use_fast_partials,
                     ).echo(
                         websocket=websocket
                     )

@@ -222,10 +222,3 @@ Similar to the previous approach, there are (in theory) two possible ways to adj
 
 In our case, we found that focusing on the first factor was the most reasonable approach, as adjusting the window size could degrade transcription quality too much.  
 Additionally, the window size is currently set to **15 seconds of audio**. On an **AMD Ryzen 7 2700X (16) @ 3.7 GHz** using the *tiny* model, this takes approximately **1.5 seconds** to process. On a **high-end GPU**, transcription is usually fast enough that the first adjustment method alone is sufficient.
-
-#### Additional Notes
-
-When using local agreement and adjusting the time between transcriptions to align with the available hardware, partials were sometimes published very late, as they were only sent once confirmed by local agreement. However, manual testing showed that, due to the sliding window approach, most unconfirmed (i.e., initial) transcriptions were accurate and highly usable.  
-
-To allow for faster publishing of partials (with only a very minor decrease in accuracy), the configuration option **`fast_partials`** was introduced.
-

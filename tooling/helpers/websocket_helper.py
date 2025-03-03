@@ -27,6 +27,14 @@ def safe_to_json(text: str) -> dict | None:
         pass
     return data
 
+def merge_transcript(blocks: List[WebsocketResultBlock]) -> str:
+    merged = ""
+    for block in blocks:
+        if block.final != "":
+            merged += block.final
+        elif len(block.partials) > 0:
+            merged += block.partials[-1]
+    return merged
 
 # TODO: this function can be merged with the rest transcription once the export apis for rest and websockets have been unified
 def fetch_transcription(id: str, api_key: str) -> str:
@@ -72,7 +80,7 @@ def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False
         result.faulty = True
         return result
 
-    result.combined_transcript = fetched_transcript 
+    result.combined_transcript = merge_transcript(partials)
 
     return result
 
@@ -116,7 +124,7 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                 print(f"Empty messages for filepath {filepath}. This should not happen")
                 return (None, id)
 
-            await websocket_connection.send("eof-finalize")
+            await websocket_connection.send("eof")
             try:
                 id = await asyncio.wait_for(
                     websocket_connection.recv(),

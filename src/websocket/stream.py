@@ -30,10 +30,10 @@ PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD = BYTES_PER_SECOND * 1
 
 # If no final has been published for this long just publish all as final
 # This is mostly for cases where no audio data is sent
-FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR = 10
+FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR = 5
 
 class Stream:
-    def __init__(self, transcriber: Transcriber, id: int, use_fast_partials = False):
+    def __init__(self, transcriber: Transcriber, id: int):
         self.logger = logger.get_logger_with_id(__name__, f"{id}")
         self.transcriber = transcriber
         self.id = id
@@ -47,15 +47,11 @@ class Stream:
         self.final_transcriptions = []
         self.export_audio = b""
         self.previous_byte_count = 0
-        self.use_fast_partials = use_fast_partials
 
         self.partial_transcription_byte_threshold = PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD
         self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR
         self.last_transcription_timestamp = time.time()
         self.last_final_published = time.time()
-
-        if self.use_fast_partials:
-            self.logger.info("Starting stream with fast partials")
 
     async def echo(self, websocket: WebSocket) -> None:
         try:
@@ -109,15 +105,6 @@ class Stream:
                     message = message["text"]
                     self.logger.debug(f"Received control message (string): {message}")
                     if "eof" in message:
-                        if "eof-finalize" in message:
-                            await self.transcribe_sliding_window(
-                                websocket,
-                                self.sliding_window,
-                                skip_send=True
-                            )
-                            # Non default behaviour but useful for some scenarios, like testing
-                            result = await self.finalize_transcript()
-                            self.final_transcriptions.append(result)
                         name = self.export_transcription_and_wav()
                         await websocket.send_text(name)
                         await websocket.close()
@@ -139,7 +126,7 @@ class Stream:
 
 
     async def finalize_transcript(self) -> Dict:
-        current_transcript = self.agreement.flush_confirmed() + self.agreement.unconfirmed
+        current_transcript = self.agreement.unconfirmed
         return await self.build_result_from_words(current_transcript)
 
     async def flush_final(
@@ -151,12 +138,7 @@ class Stream:
             if self.agreement.contains_has_sentence_end():
                 agreed_results = self.agreement.flush_at_sentence_end()
             else:
-                # Try to cut off 80% of confirmed
-                cutoff_word_count = max(
-                    FINAL_TRANSCRIPTION_THRESHOLD, 
-                    int(self.agreement.get_confirmed_length() * 0.8)
-                )
-                agreed_results = self.agreement.flush_confirmed(cutoff_word_count)
+                agreed_results = self.agreement.flush_confirmed()
 
             result = await self.build_result_from_words(agreed_results)
             # The final did not contain anything to send
@@ -184,7 +166,7 @@ class Stream:
             )
             self.close_stream = True
 
-    async def build_result_from_words(self, words: List[Word]) -> Dict:
+    async def build_result_from_words(self, words: List[Word],save=True) -> Dict:
         overall_transcribed_seconds = self.previous_byte_count / BYTES_PER_SECOND
 
         cutoff_timestamp = 0
@@ -196,7 +178,8 @@ class Stream:
             start = float(f"{word.start:.6f}") + overall_transcribed_seconds
             end = float(f"{word.end:.6f}")  + overall_transcribed_seconds
             conf = float(f"{word.probability:.6f}")
-            if end <= cutoff_timestamp:
+            if end <= cutoff_timestamp + 0.01 and save:
+                self.logger.debug(word.word)
                 continue
             result["result"].append(
                 {
@@ -244,20 +227,17 @@ class Stream:
             text = ""
 
             if len(self.agreement.unconfirmed) > 0:
+                # hacky workaround for doubled word between finals
+                if len(new_words) > 0 and len(self.final_transcriptions) > 0:
+                    if new_words[0].word == self.final_transcriptions[-1]["result"][-1]["word"]:
+                        new_words.pop()
                 text = " ".join([
                     w.word 
                     for w in new_words 
-                    if w.end > cutoff_timestamp
+                    if w.end > (cutoff_timestamp + 0.01)
                 ])
 
             self.agreement.merge(new_words)
-
-            # Sometimes the local agreement cannot be sure for quite a while
-            # Therefore we just overwrite it
-            if len(self.agreement.get_confirmed_text()) > 0:
-                if not self.use_fast_partials:
-                    text = ""
-                text = self.agreement.get_confirmed_text(cutoff_timestamp=cutoff_timestamp) + text
 
             result = json.dumps({"partial": text}, indent=2)
 

@@ -11,7 +11,6 @@ TEST_TIMEOUT_SECONDS = 120
 
 MOCK_CONFIG = {
     "websocket_stream": {
-        "fast_partials": True,
         "cuda": {
             "active": False,
             "model": "tiny",
