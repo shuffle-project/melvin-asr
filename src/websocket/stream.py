@@ -134,15 +134,13 @@ class Stream:
 
 
     async def finalize_transcript(self) -> Dict:
-        self.logger.debug("finalizing")
         current_transcript = self.agreement.flush_confirmed() + self.agreement.unconfirmed
-        self.logger.debug(f"Transcript to finalize: {current_transcript}")
         return await self.build_result_from_words(current_transcript)
 
     async def flush_final(
         self, websocket: WebSocket
     ) -> None:
-        """Function to transcribe a chunk of audio"""
+        """Function to send a final to the client and update the content on the sliding window"""
         try:
             agreed_results = []
             if self.agreement.contains_has_sentence_end():
