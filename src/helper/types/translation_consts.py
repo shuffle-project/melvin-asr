@@ -16,6 +16,7 @@ POSSIBLE_LANGUAGES = [
     "ces",
     "ckb",
     "cmn",
+    "cmn_Hant",
     "cym",
     "dan",
     "deu",
