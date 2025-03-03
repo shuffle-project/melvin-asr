@@ -260,8 +260,6 @@ async def translate(
 async def get_translated(transcription_id: str):
     """Get the translated file for a specific ID."""
     file = DATA_HANDLER.get_status_file_by_id(transcription_id)
-    if file["status"] != TranscriptionStatus.FINISHED.value:
-        return JSONResponse(content=file, status_code=200)
 
     if file:
         if file["status"] != TranscriptionStatus.FINISHED.value:
