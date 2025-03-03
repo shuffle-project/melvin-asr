@@ -28,6 +28,9 @@ MAX_WINDOW_SIZE_BYTES = BYTES_PER_SECOND * 15
 # Bytes after which a retranscription of the window is triggered
 PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD = BYTES_PER_SECOND * 1
 
+# If no final has been published for this long just publish all as final
+# This is mostly for cases where no audio data is sent
+FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR = 10
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int, use_fast_partials = False):
@@ -47,6 +50,9 @@ class Stream:
         self.use_fast_partials = use_fast_partials
 
         self.partial_transcription_byte_threshold = PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD
+        self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR
+        self.last_transcription_timestamp = time.time()
+        self.last_final_published = time.time()
 
         if self.use_fast_partials:
             self.logger.info("Starting stream with fast partials")
@@ -67,9 +73,12 @@ class Stream:
                         self.export_audio, message
                     )
 
-                    self.logger.debug(f"{self.bytes_received_since_last_transcription}/{self.partial_transcription_byte_threshold}")
+                    self.logger.debug(f" Current transcription state: {self.bytes_received_since_last_transcription}/{self.partial_transcription_byte_threshold} Bytes {time.time()-self.last_transcription_timestamp}/{self.partial_transcription_byte_threshold / BYTES_PER_SECOND} Seconds")
 
-                    if self.bytes_received_since_last_transcription >= self.partial_transcription_byte_threshold:
+                    if (
+                        self.bytes_received_since_last_transcription >= self.partial_transcription_byte_threshold 
+                        or (time.time() - self.last_transcription_timestamp >= (self.partial_transcription_byte_threshold / BYTES_PER_SECOND))
+                    ):
                         self.logger.info(
                             f"NEW PARTIAL: length of current window: {len(self.sliding_window)}"
                         )
@@ -80,8 +89,12 @@ class Stream:
                             )
                         )
 
-                    # Send final if either threshhold is reached or sentence ended
-                    if self.agreement.get_confirmed_length() > FINAL_TRANSCRIPTION_THRESHOLD or self.agreement.contains_has_sentence_end():
+                    # Send final if either threshold is reached or sentence ended
+                    if (
+                        self.agreement.get_confirmed_length() > FINAL_TRANSCRIPTION_THRESHOLD 
+                        or self.agreement.contains_has_sentence_end()
+                        or (time.time() - self.last_final_published) >= self.final_publish_second_threshold
+                    ):
                         self.logger.debug(
                             f"NEW FINAL: length of chunk cache: {len(self.sliding_window)}"
                         )
@@ -160,6 +173,7 @@ class Stream:
             self.logger.debug(
                 f"Published final of {len(agreed_results)}."
             )
+            self.last_final_published = time.time()
 
         except Exception:
             self.logger.error(
@@ -254,6 +268,7 @@ class Stream:
 
             # adjust time between transcriptions
             self.update_partial_threshold(end_time - start_time)
+            self.last_transcription_timestamp = time.time()
 
         except Exception:
             self.logger.error(
@@ -270,6 +285,7 @@ class Stream:
         new_threshold = (last_run_duration * BYTES_PER_SECOND) + 0.25
         self.logger.info(f"Adjusted threshold duration to : {new_threshold / BYTES_PER_SECOND}")
         self.partial_transcription_byte_threshold = new_threshold
+        self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR
 
     def export_transcription_and_wav(self):
         DATA_HANDLER = DataHandler()

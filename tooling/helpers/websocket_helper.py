@@ -118,7 +118,8 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
             await websocket_connection.send("eof-finalize")
             try:
                 id = await asyncio.wait_for(
-                    websocket_connection.recv(), timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
+                    websocket_connection.recv(),
+                    timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
                 )
             except Exception:
                 pass
