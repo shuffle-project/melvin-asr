@@ -25,6 +25,12 @@ The whole text is looked at, and for every word it is calculated which of the tr
 Not based on translated segments because that would be more overhead.
 There are more ways to improve the aligment, but again, the ROI is hereby the best.
 
+### Special character languages
+
+The aligment bases it's calculation on whitespace separation.  
+For example chinese translation comes in blocks which are separated by `,`  
+Since we are not versed in the language, we aren't sure how to handle this properly. Due to the RecursiveSegmentation used for the tokenizer, it is guaranteed that the language has some splitting that is used.
+
 ## Parallel models
 
 We tested a setup with the rest runner and the Translation set to run on cuda:0  
