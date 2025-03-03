@@ -29,7 +29,6 @@ class ModelHandler:
     def get_model_path(self, model_name: str) -> str:
         """Function to get the model path"""
         model_path = os.path.join(os.getcwd(), self.model_path, model_name)
-        LOGGER.warning(model_path)
         return model_path
 
     def download_model(self, model_name: str) -> None:
