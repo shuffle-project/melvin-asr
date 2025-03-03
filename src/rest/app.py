@@ -83,6 +83,17 @@ def require_translation_enabled():
         )
 
 
+def require_transcription_enabled():
+    """Dependency to require translation to be enabled."""
+    if not any(
+        runner_config.get("transcription_enabled", False)
+        for runner_config in CONFIG["rest_runner"]
+    ):
+        raise HTTPException(
+            status_code=400, detail="Transcription is not enabled on this server."
+        )
+
+
 @time_it
 @app.get("/", response_class=JSONResponse, dependencies=[Depends(require_api_key)])
 async def show_config():
@@ -132,7 +143,10 @@ async def get_transcriptions_id(transcription_id: str):
 
 
 @time_it
-@app.post("/transcriptions", dependencies=[Depends(require_api_key)])
+@app.post(
+    "/transcriptions",
+    dependencies=[Depends(require_api_key), Depends(require_transcription_enabled)],
+)
 async def post_transcription(
     file: UploadFile = File(...),
     language: str | None = Form("en"),
