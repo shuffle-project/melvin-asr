@@ -28,15 +28,15 @@ class DataHandler:
         self.root_path = os.getcwd()
         self.file_handler = FileHandler()
 
-        self.status_path = self.root_path + status_path
-        self.audio_file_path = self.root_path + audio_file_path
+        self.status_path = os.path.join(self.root_path, status_path)
+        self.audio_file_path = os.path.join(self.root_path, audio_file_path)
         self.audio_file_format = audio_file_format
-        self.export_file_path = self.root_path + export_file_path
+        self.export_file_path = os.path.join(self.root_path, export_file_path)
 
     def get_status_file_by_id(self, transcription_id: str) -> dict:
         """Returns the status file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
-        file_path = os.path.join(self.status_path + file_name)
+        file_path = os.path.join(self.status_path, file_name)
         data = self.file_handler.read_json(file_path)
         if data:
             return data
@@ -71,7 +71,7 @@ class DataHandler:
     def get_audio_file_path_by_id(self, transcription_id: str) -> str:
         """Returns the audio file path by the given transcription_id."""
         file_name = f"{transcription_id}{self.audio_file_format}"
-        file_path = os.path.join(self.audio_file_path + file_name)
+        file_path = os.path.join(self.audio_file_path, file_name)
         if os.path.isfile(file_path):
             return file_path
         return None
@@ -261,7 +261,7 @@ class DataHandler:
         These jobs could never be recovered and stuck in "in_progress"
         """
         # no join because the provided status file path has the format of an absolute path
-        status_dir_base_path = os.getcwd() + CONFIG["status_file_path"]
+        status_dir_base_path = os.path.join(os.getcwd(), CONFIG["status_file_path"])
         existing_status_files = [
             x
             for x in os.listdir(status_dir_base_path)

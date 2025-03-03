@@ -50,7 +50,6 @@ def translate_text(text, from_code, to_code):
     Returns:
         str: The translated text.
     """
-    # TODO: replace this with Sm4t
     install_language_pack_if_needed(from_code, to_code)
 
     try:

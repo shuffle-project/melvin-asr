@@ -1,4 +1,5 @@
 """cleanup_data.fixture.py"""
+
 import os
 
 import pytest
@@ -14,7 +15,7 @@ def cleanup_data():
     yield
     for file in os.listdir(DATA_HANDLER.status_path):
         if file.endswith(".json"):
-            os.remove(DATA_HANDLER.status_path + file)
+            os.remove(os.path.join(DATA_HANDLER.status_path, file))
     for file in os.listdir(DATA_HANDLER.audio_file_path):
         if file.endswith(".wav"):
-            os.remove(DATA_HANDLER.audio_file_path + file)
+            os.remove(os.path.join(DATA_HANDLER.audio_file_path, file))

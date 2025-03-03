@@ -55,13 +55,13 @@ def read_config(config_yml_path: str) -> dict:
         #
         # File System Configuration
         #   Path to the status file folder
-        "status_file_path": get_config("status_file_path", default="/data/status/"),
+        "status_file_path": get_config("status_file_path", default="data/status"),
         #   Path to the model folder
-        "model_path": get_config("model_path", default="/models/"),
+        "model_path": get_config("model_path", default="models"),
         #   Path to the audio file folder
-        "audio_file_path": get_config("audio_file_path", default="/data/audio_files/"),
+        "audio_file_path": get_config("audio_file_path", default="data/audio_files"),
         #   Path to the audio file folder
-        "export_file_path": get_config("audio_file_path", default="/data/export/"),
+        "export_file_path": get_config("audio_file_path", default="data/export"),
         #   Audio file format to use
         "audio_file_format": get_config("audio_file_format", default=".wav"),
         #
@@ -78,9 +78,9 @@ def read_config(config_yml_path: str) -> dict:
     }
 
 
-if os.path.exists(os.getcwd() + "/config.local.yml"):
-    CONFIG = read_config(os.getcwd() + "/config.local.yml")
-elif os.path.exists(os.getcwd() + "/config.yml"):
-    CONFIG = read_config(os.getcwd() + "/config.yml")
+if os.path.exists(os.path.join(os.getcwd(), "config.local.yml")):
+    CONFIG = read_config(os.path.join(os.getcwd(), "config.local.yml"))
+elif os.path.exists(os.path.join(os.getcwd(), "config.yml")):
+    CONFIG = read_config(os.path.join(os.getcwd(), "config.yml"))
 else:
     raise RuntimeWarning("No config file found")

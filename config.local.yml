@@ -46,6 +46,7 @@ websocket_stream:
 rest_runner:
   # device: "cpu" or "cuda"
   - device: cpu
+    transcription_enabled: True
     # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
     model: large-v3-turbo
     # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
@@ -59,3 +60,8 @@ rest_runner:
     # for 64 cores, use 4/8
     # for 32 cores, use 2/4
     cpu_threads: 4
+
+    # Translation configs
+    translation_enabled: True
+    translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large
+    translation_device: cpu # cpu | cuda

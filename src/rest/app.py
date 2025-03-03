@@ -15,6 +15,7 @@ from fastapi import (
     Security,
     UploadFile,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
@@ -34,6 +35,14 @@ DATA_HANDLER = DataHandler()
 config = CONFIG
 
 app = FastAPI()
+# Enable CORS for all domains
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
@@ -61,6 +70,28 @@ async def require_api_key(api_key: str = Security(api_key_header)):
         LOGGER.warning(f"Unauthorized API key attempt: {api_key}")
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return api_key
+
+
+def require_translation_enabled():
+    """Dependency to require translation to be enabled."""
+    if not any(
+        runner_config.get("translation_enabled", False)
+        for runner_config in CONFIG["rest_runner"]
+    ):
+        raise HTTPException(
+            status_code=400, detail="Translation is not enabled on this server."
+        )
+
+
+def require_transcription_enabled():
+    """Dependency to require translation to be enabled."""
+    if not any(
+        runner_config.get("transcription_enabled", False)
+        for runner_config in CONFIG["rest_runner"]
+    ):
+        raise HTTPException(
+            status_code=400, detail="Transcription is not enabled on this server."
+        )
 
 
 @time_it
@@ -112,7 +143,10 @@ async def get_transcriptions_id(transcription_id: str):
 
 
 @time_it
-@app.post("/transcriptions", dependencies=[Depends(require_api_key)])
+@app.post(
+    "/transcriptions",
+    dependencies=[Depends(require_api_key), Depends(require_transcription_enabled)],
+)
 async def post_transcription(
     file: UploadFile = File(...),
     language: str | None = Form("en"),
@@ -202,7 +236,10 @@ async def get_stream_audio_export(transcription_id: str):
 
 
 @time_it
-@app.post("/translate/{target_language}", dependencies=[Depends(require_api_key)])
+@app.post(
+    "/translate/{target_language}",
+    dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
+)
 async def translate(
     target_language: str,
     transcription: TranscriptionData = Body(...),
@@ -230,10 +267,19 @@ async def translate(
 
 # This could be merged with other requests, but that also requires fixing the demo so it will stay here for now
 @time_it
-@app.get("/translate/{transcription_id}", dependencies=[Depends(require_api_key)])
+@app.get(
+    "/translate/{transcription_id}",
+    dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
+)
 async def get_translated(transcription_id: str):
     """Get the translated file for a specific ID."""
     file = DATA_HANDLER.get_status_file_by_id(transcription_id)
+
     if file:
+        if file["status"] != TranscriptionStatus.FINISHED.value:
+            filtered_file = {
+                key: value for key, value in file.items() if key != "transcript"
+            }
+            return JSONResponse(content=filtered_file, status_code=200)
         return JSONResponse(content=file, status_code=200)
     raise HTTPException(status_code=404, detail="Transcription ID not found")

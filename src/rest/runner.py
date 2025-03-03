@@ -10,7 +10,7 @@ from src.helper import logger
 from src.helper.align_translation_segments import align_segments
 from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
-from src.helper.SM4T_translate import translate_text
+from src.helper.SM4T_translate import Translator
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.rest.rest_transcriber import Transcriber
 
@@ -23,10 +23,15 @@ class Runner:
     def __init__(self, config: dict, identifier: int):
         """Constructor of the Runner class."""
         self.identifier = identifier
-        self.transcriber = Transcriber(config)
+        self.transcriber = (
+            Transcriber(config) if config.get("transcription_enabled") else None
+        )
 
         self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
+        self.translator = (
+            Translator(config) if config.get("translation_enabled") else None
+        )
 
     def run(self) -> None:
         """continuously checks for new transcriptions to process"""
@@ -98,7 +103,7 @@ class Runner:
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
         self.log.debug("translating: " + task_id)
-        translated_text = translate_text(
+        translated_text = self.translator.translate_text(
             transcription["transcript"]["text"],
             transcription["language"],
             transcription["target_language"],
@@ -109,12 +114,6 @@ class Runner:
             transcription["transcript"], translated_text
         )
 
-        # This is here to see the difference in segmented tranlation level if used
-        # for segment in transcription["transcript"]["segments"]:
-        #     segment["text"] = translate_text(
-        #         segment["text"], transcription["language"], target_language
-        #     )
-
         transcription["language"] = transcription["target_language"]
         transcription["end_time"] = (
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -122,6 +121,7 @@ class Runner:
         transcription["status"] = TranscriptionStatus.FINISHED.value
 
         self.data_handler.write_status_file(task_id, transcription)
+        self.log.debug("finished translation task: " + task_id)
 
     def get_oldest_status_file_in_query(
         self,
@@ -156,7 +156,13 @@ class Runner:
                     if current_status != TranscriptionStatus.IN_QUERY.value:
                         continue
 
-                    if model != self.transcriber.model_name and model is not None:
+                    if data.get("task") == "transcribe" or data.get("task") == "align":
+                        if self.transcriber is None:
+                            continue
+                        if model != self.transcriber.model_name and model is not None:
+                            continue
+
+                    if self.translator is None and data.get("task") == "translate":
                         continue
 
                     current_datetime = datetime.fromisoformat(start_time)
@@ -175,6 +181,7 @@ class Runner:
                 )
                 transcription_id = filename.split(".")[0]
                 data_handler.delete_status_file(transcription_id)
+                # This throws an error if it is a translation task, but no good way to check
                 data_handler.delete_audio_file(transcription_id)
                 continue
 

@@ -1,3 +1,4 @@
+# From https://huggingface.co/facebook/seamless-m4t-v2-large#supported-languages
 POSSIBLE_LANGUAGES = [
     "afr",
     "amh",
@@ -15,6 +16,7 @@ POSSIBLE_LANGUAGES = [
     "ces",
     "ckb",
     "cmn",
+    "cmn_Hant",
     "cym",
     "dan",
     "deu",
@@ -196,7 +198,8 @@ LANGUAGE_MAP = {
     "vi": "vie",
     "yi": "yid",
     "yo": "yor",
-    "zh": "cmn",
+    "zh": "cmn_Hant",
+    "cn": "cmn",
     "afr": "afr",
     "amh": "amh",
     "arb": "arb",
