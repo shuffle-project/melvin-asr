@@ -110,6 +110,11 @@ class Stream:
                     self.logger.debug(f"Received control message (string): {message}")
                     if "eof" in message:
                         if "eof-finalize" in message:
+                            await self.transcribe_sliding_window(
+                                websocket,
+                                self.sliding_window,
+                                skip_send=True
+                            )
                             # Non default behaviour but useful for some scenarios, like testing
                             result = await self.finalize_transcript()
                             self.final_transcriptions.append(result)
@@ -207,7 +212,7 @@ class Stream:
 
 
     async def transcribe_sliding_window(
-        self, websocket, window_content
+        self, websocket, window_content, skip_send=False
     ) -> None:
         try:
             # Ensure the chunk_cache is not empty before proceeding
@@ -256,7 +261,9 @@ class Stream:
 
             result = json.dumps({"partial": text}, indent=2)
 
-            await websocket.send_text(result)
+            if not skip_send:
+                self.logger.debug(text)
+                await websocket.send_text(result)
 
             end_time = time.time()
             self.logger.debug(

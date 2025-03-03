@@ -204,8 +204,28 @@ The promotion from **Pending** to **Finalized** (i.e., the condition that must b
 
 1. **Pending** reaches a length of > *N*, or  
 2. **Pending** contains a sentence-terminating character (`.` `!` `?`).
+3. The time since publishing the last final has exceeded a given threshold.
 
 #### Buffer Size Management
 
 To prevent the buffer (and **Finalized**) from growing indefinitely with long-running WebSocket connections, the buffer size is limited to a predefined maximum (in bytes).
+Trimming the sliding window down to the target window size is performed after a final is published. 
+
+#### Timing Adjustments Based on Hardware Capabilities
+
+The switch to a sliding window approach also required modifications to the runtime threshold adjustments described in a [previous chapter](#automated-threshold-adjustments). Due to the nature of `asyncio` (i.e., the event loop), transcription calls must be scheduled while accounting for the transcription time.
+
+Similar to the previous approach, there are (in theory) two possible ways to adjust transcription behavior:
+
+1. **Increase the time between transcriptions** based on the transcription duration.
+2. **Reduce the sliding window size** if the transcription duration exceeds the delay between transcriptions.
+
+In our case, we found that focusing on the first factor was the most reasonable approach, as adjusting the window size could degrade transcription quality too much.  
+Additionally, the window size is currently set to **15 seconds of audio**. On an **AMD Ryzen 7 2700X (16) @ 3.7 GHz** using the *tiny* model, this takes approximately **1.5 seconds** to process. On a **high-end GPU**, transcription is usually fast enough that the first adjustment method alone is sufficient.
+
+#### Additional Notes
+
+When using local agreement and adjusting the time between transcriptions to align with the available hardware, partials were sometimes published very late, as they were only sent once confirmed by local agreement. However, manual testing showed that, due to the sliding window approach, most unconfirmed (i.e., initial) transcriptions were accurate and highly usable.  
+
+To allow for faster publishing of partials (with only a very minor decrease in accuracy), the configuration option **`fast_partials`** was introduced.
 

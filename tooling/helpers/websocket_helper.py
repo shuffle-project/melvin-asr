@@ -10,12 +10,11 @@ from http import HTTPStatus
 
 TRANSCRIPTION_WEBSOCKET_TIMEOUT = 60.0
 
-
-async def read_wav_file_into_chunks(file_path, chunk_duration=1000):
+async def read_wav_file_into_chunks(file_path, chunk_duration_ms=1000):
     audio = AudioSegment.from_file(file_path)
     chunks = []
-    for i in range(0, len(audio), chunk_duration):
-        chunks.append(audio[i : i + chunk_duration].raw_data)
+    for i in range(0, len(audio), chunk_duration_ms):
+        chunks.append(audio[i : i + chunk_duration_ms].raw_data)
     return chunks
 
 
@@ -89,9 +88,11 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                 try:
                     if len(audio_data) > 0:
                         await websocket_connection.send(audio_data.pop(0))
+
                     message = await asyncio.wait_for(
                         websocket_connection.recv(),
-                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT if len(audio_data) == 0 else TRANSCRIPTION_WEBSOCKET_TIMEOUT/4,
+                        # Wait for 1 second after sending 1 second of audio -> If no audio is sent then we wait longer
+                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT if len(audio_data) == 0 else 1,
                     )
                     message_count+=1
                     try:
