@@ -15,6 +15,7 @@ from fastapi import (
     Security,
     UploadFile,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
@@ -34,6 +35,14 @@ DATA_HANDLER = DataHandler()
 config = CONFIG
 
 app = FastAPI()
+# Enable CORS for all domains
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
@@ -251,6 +260,14 @@ async def translate(
 async def get_translated(transcription_id: str):
     """Get the translated file for a specific ID."""
     file = DATA_HANDLER.get_status_file_by_id(transcription_id)
+    if file["status"] != TranscriptionStatus.FINISHED.value:
+        return JSONResponse(content=file, status_code=200)
+
     if file:
+        if file["status"] != TranscriptionStatus.FINISHED.value:
+            filtered_file = {
+                key: value for key, value in file.items() if key != "transcript"
+            }
+            return JSONResponse(content=filtered_file, status_code=200)
         return JSONResponse(content=file, status_code=200)
     raise HTTPException(status_code=404, detail="Transcription ID not found")
