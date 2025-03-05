@@ -33,6 +33,10 @@ class DataHandler:
         self.audio_file_format = audio_file_format
         self.export_file_path = os.path.join(self.root_path, export_file_path)
 
+        DataHandler.create_dir_if_not_exist(self.audio_file_path)
+        DataHandler.create_dir_if_not_exist(self.status_path)
+        DataHandler.create_dir_if_not_exist(self.export_file_path)
+
     def get_status_file_by_id(self, transcription_id: str) -> dict:
         """Returns the status file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
@@ -254,14 +258,18 @@ class DataHandler:
             return buffer.getvalue()
         return None
 
+    @staticmethod 
+    def create_dir_if_not_exist(path: str):
+        os.makedirs(path, exist_ok=True)
+
     @staticmethod
     def cleanup_interrupted_jobs() -> None:
         """
         Finds and removes jobs/status files for jobs that were running when a previous instance terminated.
         These jobs could never be recovered and stuck in "in_progress"
         """
-        # no join because the provided status file path has the format of an absolute path
         status_dir_base_path = os.path.join(os.getcwd(), CONFIG["status_file_path"])
+        DataHandler.create_dir_if_not_exist(status_dir_base_path)
         existing_status_files = [
             x
             for x in os.listdir(status_dir_base_path)
