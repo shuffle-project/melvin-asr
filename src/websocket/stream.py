@@ -52,13 +52,14 @@ class Stream:
         self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR
         self.last_transcription_timestamp = time.time()
         self.last_final_published = time.time()
+        self.is_in_transcription = False
+
+        self.transcription_tasks = set()
 
     async def echo(self, websocket: WebSocket) -> None:
         try:
             while not self.close_stream and websocket.client_state != WebSocketState.DISCONNECTED:
                 message = await websocket.receive()
-
-                self.logger.debug(f"received message of length {len(message)}")
 
                 if "bytes" in message:
                     message = message["bytes"]
@@ -69,21 +70,28 @@ class Stream:
                         self.export_audio, message
                     )
 
-                    self.logger.debug(f" Current transcription state: {self.bytes_received_since_last_transcription}/{self.partial_transcription_byte_threshold} Bytes {time.time()-self.last_transcription_timestamp}/{self.partial_transcription_byte_threshold / BYTES_PER_SECOND} Seconds")
-
                     if (
                         self.bytes_received_since_last_transcription >= self.partial_transcription_byte_threshold 
                         or (time.time() - self.last_transcription_timestamp >= (self.partial_transcription_byte_threshold / BYTES_PER_SECOND))
                     ):
-                        self.logger.info(
-                            f"NEW PARTIAL: length of current window: {len(self.sliding_window)}"
-                        )
-                        asyncio.ensure_future(
-                            self.transcribe_sliding_window(
-                                websocket,
-                                self.sliding_window
+                        self.bytes_received_since_last_transcription = 0
+                        self.last_transcription_timestamp = time.time()
+
+                        # Ensure that no duplicate transcription jobs are running
+                        # This additonal check is needed as we are in nested async
+                        if len(self.transcription_tasks) < 1:
+                            self.logger.info(
+                                f"NEW PARTIAL: length of current window: {len(self.sliding_window)}"
                             )
-                        )
+                            task = asyncio.create_task(
+                                self.transcribe_sliding_window(
+                                    websocket,
+                                    self.sliding_window
+                                ),
+                                name=f"transcription_task_stream_{self.id}"
+                            )
+                            self.transcription_tasks.add(task)
+                            task.add_done_callback(self.transcription_tasks.discard)
 
                     # Send final if either threshold is reached or sentence ended
                     if (
@@ -95,21 +103,19 @@ class Stream:
                             f"NEW FINAL: length of chunk cache: {len(self.sliding_window)}"
                         )
                         # does this need to be async?
-                        asyncio.ensure_future(
-                            self.flush_final(
-                                websocket,
-                            )
+                        await self.flush_final(
+                            websocket,
                         )
 
                 elif "text" in message:
                     message = message["text"]
                     self.logger.debug(f"Received control message (string): {message}")
                     if "eof" in message:
+                        self.close_stream = True
                         name = self.export_transcription_and_wav()
                         await websocket.send_text(name)
                         await websocket.close()
                         self.logger.info("eof received")
-                        self.close_stream = True
                     else:
                         await websocket.send_text("control message unknown")
 
@@ -123,6 +129,8 @@ class Stream:
             self.close_stream = True
         finally:
             await websocket.close()
+            for task in self.transcription_tasks:
+                task.cancel()
 
 
     async def finalize_transcript(self) -> Dict:
@@ -154,7 +162,9 @@ class Stream:
                 self.window_start_timestamp += bytes_to_cut_off / BYTES_PER_SECOND
                 self.sliding_window = self.sliding_window[bytes_to_cut_off:]
 
-            await websocket.send_text(json.dumps(result, indent=2))
+            if not self.close_stream:
+                await websocket.send_text(json.dumps(result, indent=2))
+
             self.logger.debug(
                 f"Published final of {len(agreed_results)}."
             )
@@ -179,7 +189,6 @@ class Stream:
             end = float(f"{word.end:.6f}")  + overall_transcribed_seconds
             conf = float(f"{word.probability:.6f}")
             if end <= cutoff_timestamp + 0.01 and save:
-                self.logger.debug(word.word)
                 continue
             result["result"].append(
                 {
@@ -197,14 +206,14 @@ class Stream:
     async def transcribe_sliding_window(
         self, websocket, window_content, skip_send=False
     ) -> None:
-        try:
-            # Ensure the chunk_cache is not empty before proceeding
-            if len(window_content) == 0:
-                self.logger.warning("Received empty chunk, skipping transcription.")
-                return  # Skip transcription for empty chunk
+        if len(window_content) == 0:
+            self.logger.warning("Received empty chunk, skipping transcription.")
+            return  # Skip transcription for empty chunk
 
+        try:
             start_time = time.time()
             result: str = "Missing data"
+            self.bytes_received_since_last_transcription = 0
 
             # Pass the chunk to the transcriber
             segments, _ = self.transcriber._transcribe(
@@ -241,19 +250,16 @@ class Stream:
 
             result = json.dumps({"partial": text}, indent=2)
 
-            if not skip_send:
-                self.logger.debug(text)
+            if not skip_send and not self.close_stream:
                 await websocket.send_text(result)
 
             end_time = time.time()
             self.logger.debug(
                 "Partial transcription took {:.2f} s".format(end_time - start_time)
             )
-            self.bytes_received_since_last_transcription = 0
 
             # adjust time between transcriptions
             self.update_partial_threshold(end_time - start_time)
-            self.last_transcription_timestamp = time.time()
 
         except Exception:
             self.logger.error(
@@ -267,7 +273,7 @@ class Stream:
         if len(self.sliding_window) < MAX_WINDOW_SIZE_BYTES * 0.75 and last_run_duration < self.partial_transcription_byte_threshold / BYTES_PER_SECOND:
             self.logger.info(f"Current window too small for adjustment ({len(self.sliding_window)}/{MAX_WINDOW_SIZE_BYTES * 0.75})")
             return
-        new_threshold = (last_run_duration * BYTES_PER_SECOND) + 0.25
+        new_threshold = (last_run_duration * BYTES_PER_SECOND) + 0.5
         self.logger.info(f"Adjusted threshold duration to : {new_threshold / BYTES_PER_SECOND}")
         self.partial_transcription_byte_threshold = new_threshold
         self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR

@@ -63,9 +63,13 @@ def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False
     result = WebsocketResult(scale=scale)
     start_time = time.time()
     loop = asyncio.get_event_loop()
-    res = loop.run_until_complete(
-        asyncio.gather(__transcribe_file_websocket(filepath, debug))
-    )
+    res = [(None, "")]
+    try:
+        res = loop.run_until_complete(
+            asyncio.gather(__transcribe_file_websocket(filepath, debug))
+        )
+    except Exception:
+        print(f"Something during the transcription of {filepath} failed. This will be marked as faulty")
     partials, transciption_id  = res[0]
     if  partials is None or len(transciption_id) == 0:
         result.faulty = True
@@ -96,6 +100,7 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                 try:
                     if len(audio_data) > 0:
                         await websocket_connection.send(audio_data.pop(0))
+                        print(f"Audio chunks left: {len(audio_data)}")
 
                     message = await asyncio.wait_for(
                         websocket_connection.recv(),
@@ -124,6 +129,7 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                 print(f"Empty messages for filepath {filepath}. This should not happen")
                 return (None, id)
 
+            print("Finalizing and sending eof")
             await websocket_connection.send("eof")
             try:
                 id = await asyncio.wait_for(
@@ -135,5 +141,9 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
             await websocket_connection.close()
     except websockets.exceptions.ConnectionClosedOK:  # This is the expected behaviour
         pass
+    except Exception as e:
+        print("Error occured")
+        print(e)
+
     return (result, id)
 
