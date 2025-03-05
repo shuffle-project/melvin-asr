@@ -54,7 +54,7 @@ def fetch_transcription(id: str, api_key: str) -> str:
                 res += f" {segment['text']}"
         return res
 
-    print("Desired ID could not be resolved")
+    print(f"Desired ID ({id}) could not be resolved")
     # Make sure the benchmark does not terminate if one file fails
     # Faulty files are marked in the final table either way
     return ""

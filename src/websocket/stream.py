@@ -112,6 +112,9 @@ class Stream:
                     self.logger.debug(f"Received control message (string): {message}")
                     if "eof" in message:
                         self.close_stream = True
+                        for task in self.transcription_tasks:
+                            task.cancel()
+                            self.transcription_tasks.remove(task)
                         name = self.export_transcription_and_wav()
                         await websocket.send_text(name)
                         await websocket.close()
