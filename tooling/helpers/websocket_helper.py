@@ -100,7 +100,6 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                 try:
                     if len(audio_data) > 0:
                         await websocket_connection.send(audio_data.pop(0))
-                        print(f"Audio chunks left: {len(audio_data)}")
 
                     message = await asyncio.wait_for(
                         websocket_connection.recv(),
