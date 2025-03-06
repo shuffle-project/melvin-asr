@@ -222,3 +222,37 @@ Similar to the previous approach, there are (in theory) two possible ways to adj
 
 In our case, we found that focusing on the first factor was the most reasonable approach, as adjusting the window size could degrade transcription quality too much.  
 Additionally, the window size is currently set to **15 seconds of audio**. On an **AMD Ryzen 7 2700X (16) @ 3.7 GHz** using the *tiny* model, this takes approximately **1.5 seconds** to process. On a **high-end GPU**, transcription is usually fast enough that the first adjustment method alone is sufficient.
+
+<details>
+
+  <summary>benchmarking results</summary>
+
+Local Agreement (same partial <-> final system as above)
+
+| Statistic                          | Duration     | WER         | Average Levenshtein Distance |
+|------------------------------------|--------------|-------------|------------------------------|
+| Count                              | 184.000000   | 184.000000  | 184.000000                   |
+| Mean                               | 135.436777   | 0.236248    | 5.831115                     |
+| Standard Deviation (Std)           | 70.528878    | 0.211362    | 1.380471                     |
+| Minimum (Min)                      | 63.915297    | 0.014451    | 2.814286                     |
+| 25th Percentile (25%)              | 100.581711   | 0.076304    | 5.018676                     |
+| Median (50%)                       | 115.228423   | 0.147290    | 5.625143                     |
+| 75th Percentile (75%)              | 142.558473   | 0.324637    | 6.441364                     |
+| Maximum (Max)                      | 580.561308   | 0.879463    | 14.750000                    |
+
+Local agreement with sliding window
+
+| Statistic  | Duration     | WER         | Average Levenshtein Distance |
+|------------|-------------|-------------|------------------------------|
+| Count      | 184.000000  | 184.000000  | 184.000000                   |
+| Mean       | 160.670180  | 0.219226    | 30.956213                     |
+| Std Dev    | 93.468774   | 0.106975    | 5.135515                      |
+| Min        | 65.095914   | 0.035372    | 18.741353                     |
+| 25%        | 114.513743  | 0.142670    | 27.253655                     |
+| 50% (Median) | 133.963939 | 0.203582   | 30.914338                     |
+| 75%        | 170.775207  | 0.281692    | 34.542465                     |
+| Max        | 751.681419  | 0.639259    | 48.002574                     |
+
+</details>
+
+
