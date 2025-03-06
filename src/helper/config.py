@@ -29,21 +29,21 @@ def read_config(config_yml_path: str) -> dict:
     def get_extracted_field_from_config(key, nested_key):
         """Function to extract one field from an array of config options"""
         value = get_config(key)
-        res = set()
+        res = []
         for nested_val in value:
             if nested_key not in nested_val:
                 raise ValueError(
                     f"Configuration error: '{nested_key}' could not be extracted from value from '{key}'"
                 )
-            res.add(nested_val[nested_key])
-        return list(res)
+            res += nested_val[nested_key]
+        return list(set(res))
 
     return {
         # Essential Configuration, these are required in config.yml
         "log_level": get_config("log_level").upper(),
         "api_keys": get_config("api_keys"),
         "rest_runner": get_config("rest_runner"),
-        "rest_models": get_extracted_field_from_config("rest_runner", "model"),
+        "rest_models": get_extracted_field_from_config("rest_runner", "models"),
         "websocket_stream": get_config("websocket_stream"),
         # Networking Configuration
         #   Port that the REST API will listen on
