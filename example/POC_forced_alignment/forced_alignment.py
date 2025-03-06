@@ -4,16 +4,23 @@ import numpy as np
 from faster_whisper import WhisperModel
 from faster_whisper.audio import decode_audio, pad_or_trim
 from faster_whisper.tokenizer import Tokenizer
+from faster_whisper.transcribe import Segment, Word
+# pip install nltk
+import nltk
+
+nltk.download("punkt_tab")
 
 transcription = 'And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'
 file_path = './example.wav'
+
+TERMINATING_CHARACTERS = [".",",","!","?"]
 
 class ForcedAlignment:
     def __init__(self):
         self.whisper = WhisperModel("large-v3-turbo")
         self.tokenizer = Tokenizer(self.whisper.hf_tokenizer, True, "transcribe", "en")
 
-    def align_sentence(self, sentence, audio_path):
+    def align_sentence(self, sentence, audio_path, cutoff_time=0.0):
         @dataclass(frozen=True, slots=True)
         class Alignment:
             words: list[str]
@@ -27,6 +34,11 @@ class ForcedAlignment:
             audio_path,
             sampling_rate=self.whisper.feature_extractor.sampling_rate,
         )
+
+        audio = audio[int((cutoff_time * 16_000)//1):]
+
+        #print(f"New audio length in seconds: {len(audio)/16_000}")
+
         features = self.whisper.feature_extractor(audio)
 
         content_frames = features.shape[-1]
@@ -97,15 +109,69 @@ class ForcedAlignment:
             for boundary in word_boundaries
         ]
 
-        print("words", words)
-        print("word_start_times", word_start_times)
-        print("word_end_times", word_end_times)
-        print("sentence_duration", sentence_duration)
+        assert len(word_start_times) == len(word_end_times)
+
+        for i in range(len(word_start_times)):
+            word_start_times[i] += cutoff_time
+            word_end_times[i] += cutoff_time
+
+        #print("words", words)
+        #print("word_start_times", word_start_times)
+        #print("word_end_times", word_end_times)
+        #print("sentence_duration", sentence_duration)
 
         return Alignment(words, word_start_times, word_end_times, sentence_duration)
 
     def run(self):
-        self.align_sentence(transcription,file_path)
+        sentences = nltk.sent_tokenize(transcription)
+        cutoff_time = 0.0
+        segments = []
+        while len(sentences) > 0:
+            print(f"{len(sentences)} left...")
+            sentence = sentences.pop(0)
+            res = self.align_sentence(sentence, file_path, cutoff_time)
+            cutoff_time = res.word_end_times[-1] 
+            words = []
+            for i in range(len(res.words)):
+                stripped = res.words[i].strip()
+                if len(stripped) == 0:
+                    continue
+
+                if stripped in TERMINATING_CHARACTERS:
+                    # This swallows leading terminating characters
+                    # This may or may not be a problem...idc and idk
+                    if len(words) > 0:
+                        # Append to previous word
+                        words[-1].word += stripped
+                        # Take the end
+                        words[-1].end = max(words[-1].end, res.word_end_times[i])
+                    continue
+                words.append(
+                    Word(
+                        start=res.word_start_times[i],
+                        end=res.word_start_times[i],
+                        word=stripped,
+                        probability=0.99,
+                    )
+                )
+            if len(words) == 0:
+                continue
+
+            segments.append(Segment(
+                id=len(sentences),
+                words=words,
+                end=res.word_end_times[-1],
+                start=res.word_start_times[0],
+                text=sentence,
+                seek=0,
+                tokens=[],
+                avg_logprob=0.0,
+                compression_ratio=0.0,
+                no_speech_prob=0.0,
+                temperature=0.0
+            ))
+            print(segments[-1])
+        return segments
 
 if __name__ == "__main__":
     aligner = ForcedAlignment()
