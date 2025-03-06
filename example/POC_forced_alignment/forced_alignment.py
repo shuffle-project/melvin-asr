@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 
-from faster_whisper import download_model, WhisperModel
+from faster_whisper import WhisperModel
 from faster_whisper.audio import decode_audio, pad_or_trim
 from faster_whisper.tokenizer import Tokenizer
 
@@ -18,9 +18,10 @@ class ForcedAlignment:
         class Alignment:
             words: list[str]
             word_start_times: list[float]
+            word_end_times: list[float]
             sentence_duration: float
 
-        print(f"Aligning '{sentence[:50]}...' with {audio_path}")
+        print(f"Aligning '{sentence[:25]}...' with {audio_path}")
 
         audio = decode_audio(
             audio_path,
@@ -32,6 +33,7 @@ class ForcedAlignment:
 
         text_tokens = [*self.tokenizer.encode(sentence), self.tokenizer.eot]
         token_start_times = np.full(len(text_tokens), np.inf)
+        token_end_times = np.full(len(text_tokens), 0.0)
         seen_tokens = 0
 
         for seek in range(
@@ -59,20 +61,28 @@ class ForcedAlignment:
             # Update token_start_times for newly aligned tokens
             new_seen_tokens = seen_tokens
             seen_time = seek * self.whisper.feature_extractor.time_per_frame
-            for local_token, local_time in zip(token_indices, time_indices):
+            for i, (local_token, local_time) in enumerate(zip(token_indices, time_indices)):
                 token = seen_tokens + local_token
                 new_seen_tokens = max(seen_tokens, token)
                 if token < len(token_start_times):
                     time = local_time / self.whisper.tokens_per_second + seen_time
                     token_start_times[token] = min(token_start_times[token], time)
 
+                    # Set the end time as the next token's start time (if exists)
+                    if i + 1 < len(time_indices):
+                        next_time = time_indices[i + 1] / self.whisper.tokens_per_second + seen_time
+                    else:
+                        next_time = time + (1 / self.whisper.tokens_per_second)  # Approximate small gap
+
+                    token_end_times[token] = max(token_end_times[token], next_time)
+
             seen_tokens = new_seen_tokens
             if seen_tokens == len(text_tokens):
                 break
 
+        np.maximum.accumulate(token_end_times, out=token_end_times)
         np.minimum.accumulate(token_start_times[::-1], out=token_start_times[::-1])
 
-        # words, word_tokens = self.tokenizer.split_tokens_on_unicode(text_tokens)
         words, word_tokens = self.tokenizer.split_to_word_tokens(text_tokens)
         word_boundaries = np.cumsum([len(t) for t in word_tokens])
 
@@ -82,11 +92,17 @@ class ForcedAlignment:
             for boundary, t in zip(word_boundaries, word_tokens)
         ]
 
+        word_end_times = [
+            min(token_end_times[boundary - 1], sentence_duration)
+            for boundary in word_boundaries
+        ]
+
         print("words", words)
         print("word_start_times", word_start_times)
+        print("word_end_times", word_end_times)
         print("sentence_duration", sentence_duration)
 
-        return Alignment(words, word_start_times, sentence_duration)
+        return Alignment(words, word_start_times, word_end_times, sentence_duration)
 
     def run(self):
         self.align_sentence(transcription,file_path)
