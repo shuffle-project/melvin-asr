@@ -30,8 +30,6 @@ class Alignment:
 
 def align_sentence(tokenizer, model: WhisperModel, sentence: str, audio, cutoff_time=0.0) -> Alignment:
 
-    print(f"New audio length in seconds: {len(audio)/16_000}")
-
     features = model.feature_extractor(audio)
 
     content_frames = features.shape[-1]
@@ -169,8 +167,6 @@ def align_ground_truth(model: WhisperModel, ground_truth: str, audio_path: str) 
     LOGGER.debug(f"Starting alignment for ground truth with {len(sentences)} segments.")
 
     while len(sentences) > 0:
-        print(f"{len(sentences)} left...")
-        audio = audio[int((cutoff_time * 16_000)//1):]
         sentence = sentences.pop(0)
         res = align_sentence(tokenizer, model, sentence, audio, cutoff_time)
         # No words found
