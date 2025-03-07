@@ -182,7 +182,7 @@ async def post_transcription(
 
     time.sleep(0.1)  # TODO: Remove this line...
 
-    if task == "align" and (not text or not language):
+    if task.endswith("align") and (not text or not language):
         missing_field = "text" if not text else "language"
         raise HTTPException(
             status_code=400,

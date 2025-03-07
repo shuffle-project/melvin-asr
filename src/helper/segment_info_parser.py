@@ -1,6 +1,10 @@
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
 from dataclasses import asdict
+import logging
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
