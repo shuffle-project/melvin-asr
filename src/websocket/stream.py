@@ -196,7 +196,7 @@ class Stream:
             result["result"].append(
                 {
                     "conf": conf,
-                    # the start time and end time is the time of the word minus the time of the current final
+                    # The start time and end time is the time of the word minus the time of the current final
                     "start": start,
                     "end": end,
                     "word": word.word.strip(),
@@ -204,7 +204,6 @@ class Stream:
             )
         result["text"] = " ".join([x["word"] for x in result["result"]])
         return result
-
 
     async def transcribe_sliding_window(
         self, websocket, window_content, skip_send=False
@@ -239,10 +238,10 @@ class Stream:
             text = ""
 
             if len(self.agreement.unconfirmed) > 0:
-                # hacky workaround for doubled word between finals
+                # Hacky workaround for doubled word between finals
                 if len(new_words) > 0 and len(self.final_transcriptions) > 0:
                     if new_words[0].word == self.final_transcriptions[-1]["result"][-1]["word"]:
-                        new_words.pop()
+                        new_words.pop(0)
                 text = " ".join([
                     w.word 
                     for w in new_words 

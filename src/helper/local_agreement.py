@@ -3,9 +3,9 @@ from typing import Final, List
 from faster_whisper.transcribe import Word
 from pydub.utils import re
 
+SENTENCE_TERMINATION_CHARACTERS: Final = ['.', '?', '!']
 
 class LocalAgreement:
-    SENTENCE_TERMINATION_CHARATERS: Final = ['.', '?', '!']
     def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
         self.unconfirmed: List[Word] = []
@@ -22,7 +22,7 @@ class LocalAgreement:
             word_count = len(self.confirmed)
         flushed = self.confirmed[:word_count]
         self.confirmed = self.confirmed[word_count:]
-        self.confirmed_contains_sentence_end = any([symbol in self.confirmed for symbol in self.SENTENCE_TERMINATION_CHARATERS])
+        self.confirmed_contains_sentence_end = any([symbol in self.confirmed for symbol in SENTENCE_TERMINATION_CHARACTERS])
         return  flushed
 
     def flush_at_sentence_end(self) -> List[Word]:
@@ -32,7 +32,7 @@ class LocalAgreement:
         # TODO: Can this be optimized?
         while i >= 0:
             if any([
-                symbol in self.confirmed[i].word for symbol in self.SENTENCE_TERMINATION_CHARATERS
+                symbol in self.confirmed[i].word for symbol in SENTENCE_TERMINATION_CHARACTERS
             ]):
                 ind = i
                 break
@@ -48,7 +48,7 @@ class LocalAgreement:
 
         if len(common_prefix) > 0 and not self.confirmed_contains_sentence_end:
             common_prefix_text = " ".join([w.word for w in common_prefix])
-            self.confirmed_contains_sentence_end = any([symbol in common_prefix_text for symbol in self.SENTENCE_TERMINATION_CHARATERS])
+            self.confirmed_contains_sentence_end = any([symbol in common_prefix_text for symbol in SENTENCE_TERMINATION_CHARACTERS])
 
         self.confirmed += common_prefix
         # Were all parts validated?
