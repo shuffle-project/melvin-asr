@@ -10,12 +10,11 @@ from http import HTTPStatus
 
 TRANSCRIPTION_WEBSOCKET_TIMEOUT = 60.0
 
-
-async def read_wav_file_into_chunks(file_path, chunk_duration=1000):
+async def read_wav_file_into_chunks(file_path, chunk_duration_ms=1000):
     audio = AudioSegment.from_file(file_path)
     chunks = []
-    for i in range(0, len(audio), chunk_duration):
-        chunks.append(audio[i : i + chunk_duration].raw_data)
+    for i in range(0, len(audio), chunk_duration_ms):
+        chunks.append(audio[i : i + chunk_duration_ms].raw_data)
     return chunks
 
 
@@ -28,6 +27,14 @@ def safe_to_json(text: str) -> dict | None:
         pass
     return data
 
+def merge_transcript(blocks: List[WebsocketResultBlock]) -> str:
+    merged = ""
+    for block in blocks:
+        if block.final != "":
+            merged += block.final
+        elif len(block.partials) > 0:
+            merged += block.partials[-1]
+    return merged
 
 # TODO: this function can be merged with the rest transcription once the export apis for rest and websockets have been unified
 def fetch_transcription(id: str, api_key: str) -> str:
@@ -47,7 +54,7 @@ def fetch_transcription(id: str, api_key: str) -> str:
                 res += f" {segment['text']}"
         return res
 
-    print("Desired ID could not be resolved")
+    print(f"Desired ID ({id}) could not be resolved")
     # Make sure the benchmark does not terminate if one file fails
     # Faulty files are marked in the final table either way
     return ""
@@ -56,9 +63,13 @@ def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False
     result = WebsocketResult(scale=scale)
     start_time = time.time()
     loop = asyncio.get_event_loop()
-    res = loop.run_until_complete(
-        asyncio.gather(__transcribe_file_websocket(filepath, debug))
-    )
+    res = [(None, "")]
+    try:
+        res = loop.run_until_complete(
+            asyncio.gather(__transcribe_file_websocket(filepath, debug))
+        )
+    except Exception:
+        print(f"Something during the transcription of {filepath} failed. This will be marked as faulty")
     partials, transciption_id  = res[0]
     if  partials is None or len(transciption_id) == 0:
         result.faulty = True
@@ -73,7 +84,7 @@ def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False
         result.faulty = True
         return result
 
-    result.combined_transcript = fetched_transcript 
+    result.combined_transcript = merge_transcript(partials)
 
     return result
 
@@ -89,9 +100,11 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                 try:
                     if len(audio_data) > 0:
                         await websocket_connection.send(audio_data.pop(0))
+
                     message = await asyncio.wait_for(
                         websocket_connection.recv(),
-                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT,
+                        # Wait for 1 second after sending 1 second of audio -> If no audio is sent then we wait longer
+                        timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT if len(audio_data) == 0 else 1,
                     )
                     message_count+=1
                     try:
@@ -109,21 +122,27 @@ async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[
                     except json.JSONDecodeError:
                         pass
                 except asyncio.TimeoutError:
-                    if message_count != 0:
+                    if message_count != 0 and len(audio_data) == 0:
                         break
             if message_count == 0:
                 print(f"Empty messages for filepath {filepath}. This should not happen")
                 return (None, id)
 
-            await websocket_connection.send("eof-finalize")
+            print("Finalizing and sending eof")
+            await websocket_connection.send("eof")
             try:
                 id = await asyncio.wait_for(
-                    websocket_connection.recv(), timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
+                    websocket_connection.recv(),
+                    timeout=TRANSCRIPTION_WEBSOCKET_TIMEOUT
                 )
             except Exception:
                 pass
             await websocket_connection.close()
     except websockets.exceptions.ConnectionClosedOK:  # This is the expected behaviour
         pass
+    except Exception as e:
+        print("Error occured")
+        print(e)
+
     return (result, id)
 

@@ -87,7 +87,10 @@ class WebSocketServer:
                 LOGGER.debug(f"Client {client_id} is using GPU worker")
                 searching = False
                 try:
-                    await Stream(transcriber=self.gpu_transcriber, id=client_id).echo(
+                    await Stream(
+                        transcriber=self.gpu_transcriber, 
+                        id=client_id,
+                    ).echo(
                         websocket=websocket
                     )
                 except Exception as e:
@@ -103,7 +106,10 @@ class WebSocketServer:
                 LOGGER.debug(f"Client {client_id} is using CPU worker")
                 searching = False
                 try:
-                    await Stream(transcriber=self.cpu_transcriber, id=id).echo(
+                    await Stream(
+                        transcriber=self.cpu_transcriber, 
+                        id=client_id,
+                    ).echo(
                         websocket=websocket
                     )
                 except Exception as e:

@@ -21,3 +21,4 @@ nltk==3.9.1
 transformers==4.49.0
 sentencepiece==0.2.0
 langchain==0.3.19
+
