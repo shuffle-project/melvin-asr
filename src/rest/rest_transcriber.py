@@ -1,6 +1,5 @@
 """Module to handle the transcription process"""
 
-from dataclasses import asdict
 import logging
 
 from src.helper.forced_alignment import align_ground_truth

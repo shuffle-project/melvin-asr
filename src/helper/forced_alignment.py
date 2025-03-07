@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from logging import Logger
 import logging
 import os
 from typing import List
@@ -12,7 +11,6 @@ from faster_whisper.transcribe import Segment, Word
 
 import nltk
 from src.helper.config import CONFIG
-from src.helper.data_handler import DataHandler
 
 LOGGER = logging.getLogger(__name__)
 
