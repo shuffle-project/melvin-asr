@@ -12,6 +12,7 @@ fastapi==0.115.11
 python-multipart==0.0.20 # required by our usecase with file uploads
 httpx==0.28.1 # required by starlette.testclient (FastAPI)
 uvicorn==0.34.0
+stable_ts_whisperless==2.18.3
 
 # Translations
 transformers==4.49.0
