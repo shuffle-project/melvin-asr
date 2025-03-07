@@ -241,7 +241,7 @@ class DataHandler:
     def get_export_json_by_id(self, transcription_id: str) -> dict:
         """Returns the export json-file by the given transcription_id."""
         file_name = f"{transcription_id}.json"
-        file_path = os.path.join(self.export_file_path + file_name)
+        file_path = os.path.join(self.export_file_path, file_name)
         data = self.file_handler.read_json(file_path)
         if data:
             return data
