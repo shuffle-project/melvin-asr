@@ -68,6 +68,8 @@ class ForcedAlignment:
 
             encoder_output = self.whisper.encode(segment)
 
+            print(f"{self.whisper}")
+
             result = self.whisper.model.align(
                 encoder_output,
                 self.tokenizer.sot_sequence,

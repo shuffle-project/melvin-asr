@@ -12,7 +12,6 @@ from src.helper.config import CONFIG
 from src.helper.data_handler import DataHandler
 from src.helper.SM4T_translate import Translator
 from src.helper.types.transcription_status import TranscriptionStatus
-from src.helper.forced_alignment import ForcedAlignment
 from src.rest.rest_transcriber import Transcriber
 
 
@@ -58,10 +57,8 @@ class Runner:
                 self.data_handler.update_status_file(
                     TranscriptionStatus.IN_PROGRESS.value, task_id
                 )
-                if task == "transcribe":
-                    self.transcribe(task_id)
-                if task == "align":
-                    self.align(task_id)
+                if task == "transcribe" or task == "align":
+                    self.transcribe_or_align(task_id)
                 if task == "translate":
                     self.translate(task_id)
 
@@ -72,7 +69,7 @@ class Runner:
                 )
                 continue
 
-    def transcribe(self, transcription_id) -> None:
+    def transcribe_or_align(self, transcription_id) -> None:
         """Transcribes the audio file with the given transcription_id."""
         audio_file_path = self.data_handler.get_audio_file_path_by_id(transcription_id)
         status_file = self.data_handler.get_status_file_by_id(transcription_id)
@@ -125,14 +122,6 @@ class Runner:
 
         self.data_handler.write_status_file(task_id, transcription)
         self.log.debug("finished translation task: " + task_id)
-
-    def align(self, task_id) -> None:
-        """Aligns ground truth transcriptions to the audio file with the given transcription_id."""
-        self.log.debug("Forced-alignment: " + task_id)
-
-        #alignment = self.data_handler.get_status_file_by_id(task_id)
-        #audio_file_path = self.data_handler.get_audio_file_path_by_id(task_id)
-        #transcript = self.data_handler.get_status_file_by_id(task_id)
 
     def get_oldest_status_file_in_query(
         self,

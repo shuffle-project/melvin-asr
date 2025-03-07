@@ -1,8 +1,9 @@
 """Module to handle the transcription process"""
 
+from dataclasses import asdict
 import logging
 
-import stable_whisper
+from src.helper.forced_alignment import align_ground_truth
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from src.helper.model_handler import ModelHandler
@@ -78,7 +79,7 @@ class Transcriber:
         """loads the model if not loaded"""
         if self.model is not None:
             return True
-        self.model = stable_whisper.load_faster_whisper(
+        self.model = WhisperModel(
             ModelHandler().get_model_path(self.model_name),
             local_files_only=True,
             device=self.device,
@@ -130,8 +131,9 @@ class Transcriber:
         self.load_model()
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
-            result = self.model.align(audio_file_path, text, language)
-            data = parse_stable_whisper_result(result)
+            result = align_ground_truth(self.model, text, audio_file_path)
+            data = parse_stable_whisper_result({"segments": result}
+            )
 
             return {
                 "success": True,
