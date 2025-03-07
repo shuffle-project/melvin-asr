@@ -5,7 +5,6 @@ from src.helper.model_handler import ModelHandler
 
 MODEL_HANDLER_TEST_PATH = "./src/helper/test/test_models/"
 
-
 def test_setup_model_and_get_model_path():
     """Setup Should download the model tiny"""
     # see that the model does not exist
