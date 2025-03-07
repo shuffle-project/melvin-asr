@@ -57,7 +57,7 @@ class Runner:
                 self.data_handler.update_status_file(
                     TranscriptionStatus.IN_PROGRESS.value, task_id
                 )
-                if task == "transcribe" or task == "align":
+                if task == "transcribe" or task.endswith("align"):
                     self.transcribe_or_align(task_id)
                 if task == "translate":
                     self.translate(task_id)
@@ -80,7 +80,11 @@ class Runner:
         response = None
         if task == "transcribe":
             response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
-        elif task == "align":
+        elif task == "force-align":
+            response = self.transcriber.force_align_audio_file(
+                audio_file_path, status_file["text"], status_file["language"]
+            )
+        elif task =="align":
             response = self.transcriber.align_audio_file(
                 audio_file_path, status_file["text"], status_file["language"]
             )
@@ -156,7 +160,7 @@ class Runner:
                     if current_status != TranscriptionStatus.IN_QUERY.value:
                         continue
 
-                    if data.get("task") == "transcribe" or data.get("task") == "align":
+                    if data.get("task") == "transcribe" or data.get("task") == "align" or data.get("task") == "force-align":
                         if self.transcriber is None:
                             continue
                         if model != self.transcriber.model_name and model is not None:

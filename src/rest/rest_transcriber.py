@@ -10,6 +10,8 @@ from src.helper.segment_info_parser import parse_stable_whisper_result
 from src.helper.time_it import time_it
 from src.helper.transcription_settings import TranscriptionSettings
 
+import stable_whisper
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -78,7 +80,7 @@ class Transcriber:
         """loads the model if not loaded"""
         if self.model is not None:
             return True
-        self.model = WhisperModel(
+        self.model = stable_whisper.load_faster_whisper(
             ModelHandler().get_model_path(self.model_name),
             local_files_only=True,
             device=self.device,
@@ -112,10 +114,8 @@ class Transcriber:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
 
-        # cannot use transcribe_stable because it performs illegal actions on segment
-        # issue likely resides here:
-        # https://github.com/jianfch/stable-ts/blob/9fe1bf511862dccb669ff27f5fae9ae206b91a10/stable_whisper/whisper_word_level/faster_whisper.py#L204
         batched_model = BatchedInferencePipeline(model=model)
+        # transcribe_stable is deprecated
         segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
 
         # result = model.transcribe(audio, **settings)
@@ -125,7 +125,7 @@ class Transcriber:
         return data
 
     @time_it
-    def align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
+    def force_align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
         """Function to run the alignment process"""
         self.load_model()
         try:
@@ -133,6 +133,24 @@ class Transcriber:
             result = align_ground_truth(self.model, text, audio_file_path)
             data = parse_stable_whisper_result({"segments": result}
             )
+
+            return {
+                "success": True,
+                "data": data,
+            }
+        except Exception as e:
+            LOGGER.error("Error during alignment: " + str(e))
+            return {"success": False, "data": str(e)}
+
+
+    @time_it
+    def align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
+        """Function to run the alignment process"""
+        self.load_model()
+        try:
+            LOGGER.info("Align transcript for file: " + str(audio_file_path))
+            result = self.model.align(text, audio_file_path, language)
+            data = parse_stable_whisper_result(result)
 
             return {
                 "success": True,
