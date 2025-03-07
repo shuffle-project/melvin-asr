@@ -1,10 +1,8 @@
 import json
 import logging
 import os
-from typing import List
 
 from fastapi import HTTPException
-from typing_extensions import TypedDict
 
 from src.helper.types.transcription_data import Segment, Transcript, Word
 
