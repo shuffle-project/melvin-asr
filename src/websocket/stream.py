@@ -1,113 +1,124 @@
-import asyncio
 import json
 import time
+from typing import Dict, List
 import uuid
 import traceback
+import asyncio
 
 from fastapi import WebSocket, WebSocketDisconnect
+from fastapi.websockets import WebSocketState
+from faster_whisper.transcribe import Word
 from pydub import AudioSegment
 
 from src.helper import logger
 from src.helper.data_handler import DataHandler
 from src.helper.local_agreement import LocalAgreement
-from src.helper.segment_info_parser import parse_segments_and_info_to_dict
 from src.websocket.stream_transcriber import Transcriber
 
 # To Calculate the seconds of audio in a chunk of 16000 Hz, 2 bytes per sample and 1 channel (as typically used in Whisper):
 # 16000 Hz * 2 bytes * 1 channel = 32000 bytes per second
 BYTES_PER_SECOND = 32000
 
-# This is the number of seconds we wait before printing a final transcription
-FINAL_TRANSCRIPTION_TIMEOUT = 6
+# This is the number of words we wait before printing a final transcription
+FINAL_TRANSCRIPTION_THRESHOLD = 6
 
-# This is the number of seconds we wait before printing a partial transcription
-PARTIAL_TRANSCRIPTION_TIMEOUT = 1
+# Max size of window defined in bytes
+MAX_WINDOW_SIZE_BYTES = BYTES_PER_SECOND * 15
 
+# Bytes after which a retranscription of the window is triggered
+PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD = BYTES_PER_SECOND * 1
+
+# If no final has been published for this long just publish all as final
+# This is mostly for cases where no audio data is sent
+FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR = 5
 
 class Stream:
     def __init__(self, transcriber: Transcriber, id: int):
-        self.logger = logger.get_logger_with_id(__name__, str(id))
+        self.logger = logger.get_logger_with_id(__name__, f"{id}")
         self.transcriber = transcriber
         self.id = id
         self.close_stream = False
 
-        # Cache for the last few chunks of audio
-        self.recently_added_chunk_cache = b""
-
-        # Cache for the chunks since the last final
-        self.chunk_cache = b""
-        # Last final bytes and text to check for duplicates and create prompts
-        self.last_final_result_object = {"text": "", "result": []}
-        self.last_final_bytes = b""
+        self.sliding_window = b""
+        self.total_bytes = b""
+        self.window_start_timestamp = 0
+        self.agreement = LocalAgreement()
+        self.bytes_received_since_last_transcription = 0
         self.final_transcriptions = []
         self.export_audio = b""
-        self.overall_transcribed_bytes = b""
-        self.overall_audio_bytes = b""
-        # If the cache is larger than the threshold, we transcribe
-        self.final_treshold = BYTES_PER_SECOND * FINAL_TRANSCRIPTION_TIMEOUT
-        self.partial_treshold = BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT
+        self.previous_byte_count = 0
+
+        self.partial_transcription_byte_threshold = PARTIAL_TRANSCRIPTION_BYTE_THRESHOLD
+        self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR
+        self.last_transcription_timestamp = time.time()
+        self.last_final_published = time.time()
+        self.is_in_transcription = False
+
+        self.transcription_tasks = set()
 
     async def echo(self, websocket: WebSocket) -> None:
-        self.agreement = LocalAgreement()
         try:
-            while not self.close_stream:
+            while not self.close_stream and websocket.client_state != WebSocketState.DISCONNECTED:
                 message = await websocket.receive()
 
                 if "bytes" in message:
                     message = message["bytes"]
-                    self.chunk_cache += message
-                    self.recently_added_chunk_cache += message
-                    self.overall_audio_bytes += message
+                    self.bytes_received_since_last_transcription += len(message)
+                    self.sliding_window += message
+                    self.total_bytes += message
                     self.export_audio = self.concatenate_audio_with_crossfade(
                         self.export_audio, message
                     )
 
-                    if len(self.chunk_cache) >= self.final_treshold:
-                        self.logger.debug(
-                            f"NEW FINAL: length of chunk cache: {len(self.chunk_cache)}"
-                        )
-                        asyncio.ensure_future(
-                            self.transcribe_all_chunk_cache(
-                                websocket,
-                                self.chunk_cache,
-                                self.recently_added_chunk_cache,
-                            )
-                        )
-                        self.recently_added_chunk_cache = b""
-                        self.chunk_cache = b""
-                        self.agreement.clear()
+                    if (
+                        self.bytes_received_since_last_transcription >= self.partial_transcription_byte_threshold 
+                        or (time.time() - self.last_transcription_timestamp >= (self.partial_transcription_byte_threshold / BYTES_PER_SECOND))
+                    ):
+                        self.bytes_received_since_last_transcription = 0
+                        self.last_transcription_timestamp = time.time()
 
-                    if len(self.recently_added_chunk_cache) >= self.partial_treshold:
-                        self.logger.info(
-                            f"NEW PARTIAL: length of chunk cache: {len(self.recently_added_chunk_cache)}"
-                        )
-                        # Here we need to ensure that the transcribe_chunk_partial does not run longer than the length of the chunks.
-                        asyncio.ensure_future(
-                            self.transcribe_chunk_partial(
-                                websocket,
-                                self.chunk_cache,
-                                self.recently_added_chunk_cache,
+                        # Ensure that no duplicate transcription jobs are running
+                        # This additonal check is needed as we are in nested async
+                        if len(self.transcription_tasks) < 1:
+                            self.logger.info(
+                                f"NEW PARTIAL: length of current window: {len(self.sliding_window)}"
                             )
+                            task = asyncio.create_task(
+                                self.transcribe_sliding_window(
+                                    websocket,
+                                    self.sliding_window
+                                ),
+                                name=f"transcription_task_stream_{self.id}"
+                            )
+                            self.transcription_tasks.add(task)
+                            task.add_done_callback(self.transcription_tasks.discard)
+
+                    # Send final if either threshold is reached or sentence ended
+                    if (
+                        self.agreement.get_confirmed_length() > FINAL_TRANSCRIPTION_THRESHOLD 
+                        or self.agreement.contains_has_sentence_end()
+                        or (time.time() - self.last_final_published) >= self.final_publish_second_threshold
+                    ):
+                        self.logger.debug(
+                            f"NEW FINAL: length of chunk cache: {len(self.sliding_window)}"
                         )
-                        self.recently_added_chunk_cache = b""
+                        # does this need to be async?
+                        await self.flush_final(
+                            websocket,
+                        )
 
                 elif "text" in message:
                     message = message["text"]
                     self.logger.debug(f"Received control message (string): {message}")
                     if "eof" in message:
-                        if "eof-finalize" in message:
-                            # Non default behaviour but useful for some scenarios, like testing
-                            await self.transcribe_all_chunk_cache(
-                                websocket,
-                                self.chunk_cache,
-                                self.recently_added_chunk_cache,
-                                skip_send=True,
-                            )
+                        self.close_stream = True
+                        for task in self.transcription_tasks:
+                            task.cancel()
+                            self.transcription_tasks.remove(task)
                         name = self.export_transcription_and_wav()
                         await websocket.send_text(name)
                         await websocket.close()
                         self.logger.info("eof received")
-                        self.close_stream = True
                     else:
                         await websocket.send_text("control message unknown")
 
@@ -121,59 +132,46 @@ class Stream:
             self.close_stream = True
         finally:
             await websocket.close()
+            for task in self.transcription_tasks:
+                task.cancel()
 
-    async def transcribe_all_chunk_cache(
-        self, websocket: WebSocket, chunk_cache, recent_cache, skip_send=False
+
+    async def finalize_transcript(self) -> Dict:
+        current_transcript = self.agreement.unconfirmed
+        return await self.build_result_from_words(current_transcript)
+
+    async def flush_final(
+        self, websocket: WebSocket
     ) -> None:
-        """Function to transcribe a chunk of audio"""
+        """Function to send a final to the client and update the content on the sliding window"""
         try:
-            start_time = time.time()
-            result = {}
-            bytes_to_transcribe = chunk_cache
-            segments, info = self.transcriber._transcribe(
-                bytes_to_transcribe,
-                "Beginning of transcription:" + self.last_final_result_object["text"],
-            )
-            data = parse_segments_and_info_to_dict(segments, info)
-            self.adjust_threshold_on_latency()
-            overall_transcribed_seconds = (
-                len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
-            )
-            last_final_bytes_seconds = len(self.last_final_bytes) / BYTES_PER_SECOND
-            overall_transcribed_seconds -= last_final_bytes_seconds
-            self.overall_transcribed_bytes += recent_cache
+            agreed_results = []
+            if self.agreement.contains_has_sentence_end():
+                agreed_results = self.agreement.flush_at_sentence_end()
+            else:
+                agreed_results = self.agreement.flush_confirmed()
 
-            result = {"result": [], "text": ""}
-            if "segments" in data:
-                words = []
-                for segment in data["segments"]:
-                    for word in segment["words"]:
-                        start = float(f"{word['start']:.6f}")
-                        end = float(f"{word['end']:.6f}")
-                        conf = float(f"{word['probability']:.6f}")
-                        words.append(
-                            {
-                                "conf": conf,
-                                # the start time and end time is the time of the word minus the time of the current final
-                                "start": start
-                                + overall_transcribed_seconds
-                                - FINAL_TRANSCRIPTION_TIMEOUT,
-                                "end": end
-                                + overall_transcribed_seconds
-                                - FINAL_TRANSCRIPTION_TIMEOUT,
-                                "word": word["word"].strip(),
-                            }
-                        )
-                result = {"result": words, "text": " ".join([x["word"] for x in words])}
-                self.last_final_result_object = result
-                self.last_final_bytes = chunk_cache
-                self.final_transcriptions.append(result)
+            result = await self.build_result_from_words(agreed_results)
+            # The final did not contain anything to send
+            if len(result['result']) == 0:
+                return
+            self.final_transcriptions.append(result)
 
-            if not skip_send:
+            # Shorten window if needed
+            if len(self.sliding_window) > MAX_WINDOW_SIZE_BYTES:
+                bytes_to_cut_off = len(self.sliding_window) - MAX_WINDOW_SIZE_BYTES
+                self.logger.debug(f"Reducing sliding window size by {bytes_to_cut_off} bytes")
+                self.previous_byte_count += bytes_to_cut_off
+                self.window_start_timestamp += bytes_to_cut_off / BYTES_PER_SECOND
+                self.sliding_window = self.sliding_window[bytes_to_cut_off:]
+
+            if not self.close_stream:
                 await websocket.send_text(json.dumps(result, indent=2))
+
             self.logger.debug(
-                f"Final Transcription took {time.time() - start_time:.2f} s"
+                f"Published final of {len(agreed_results)}."
             )
+            self.last_final_published = time.time()
 
         except Exception:
             self.logger.error(
@@ -181,26 +179,56 @@ class Stream:
             )
             self.close_stream = True
 
-    async def transcribe_chunk_partial(
-        self, websocket, chunk_cache, recent_cache
-    ) -> None:
-        try:
-            # Ensure the chunk_cache is not empty before proceeding
-            if len(chunk_cache) == 0:
-                self.logger.warning("Received empty chunk, skipping transcription.")
-                return  # Skip transcription for empty chunk
+    async def build_result_from_words(self, words: List[Word],save=True) -> Dict:
+        overall_transcribed_seconds = self.previous_byte_count / BYTES_PER_SECOND
 
+        cutoff_timestamp = 0
+        if len(self.final_transcriptions) > 0:
+            cutoff_timestamp = self.final_transcriptions[-1]["result"][-1]["end"]
+
+        result = {"result": [], "text": ""}
+        for word in words:
+            start = float(f"{word.start:.6f}") + overall_transcribed_seconds
+            end = float(f"{word.end:.6f}")  + overall_transcribed_seconds
+            conf = float(f"{word.probability:.6f}")
+            if end <= cutoff_timestamp + 0.01 and save:
+                continue
+            result["result"].append(
+                {
+                    "conf": conf,
+                    # The start time and end time is the time of the word minus the time of the current final
+                    "start": start,
+                    "end": end,
+                    "word": word.word.strip(),
+                }
+            )
+        result["text"] = " ".join([x["word"] for x in result["result"]])
+        return result
+
+    async def transcribe_sliding_window(
+        self, websocket, window_content, skip_send=False
+    ) -> None:
+        if len(window_content) == 0:
+            self.logger.warning("Received empty chunk, skipping transcription.")
+            return  # Skip transcription for empty chunk
+
+        try:
             start_time = time.time()
             result: str = "Missing data"
+            self.bytes_received_since_last_transcription = 0
 
             # Pass the chunk to the transcriber
             segments, _ = self.transcriber._transcribe(
-                chunk_cache,
+                window_content,
             )
 
-            self.adjust_threshold_on_latency()
+            cutoff_timestamp = 0
+            if len(self.final_transcriptions) > 0:
+                # Absolute timestamp - thrown out bytes -> timestamp in the current window
+                cutoff_timestamp = self.final_transcriptions[-1]["result"][-1]["end"] - (self.previous_byte_count / BYTES_PER_SECOND)
 
             new_words = []
+
             for segment in list(segments):
                 if segment.words is None:
                     continue
@@ -210,25 +238,30 @@ class Stream:
             text = ""
 
             if len(self.agreement.unconfirmed) > 0:
-                text = " ".join([w.word for w in new_words])
+                # Hacky workaround for doubled word between finals
+                if len(new_words) > 0 and len(self.final_transcriptions) > 0:
+                    if new_words[0].word == self.final_transcriptions[-1]["result"][-1]["word"]:
+                        new_words.pop(0)
+                text = " ".join([
+                    w.word 
+                    for w in new_words 
+                    if w.end > (cutoff_timestamp + 0.01)
+                ])
 
             self.agreement.merge(new_words)
 
-            # Sometimes the local agreement cannot be sure for quite a while
-            # Therefore we just overwrite it
-            if len(self.agreement.get_confirmed_text()) > 0:
-                text = self.agreement.get_confirmed_text()
-
             result = json.dumps({"partial": text}, indent=2)
 
-            self.overall_transcribed_bytes += recent_cache
-
-            await websocket.send_text(result)
+            if not skip_send and not self.close_stream:
+                await websocket.send_text(result)
 
             end_time = time.time()
             self.logger.debug(
                 "Partial transcription took {:.2f} s".format(end_time - start_time)
             )
+
+            # adjust time between transcriptions
+            self.update_partial_threshold(end_time - start_time)
 
         except Exception:
             self.logger.error(
@@ -236,27 +269,16 @@ class Stream:
             )
             self.close_stream = True
 
-    def adjust_threshold_on_latency(self):
-        """Adjusts the partial threshold based on the latency"""
-        seconds_received = len(self.overall_audio_bytes) / BYTES_PER_SECOND
-        seconds_transcribed = len(self.overall_transcribed_bytes) / BYTES_PER_SECOND
-        # Calculate the latency of the connection
-        seconds_difference = seconds_received - seconds_transcribed
-
-        # we need to exclude the partial threshold from the calculation, because if the threshold is reached, the latency is always bad
-        seconds_difference_exclude_partial = (
-            seconds_difference - self.partial_treshold / BYTES_PER_SECOND
-        )
-
-        if seconds_difference_exclude_partial > FINAL_TRANSCRIPTION_TIMEOUT - 2:
-            self.partial_treshold = min(
-                self.partial_treshold * 1.5, self.final_treshold
-            )
-        elif seconds_difference_exclude_partial < FINAL_TRANSCRIPTION_TIMEOUT / 6:
-            self.partial_treshold = max(
-                self.partial_treshold * 0.75,
-                BYTES_PER_SECOND * PARTIAL_TRANSCRIPTION_TIMEOUT,
-            )
+    def update_partial_threshold(self, last_run_duration: float):
+        # dont adjust any timings with a small window
+        # these adjustments would be overwritten anyway
+        if len(self.sliding_window) < MAX_WINDOW_SIZE_BYTES * 0.75 and last_run_duration < self.partial_transcription_byte_threshold / BYTES_PER_SECOND:
+            self.logger.info(f"Current window too small for adjustment ({len(self.sliding_window)}/{MAX_WINDOW_SIZE_BYTES * 0.75})")
+            return
+        new_threshold = (last_run_duration * BYTES_PER_SECOND) + 0.5
+        self.logger.info(f"Adjusted threshold duration to : {new_threshold / BYTES_PER_SECOND}")
+        self.partial_transcription_byte_threshold = new_threshold
+        self.final_publish_second_threshold = self.partial_transcription_byte_threshold * FINAL_PUBLISH_SECOND_THRESHOLD_FACTOR
 
     def export_transcription_and_wav(self):
         DATA_HANDLER = DataHandler()

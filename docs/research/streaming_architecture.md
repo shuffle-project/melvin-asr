@@ -185,3 +185,74 @@ Local Agreement (same partial <-> final system as above)
 
 
 </details>
+
+### Local Agreement partials
+
+Up until this point, the partial-final logic has been implemented by transcribing an audio segment and, after a certain time, promoting the transcription to a final. Following this, the audio data was completely discarded, and the transcription process continued with a new audio segment. While this approach worked, it led to the issue of context being lost between segments. Additionally, using a fixed cutoff duration introduced the possibility of audio being cut off in the middle of a spoken word.
+
+#### Solution: Local Agreement-Based Buffering
+
+To address the above-described issue using local agreement, the buffer within *melvin* (used for transcription) is now divided into three parts:
+
+- **Finalized**: Already confirmed by local agreement and sent as a final.
+- **Pending**: Confirmed by local agreement but not yet sent as a final.
+- **Provisional**: Unconfirmed, sent as a partial.
+
+This means that content from **Provisional** is promoted to **Pending** once confirmed by local agreement and then to **Finalized** after being sent to the client as a final. 
+
+The promotion from **Pending** to **Finalized** (i.e., the condition that must be met for a final to be sent) occurs when either:  
+
+1. **Pending** reaches a length of > *N*, or  
+2. **Pending** contains a sentence-terminating character (`.` `!` `?`).
+3. The time since publishing the last final has exceeded a given threshold.
+
+#### Buffer Size Management
+
+To prevent the buffer (and **Finalized**) from growing indefinitely with long-running WebSocket connections, the buffer size is limited to a predefined maximum (in bytes).
+Trimming the sliding window down to the target window size is performed after a final is published. 
+
+#### Timing Adjustments Based on Hardware Capabilities
+
+The switch to a sliding window approach also required modifications to the runtime threshold adjustments described in a [previous chapter](#automated-threshold-adjustments). Due to the nature of `asyncio` (i.e., the event loop), transcription calls must be scheduled while accounting for the transcription time.
+
+Similar to the previous approach, there are (in theory) two possible ways to adjust transcription behavior:
+
+1. **Increase the time between transcriptions** based on the transcription duration.
+2. **Reduce the sliding window size** if the transcription duration exceeds the delay between transcriptions.
+
+In our case, we found that focusing on the first factor was the most reasonable approach, as adjusting the window size could degrade transcription quality too much.  
+Additionally, the window size is currently set to **15 seconds of audio**. On an **AMD Ryzen 7 2700X (16) @ 3.7 GHz** using the *tiny* model, this takes approximately **1.5 seconds** to process. On a **high-end GPU**, transcription is usually fast enough that the first adjustment method alone is sufficient.
+
+<details>
+
+  <summary>benchmarking results</summary>
+
+Local Agreement (same partial <-> final system as above)
+
+| Statistic                          | Duration     | WER         | Average Levenshtein Distance |
+|------------------------------------|--------------|-------------|------------------------------|
+| Count                              | 184.000000   | 184.000000  | 184.000000                   |
+| Mean                               | 135.436777   | 0.236248    | 5.831115                     |
+| Standard Deviation (Std)           | 70.528878    | 0.211362    | 1.380471                     |
+| Minimum (Min)                      | 63.915297    | 0.014451    | 2.814286                     |
+| 25th Percentile (25%)              | 100.581711   | 0.076304    | 5.018676                     |
+| Median (50%)                       | 115.228423   | 0.147290    | 5.625143                     |
+| 75th Percentile (75%)              | 142.558473   | 0.324637    | 6.441364                     |
+| Maximum (Max)                      | 580.561308   | 0.879463    | 14.750000                    |
+
+Local agreement with sliding window
+
+| Statistic  | Duration     | WER         | Average Levenshtein Distance |
+|------------|-------------|-------------|------------------------------|
+| Count      | 184.000000  | 184.000000  | 184.000000                   |
+| Mean       | 160.670180  | 0.219226    | 30.956213                     |
+| Std Dev    | 93.468774   | 0.106975    | 5.135515                      |
+| Min        | 65.095914   | 0.035372    | 18.741353                     |
+| 25%        | 114.513743  | 0.142670    | 27.253655                     |
+| 50% (Median) | 133.963939 | 0.203582   | 30.914338                     |
+| 75%        | 170.775207  | 0.281692    | 34.542465                     |
+| Max        | 751.681419  | 0.639259    | 48.002574                     |
+
+</details>
+
+
