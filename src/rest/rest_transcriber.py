@@ -149,7 +149,7 @@ class Transcriber:
         self.load_model()
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
-            result = self.model.align(text, audio_file_path, language)
+            result = self.model.align(audio_file_path, text, language)
             data = parse_stable_whisper_result(result)
 
             return {
