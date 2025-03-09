@@ -7,7 +7,7 @@ pytest-asyncio==0.23.2
 pytest-cov==4.1.0
 websockets==12.0
 SpeechRecognition==3.10.1
-stable_ts_whisperless==2.17.3
+stable_ts_whisperless==2.18.3
 ruff==0.1.15
 numpy<2
 ctranslate2==4.4.0 # 4.4 runs cuda 12 and cudnn 8 but installing cuda via torch requires cu12 and cnn9

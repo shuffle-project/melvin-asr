@@ -149,8 +149,8 @@ class Transcriber:
         self.load_model()
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
-            result = self.model.align(audio_file_path, text, language)
-            data = parse_stable_whisper_result(result)
+            result: stable_whisper.WhisperResult = self.model.align(audio_file_path, text, language)
+            data = parse_stable_whisper_result({"segments": result.segments_to_dicts()})
 
             return {
                 "success": True,

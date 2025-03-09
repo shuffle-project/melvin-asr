@@ -87,7 +87,7 @@ def parse_stable_whisper_result(result) -> dict:
     text = ""
     segments = []
     for segment in data["segments"]:
-        segment = asdict(segment)
+        segment = segment if isinstance(segment, dict) else asdict(segment)
         text += segment["text"]
 
         words = []
