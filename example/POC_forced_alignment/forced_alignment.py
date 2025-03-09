@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import numpy as np
+import time
 
 from faster_whisper import WhisperModel
 from faster_whisper.audio import decode_audio, pad_or_trim
@@ -134,6 +135,7 @@ class ForcedAlignment:
 
     def run(self):
         sentences = nltk.sent_tokenize(transcription)
+        start_time = time.time()
         cutoff_time = 0.0
         segments = []
         while len(sentences) > 0:
@@ -181,6 +183,8 @@ class ForcedAlignment:
                 temperature=0.0
             ))
             print(segments[-1])
+        end_time = time.time()
+        print("Time taken:", (end_time - start_time))
         return segments
 
 if __name__ == "__main__":
