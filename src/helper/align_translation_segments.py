@@ -1,30 +1,10 @@
 import json
 import logging
 import os
-from typing import List
 
 from fastapi import HTTPException
-from typing_extensions import TypedDict
 
-
-class Word(TypedDict):
-    text: str
-    start: float
-    end: float
-    probability: float
-
-
-class Segment(TypedDict):
-    text: str
-    start: float
-    end: float
-    words: List[Word]
-
-
-class Transcript(TypedDict):
-    text: str
-    segments: List[Segment]
-
+from src.helper.types.transcription_data import Segment, Transcript, Word
 
 LOGGER = logging.getLogger(__name__)
 
