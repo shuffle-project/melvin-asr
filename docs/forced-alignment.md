@@ -169,14 +169,21 @@ the remainder of the transcript:
 This error was reproducible with a different audio file and as such, the proposed method could not be implemented 
 further. 
 
+Using stable-ts, the alignment process took 33.07s to execute compared to 87.19s with the POC. 
+Utilizing a GPU (nVidia RTX 4080) the same alignment task was processed in only 2.1 seconds.
+
 ## Conclusion
 
 As the wisper model currently supports ~448 tokens per segment, sentences have to be broken up into small 
 segments which then get iterated through. Longer Alignment tasks therefore take up quite some time, 
 even longer than a full transcription.
 Since the current POC is only partly working, we still rely on stable-ts for audio alignment.
+As a sidenote: According to 
+[stable-ts documentation](https://github.com/jianfch/stable-ts) alignment is slower on Faster-Whisper models than on 
+vanilla models. We could research if loading a non-faster-whisper model speeds up the task.
+
 Stable-ts is using its attention weights to calculate the timestamps. To further improve on this POC, 
-future works could implement a similar algorithm.
+future works could implement a similar algorithm. 
 
 
 ### Testing Environment
