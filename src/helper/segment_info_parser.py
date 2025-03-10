@@ -2,7 +2,6 @@
 
 from dataclasses import asdict
 
-
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
     """parses the segments and info to a dictionary"""
     segments_list = list(segments)
@@ -83,7 +82,7 @@ def parse_stable_whisper_result(result) -> dict:
     text = ""
     segments = []
     for segment in data["segments"]:
-        segment = asdict(segment)
+        segment = segment if isinstance(segment, dict) else asdict(segment)
         text += segment["text"]
 
         words = []

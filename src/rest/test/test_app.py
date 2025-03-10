@@ -98,7 +98,6 @@ def test_post_transcription_without_file(rest_client):
     )
     assert response.status_code == 422
 
-
 def test_post_transcription_with_unconfigured_model(rest_client):
     """Test the post transcription endpoint with a model that has no configured runner"""
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
@@ -121,6 +120,58 @@ def test_post_transcription_with_wrong_file(rest_client):
         )
     assert response.status_code == 422
 
+def test_post_transcription_align(rest_client):
+    with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": audio_file},
+            data={"task":"align", "text":"And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'"}
+        )
+    response_dict = response.json()
+    assert response.status_code == 200
+    assert response_dict["status"] == "in_query"
+    assert "transcription_id" in response_dict
+    assert (
+        DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
+        is not None
+    )
+    assert (
+        DATA_HANDLER.get_status_file_by_id(response_dict["transcription_id"])
+        is not None
+    )
+
+def test_post_transcription_forced_align(rest_client):
+    with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": audio_file},
+            data={"task":"force-align", "text":"And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'"}
+        )
+    response_dict = response.json()
+    assert response.status_code == 200
+    assert response_dict["status"] == "in_query"
+    assert "transcription_id" in response_dict
+    assert (
+        DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
+        is not None
+    )
+    assert (
+        DATA_HANDLER.get_status_file_by_id(response_dict["transcription_id"])
+        is not None
+    )
+
+def test_post_transcription_align_no_text(rest_client):
+    """Test the post transcription endpoint"""
+    with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": audio_file},
+            data={"task":"align"}
+        )
+    assert response.status_code == 400
 
 def test_get_transcriptions_id(rest_client, transcription_id):
     """Test the get transcription by ID endpoint"""
