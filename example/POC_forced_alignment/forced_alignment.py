@@ -6,7 +6,7 @@ from faster_whisper import WhisperModel
 from faster_whisper.audio import decode_audio, pad_or_trim
 from faster_whisper.tokenizer import Tokenizer
 from faster_whisper.transcribe import Segment, Word
-# pip install nltk
+
 import nltk
 import ssl
 

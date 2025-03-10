@@ -9,6 +9,7 @@ from faster_whisper.audio import decode_audio, pad_or_trim
 from faster_whisper.tokenizer import Tokenizer
 from faster_whisper.transcribe import Segment, Word
 
+import nltk
 from src.helper.config import CONFIG
 
 LOGGER = logging.getLogger(__name__)
