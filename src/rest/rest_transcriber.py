@@ -126,9 +126,10 @@ class Transcriber:
         return data
 
     @time_it
-    def force_align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
+    def force_align_audio_file(self, audio_file_path: str, text: str, model: str, language: str) -> dict:
         """Function to run the alignment process"""
-        self.load_model()
+        assert self.supports_model(model)
+        self.load_model(model)
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result = align_ground_truth(self.model, text, audio_file_path)
@@ -145,9 +146,11 @@ class Transcriber:
 
 
     @time_it
-    def align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
+    def align_audio_file(self, audio_file_path: str, text: str, model: str, language: str) -> dict:
         """Function to run the alignment process"""
-        self.load_model()
+
+        assert self.supports_model(model)
+        self.load_model(model)
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result: stable_whisper.WhisperResult = self.model.align(audio_file_path, text, language)

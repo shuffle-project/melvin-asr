@@ -86,11 +86,11 @@ class Runner:
             response = self.transcriber.transcribe_audio_file(audio_file_path, model, settings)
         elif task == "force-align":
             response = self.transcriber.force_align_audio_file(
-                audio_file_path, status_file["text"], status_file["language"]
+                audio_file_path, status_file["text"], model, status_file["language"]
             )
         elif task =="align":
             response = self.transcriber.align_audio_file(
-                audio_file_path, status_file["text"], status_file["language"]
+                audio_file_path, status_file["text"], model, status_file["language"]
             )
 
         self.data_handler.delete_audio_file(transcription_id)

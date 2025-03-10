@@ -146,6 +146,9 @@ async def get_transcriptions_id(transcription_id: str):
 @app.post(
     "/transcriptions",
     dependencies=[Depends(require_api_key), Depends(require_transcription_enabled)],
+    responses={
+        418: {"description": "Requested Model is not supported"}
+    }
 )
 async def post_transcription(
     file: UploadFile = File(...),
