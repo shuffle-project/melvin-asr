@@ -50,8 +50,6 @@ def check_post_transcription_response(response):
     response_dict = response.json()
     assert response.status_code == 200
     assert response_dict["status"] == "in_query"
-    print(response_dict)
-    assert response_dict["model"] == model
     assert "transcription_id" in response_dict
     assert (
         DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
@@ -71,6 +69,8 @@ def check_transcription_with_model(rest_client, model: str):
             data={"model": model},
         )
     check_post_transcription_response(response)
+
+    assert response.json()["model"] == model
 
 def test_health_check(rest_client):
     """Test the health check endpoint"""
