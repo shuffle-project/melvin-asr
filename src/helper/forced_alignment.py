@@ -9,7 +9,6 @@ from faster_whisper.audio import decode_audio, pad_or_trim
 from faster_whisper.tokenizer import Tokenizer
 from faster_whisper.transcribe import Segment, Word
 
-import nltk
 from src.helper.config import CONFIG
 
 LOGGER = logging.getLogger(__name__)
@@ -175,7 +174,7 @@ def align_ground_truth(model: WhisperModel, ground_truth: str, audio_path: str) 
             continue
         # Trim audio
         audio = audio[int(
-            ((res.word_end_times[-1] - cutoff_time) * 16_000)//1
+            (res.word_end_times[-1] - cutoff_time) * 16_000
         ):]
         cutoff_time = res.word_end_times[-1]
         if (segment := get_segments_from_alignment(alignment=res, raw_text=sentence)) is not None:

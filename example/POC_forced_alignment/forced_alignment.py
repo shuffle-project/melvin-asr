@@ -44,9 +44,7 @@ class ForcedAlignment:
             sampling_rate=self.whisper.feature_extractor.sampling_rate,
         )
 
-        audio = audio[int((cutoff_time * 16_000)//1):]
-
-        #print(f"New audio length in seconds: {len(audio)/16_000}")
+        audio = audio[int(cutoff_time * 16_000):]
 
         features = self.whisper.feature_extractor(audio)
 
@@ -126,11 +124,6 @@ class ForcedAlignment:
             word_start_times[i] += cutoff_time
             word_end_times[i] += cutoff_time
 
-        #print("words", words)
-        #print("word_start_times", word_start_times)
-        #print("word_end_times", word_end_times)
-        #print("sentence_duration", sentence_duration)
-
         return Alignment(words, word_start_times, word_end_times, sentence_duration)
 
     def run(self):
@@ -150,8 +143,6 @@ class ForcedAlignment:
                     continue
 
                 if stripped in TERMINATING_CHARACTERS:
-                    # This swallows leading terminating characters
-                    # This may or may not be a problem...idc and idk
                     if len(words) > 0:
                         # Append to previous word
                         words[-1].word += stripped
