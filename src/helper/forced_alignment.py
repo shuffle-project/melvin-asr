@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import logging
 import os
 from typing import List
+from nltk.downloader import Downloader
 import numpy as np
 
 from faster_whisper import WhisperModel
@@ -14,11 +15,14 @@ from src.helper.config import CONFIG
 
 LOGGER = logging.getLogger(__name__)
 
-# Small model -> we can download it wherever
-nltk.download("punkt_tab", download_dir=os.path.join(os.getcwd(), CONFIG["model_path"], "punkt_tab"))
-nltk.data.path.append(os.path.join(os.getcwd(), CONFIG["model_path"], "punkt_tab"))
+nltk_model_path = os.path.join(os.getcwd(), CONFIG["model_path"], "punkt_tab")
 
 TERMINATING_CHARACTERS = [".",",","!","?"]
+
+# Add in the front to check this first
+nltk.data.path = [nltk_model_path]
+
+nltk_downloader = Downloader(download_dir=nltk_model_path)
 
 @dataclass(frozen=True, slots=True)
 class Alignment:
@@ -27,6 +31,14 @@ class Alignment:
     word_end_times: list[float]
     sentence_duration: float
 
+def setup_nltk():
+    LOGGER.debug(f"Starting setup for nltk in {nltk_downloader.default_download_dir()}...")
+    if nltk_downloader.is_installed("punkt_tab"):
+        LOGGER.debug("nltk model already present")
+        return
+    # Small model -> we can download it wherever
+    LOGGER.info(f"Preparing nltk model at {nltk_downloader.default_download_dir()}")
+    nltk_downloader.download("punkt_tab", download_dir=nltk_model_path, raise_on_error=True)
 
 def align_sentence(tokenizer, model: WhisperModel, sentence: str, audio, cutoff_time=0.0) -> Alignment:
 
@@ -153,6 +165,9 @@ def get_segments_from_alignment(alignment: Alignment, raw_text: str) -> Segment:
 
 
 def align_ground_truth(model: WhisperModel, ground_truth: str, audio_path: str) -> List[Segment]:
+
+    setup_nltk()
+
     tokenizer = Tokenizer(model.hf_tokenizer, True, "transcribe", "en")
 
     sentences = nltk.sent_tokenize(ground_truth)

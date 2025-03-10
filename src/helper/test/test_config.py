@@ -20,7 +20,7 @@ def test_read_config_success():
     assert TEST_CONFIG["rest_runner"] == [
         {
             "device": "cpu",
-            "model": "large-v3",
+            "models": ["tiny", "large-v3"],
             "compute_type": "int8",
             "device_index": 0,
             "num_workers": 1,

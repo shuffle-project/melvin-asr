@@ -46,6 +46,31 @@ def transcription_id(rest_client):
     response_dict = response.json()
     return response_dict["transcription_id"]
 
+def check_post_transcription_response(response):
+    response_dict = response.json()
+    assert response.status_code == 200
+    assert response_dict["status"] == "in_query"
+    assert "transcription_id" in response_dict
+    assert (
+        DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
+        is not None
+    )
+    assert (
+        DATA_HANDLER.get_status_file_by_id(response_dict["transcription_id"])
+        is not None
+    )
+
+def check_transcription_with_model(rest_client, model: str):
+    with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": audio_file},
+            data={"model": model},
+        )
+    check_post_transcription_response(response)
+
+    assert response.json()["model"] == model
 
 def test_health_check(rest_client):
     """Test the health check endpoint"""
@@ -77,19 +102,12 @@ def test_post_transcription(rest_client):
             headers={"Authorization": EXAMPLE_AUTH_KEY},
             files={"file": audio_file},
         )
-    response_dict = response.json()
-    assert response.status_code == 200
-    assert response_dict["status"] == "in_query"
-    assert "transcription_id" in response_dict
-    assert (
-        DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
-        is not None
-    )
-    assert (
-        DATA_HANDLER.get_status_file_by_id(response_dict["transcription_id"])
-        is not None
-    )
+    check_post_transcription_response(response)
 
+def test_post_transcription_with_different_supported_models(rest_client):
+    """Test the post transcription endpoint with different models -> does model loading work"""
+    check_transcription_with_model(rest_client, CONFIG["rest_runner"][0]["models"][0])
+    check_transcription_with_model(rest_client, CONFIG["rest_runner"][0]["models"][1])
 
 def test_post_transcription_without_file(rest_client):
     """Test the post transcription endpoint without a file"""
@@ -128,18 +146,7 @@ def test_post_transcription_align(rest_client):
             files={"file": audio_file},
             data={"task":"align", "text":"And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'"}
         )
-    response_dict = response.json()
-    assert response.status_code == 200
-    assert response_dict["status"] == "in_query"
-    assert "transcription_id" in response_dict
-    assert (
-        DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
-        is not None
-    )
-    assert (
-        DATA_HANDLER.get_status_file_by_id(response_dict["transcription_id"])
-        is not None
-    )
+    check_post_transcription_response(response)
 
 def test_post_transcription_forced_align(rest_client):
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
@@ -149,18 +156,7 @@ def test_post_transcription_forced_align(rest_client):
             files={"file": audio_file},
             data={"task":"force-align", "text":"And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'"}
         )
-    response_dict = response.json()
-    assert response.status_code == 200
-    assert response_dict["status"] == "in_query"
-    assert "transcription_id" in response_dict
-    assert (
-        DATA_HANDLER.get_audio_file_path_by_id(response_dict["transcription_id"])
-        is not None
-    )
-    assert (
-        DATA_HANDLER.get_status_file_by_id(response_dict["transcription_id"])
-        is not None
-    )
+    check_post_transcription_response(response)
 
 def test_post_transcription_align_no_text(rest_client):
     """Test the post transcription endpoint"""

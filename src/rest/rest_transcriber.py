@@ -28,35 +28,19 @@ class Transcriber:
         #   num_workers: 1
         #   cpu_threads: 4
 
-        if "device" in config:
-            self.device = config["device"]
-        else:
-            self.device = "cpu"
+        self.device = config.get("device", "cpu")
 
-        if "model" in config:
-            self.model_name = config["model"]
-        else:
-            self.model_name = "tiny"
+        self.supported_models = config.get("models",["tiny"])
 
-        if "compute_type" in config:
-            self.compute_type = config["compute_type"]
-        else:
-            self.compute_type = "int8"
+        assert len(self.supported_models) > 0
 
-        if "device_index" in config:
-            self.device_index = config["device_index"]
-        else:
-            self.device_index = 0
+        self.compute_type = config.get("compute_type", "int8")
 
-        if "num_workers" in config:
-            self.num_workers = config["num_workers"]
-        else:
-            self.num_workers = 1
+        self.device_index = config.get("device_index",0)
 
-        if "cpu_threads" in config:
-            self.cpu_threads = config["cpu_threads"]
-        else:
-            self.cpu_threads = 4
+        self.num_workers = config.get("num_workers", 1)
+
+        self.cpu_threads = config.get("cpu_threads", 4)
 
         # Avoiding Compute Type mismatch
         if (
@@ -74,14 +58,25 @@ class Transcriber:
             self.compute_type = "int8"
 
         self.model: WhisperModel = None
-        ModelHandler().setup_model(self.model_name)
+        ModelHandler().setup_model(self.supported_models[-1])
+        self.loaded_model_name = None
 
-    def load_model(self) -> bool:
+    def supports_model(self, requested_model: str) -> bool:
+        return requested_model in self.supported_models
+
+    def get_preferred_model(self) -> str:
+        return self.supported_models[-1]
+
+    def load_model(self, model) -> bool:
         """loads the model if not loaded"""
-        if self.model is not None:
+
+        if self.loaded_model_name == model:
             return True
+
+        ModelHandler().setup_model(model)
+
         self.model = stable_whisper.load_faster_whisper(
-            ModelHandler().get_model_path(self.model_name),
+            ModelHandler().get_model_path(model),
             local_files_only=True,
             device=self.device,
             compute_type=self.compute_type,
@@ -90,12 +85,18 @@ class Transcriber:
             cpu_threads=self.cpu_threads,
         )
 
+        self.loaded_model_name = model
+
+        return True
+
     @time_it
     def transcribe_audio_file(
-        self, audio_file_path: str, settings: dict = None
+        self, audio_file_path: str, model:str, settings: dict = None
     ) -> dict:
         """Function to run the transcription process"""
-        self.load_model()
+        LOGGER.debug(f"Transcribing with model {model}")
+        assert self.supports_model(model)
+        self.load_model(model)
         try:
             LOGGER.info("Transcribing file: " + str(audio_file_path))
             return {
@@ -125,9 +126,10 @@ class Transcriber:
         return data
 
     @time_it
-    def force_align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
+    def force_align_audio_file(self, audio_file_path: str, text: str, model: str, language: str) -> dict:
         """Function to run the alignment process"""
-        self.load_model()
+        assert self.supports_model(model)
+        self.load_model(model)
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result = align_ground_truth(self.model, text, audio_file_path)
@@ -144,9 +146,11 @@ class Transcriber:
 
 
     @time_it
-    def align_audio_file(self, audio_file_path: str, text: str, language: str) -> dict:
+    def align_audio_file(self, audio_file_path: str, text: str, model: str, language: str) -> dict:
         """Function to run the alignment process"""
-        self.load_model()
+
+        assert self.supports_model(model)
+        self.load_model(model)
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result: stable_whisper.WhisperResult = self.model.align(audio_file_path, text, language)

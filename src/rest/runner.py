@@ -77,16 +77,20 @@ class Runner:
 
         task = status_file["task"]
 
+        assert self.transcriber is not None
+
+        model = status_file.get("model", self.transcriber.get_preferred_model())
+
         response = None
         if task == "transcribe":
-            response = self.transcriber.transcribe_audio_file(audio_file_path, settings)
+            response = self.transcriber.transcribe_audio_file(audio_file_path, model, settings)
         elif task == "force-align":
             response = self.transcriber.force_align_audio_file(
-                audio_file_path, status_file["text"], status_file["language"]
+                audio_file_path, status_file["text"], model, status_file["language"]
             )
         elif task =="align":
             response = self.transcriber.align_audio_file(
-                audio_file_path, status_file["text"], status_file["language"]
+                audio_file_path, status_file["text"], model, status_file["language"]
             )
 
         self.data_handler.delete_audio_file(transcription_id)
@@ -163,7 +167,7 @@ class Runner:
                     if data.get("task") == "transcribe" or data.get("task") == "align" or data.get("task") == "force-align":
                         if self.transcriber is None:
                             continue
-                        if model != self.transcriber.model_name and model is not None:
+                        if not self.transcriber.supports_model(model) and model is not None:
                             continue
 
                     if self.translator is None and data.get("task") == "translate":
