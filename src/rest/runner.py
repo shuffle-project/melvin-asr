@@ -149,6 +149,10 @@ class Runner:
 
                 # Update the segment in the original list
                 segment["words"] = temp_transcript["segments"][0]["words"]
+        else:
+            raise ValueError(
+                f"Translation method '{self.translation_method}' not supported"
+            )
 
         transcription["language"] = transcription["target_language"]
         transcription["end_time"] = (
