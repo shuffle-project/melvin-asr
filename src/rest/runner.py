@@ -128,7 +128,7 @@ class Runner:
 
         elif self.translation_method == "segmented":
             transcription["transcript"]["text"] = ""
-            next_segment_starting_small = True
+            # next_segment_starting_small = True
             for segment in transcription["transcript"]["segments"]:
                 segment["text"] = self.translator.translate_text(
                     segment["text"],
