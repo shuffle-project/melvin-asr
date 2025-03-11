@@ -6,8 +6,6 @@ import time
 from datetime import datetime, timezone
 from typing import Tuple
 
-from tqdm import tqdm
-
 from src.helper import logger
 from src.helper.align_translation_segments import align_segments
 from src.helper.config import CONFIG
@@ -62,7 +60,7 @@ class Runner:
                 )
                 if task == "transcribe" or task.endswith("align"):
                     self.transcribe_or_align(task_id)
-                if task.startswith("translate"):
+                if task == "translate":
                     self.translate(task_id)
 
             except Exception as e:
@@ -130,23 +128,20 @@ class Runner:
 
         elif self.translation_method == "segmented":
             transcription["transcript"]["text"] = ""
-            next_segment_starting_small = False
-            for segment in tqdm(
-                transcription["transcript"]["segments"],
-                desc="Translating segments",
-                unit="segment",
-            ):
+            next_segment_starting_small = True
+            for segment in transcription["transcript"]["segments"]:
                 segment["text"] = self.translator.translate_text(
                     segment["text"],
                     transcription["language"],
                     transcription["target_language"],
                 )
-                # Not sure if this might backfire in some languages
-                if not next_segment_starting_small:
-                    # This seems unclean but yea, since the translation loses information on previous text
-                    segment["text"] = segment["text"][0].lower() + segment["text"][1:]
-                # Simple check, ignoring special cases like ."
-                next_segment_starting_small = segment["text"][-1] in [".", "!", "?"]
+
+                #! Read in research README why this is not actively implemented.
+                # Simplified bad fix for context loss capitalization without sentence starts
+                # if not next_segment_starting_small:
+                #     segment["text"] = segment["text"][0].lower() + segment["text"][1:]
+                # # Simple check, ignoring every word that is by itself supposed to be capitalized!
+                # next_segment_starting_small = segment["text"][-1] in [".", "!", "?"]
                 transcription["transcript"]["text"] += segment["text"] + " "
 
                 temp_transcript = {"segments": [segment]}
