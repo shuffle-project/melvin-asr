@@ -25,6 +25,14 @@ The whole text is looked at, and for every word it is calculated which of the tr
 Not based on translated segments because that would be more overhead.
 There are more ways to improve the aligment, but again, the ROI is hereby the best.
 
+### Alignment by segments
+
+It makes use of translation of segments and then aligning the segments by itself to keep the overall segmentations aligned. This is the easiest way to do this. Everything else would need more advanced algorithms with special treatment for quirks of every language.
+
+The issue with segments as mentioned [here](../../../example/POC_Seamless_M4T/README.md) is, that a lot of context is being lost. We do get a really good alignment, but we lose out on grammar, translation quality etc. It requires a big overhead to fix all this. Especially since computational linguistics is a complex field itself.
+
+=> Therefore the config has been added to either do full or translated segmentation, trading of between subtitle alignment accuracy and correct grammar.
+
 ### Special character languages
 
 The aligment bases it's calculation on whitespace separation.  
