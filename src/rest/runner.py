@@ -6,6 +6,8 @@ import time
 from datetime import datetime, timezone
 from typing import Tuple
 
+from tqdm import tqdm
+
 from src.helper import logger
 from src.helper.align_translation_segments import align_segments
 from src.helper.config import CONFIG
@@ -26,6 +28,7 @@ class Runner:
         self.transcriber = (
             Transcriber(config) if config.get("transcription_enabled") else None
         )
+        self.translation_method = config.get("translation_method")
 
         self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
@@ -59,7 +62,7 @@ class Runner:
                 )
                 if task == "transcribe" or task.endswith("align"):
                     self.transcribe_or_align(task_id)
-                if task == "translate":
+                if task.startswith("translate"):
                     self.translate(task_id)
 
             except Exception as e:
@@ -83,12 +86,14 @@ class Runner:
 
         response = None
         if task == "transcribe":
-            response = self.transcriber.transcribe_audio_file(audio_file_path, model, settings)
+            response = self.transcriber.transcribe_audio_file(
+                audio_file_path, model, settings
+            )
         elif task == "force-align":
             response = self.transcriber.force_align_audio_file(
                 audio_file_path, status_file["text"], model, status_file["language"]
             )
-        elif task =="align":
+        elif task == "align":
             response = self.transcriber.align_audio_file(
                 audio_file_path, status_file["text"], model, status_file["language"]
             )
@@ -111,16 +116,44 @@ class Runner:
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
         self.log.debug("translating: " + task_id)
-        translated_text = self.translator.translate_text(
-            transcription["transcript"]["text"],
-            transcription["language"],
-            transcription["target_language"],
-        )
+        if self.translation_method == "full":
+            translated_text = self.translator.translate_text(
+                transcription["transcript"]["text"],
+                transcription["language"],
+                transcription["target_language"],
+            )
 
-        self.log.debug("aligning: " + task_id)
-        transcription["transcript"] = align_segments(
-            transcription["transcript"], translated_text
-        )
+            self.log.debug("aligning: " + task_id)
+            transcription["transcript"] = align_segments(
+                transcription["transcript"], translated_text
+            )
+
+        elif self.translation_method == "segmented":
+            transcription["transcript"]["text"] = ""
+            next_segment_starting_small = False
+            for segment in tqdm(
+                transcription["transcript"]["segments"],
+                desc="Translating segments",
+                unit="segment",
+            ):
+                segment["text"] = self.translator.translate_text(
+                    segment["text"],
+                    transcription["language"],
+                    transcription["target_language"],
+                )
+                # Not sure if this might backfire in some languages
+                if not next_segment_starting_small:
+                    # This seems unclean but yea, since the translation loses information on previous text
+                    segment["text"] = segment["text"][0].lower() + segment["text"][1:]
+                # Simple check, ignoring special cases like ."
+                next_segment_starting_small = segment["text"][-1] in [".", "!", "?"]
+                transcription["transcript"]["text"] += segment["text"] + " "
+
+                temp_transcript = {"segments": [segment]}
+                temp_transcript = align_segments(temp_transcript, segment["text"])
+
+                # Update the segment in the original list
+                segment["words"] = temp_transcript["segments"][0]["words"]
 
         transcription["language"] = transcription["target_language"]
         transcription["end_time"] = (
@@ -164,10 +197,17 @@ class Runner:
                     if current_status != TranscriptionStatus.IN_QUERY.value:
                         continue
 
-                    if data.get("task") == "transcribe" or data.get("task") == "align" or data.get("task") == "force-align":
+                    if (
+                        data.get("task") == "transcribe"
+                        or data.get("task") == "align"
+                        or data.get("task") == "force-align"
+                    ):
                         if self.transcriber is None:
                             continue
-                        if not self.transcriber.supports_model(model) and model is not None:
+                        if (
+                            not self.transcriber.supports_model(model)
+                            and model is not None
+                        ):
                             continue
 
                     if self.translator is None and data.get("task") == "translate":
