@@ -51,13 +51,13 @@ rest_runner:
   - device: cuda
     transcription_enabled: True
     # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
-    models: 
-    - tiny
-    - small
-    - medium
-    - large
-    - large-v3
-    - large-v3-turbo
+    models:
+      - tiny
+      - small
+      - medium
+      - large
+      - large-v3
+      - large-v3-turbo
     # compute_type:"int8" (cpu), "float16" (cuda), "int8_float16" (cuda)
     compute_type: float16
     # device_index: Only for Cuda, device_index is the index of the GPU, see CLI "nvidia-smi"
@@ -74,3 +74,4 @@ rest_runner:
     translation_enabled: True
     translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large
     translation_device: cuda # cpu | cuda
+    translation_method: segmented # segmented | full

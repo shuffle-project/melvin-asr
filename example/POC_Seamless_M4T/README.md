@@ -16,7 +16,7 @@ Run on CPU: AMD Ryzen 5 3600XT 6-Core Processor
 | S2ST | 16            | 7/10                | No similar breaks in the speech, and the voice is not natural.      |
 | S2TT | 10            | 10/10               | Perfekt translation                                                 |
 | T2TT | 7.5           | 10/10               | Perfekt translation (<256 token default>)                           |
-| T2TT | 8             | 7/10                | Segmented (from faster-whisper): 10% slower, constext issues        |
+| T2TT | 8             | 7/10                | Segmented (from faster-whisper): 10% slower, context issues         |
 | T2TT | 8             | 8.5/10              | Segmented using RecursiveCharacterTextSplitter Algo on longer texts |
 
 ## Attempts
