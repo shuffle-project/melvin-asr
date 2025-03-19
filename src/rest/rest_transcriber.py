@@ -10,10 +10,10 @@ from src.helper.segment_info_parser import parse_stable_whisper_result
 from src.helper.time_it import time_it
 from src.helper.transcription_settings import TranscriptionSettings
 
+from src.helper.util import disable_tqdm
 import stable_whisper
 
 LOGGER = logging.getLogger(__name__)
-
 
 class Transcriber:
     """Class to handle the transcription process"""
@@ -153,13 +153,19 @@ class Transcriber:
         self.load_model(model)
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
-            result: stable_whisper.WhisperResult = self.model.align(audio_file_path, text, language)
-            data = parse_stable_whisper_result({"segments": result.segments_to_dicts()})
+            with disable_tqdm():
+                result: stable_whisper.WhisperResult = self.model.align(
+                    audio=audio_file_path,
+                    text=text,
+                    language=language, 
+                    verbose=None,
+                )
+                data = parse_stable_whisper_result({"segments": result.segments_to_dicts()})
 
-            return {
-                "success": True,
-                "data": data,
-            }
+                return {
+                    "success": True,
+                    "data": data,
+                }
         except Exception as e:
             LOGGER.error("Error during alignment: " + str(e))
             return {"success": False, "data": str(e)}
