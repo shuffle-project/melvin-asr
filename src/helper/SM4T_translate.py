@@ -1,6 +1,7 @@
 from typing import Dict
 
 import os
+from src.helper.util import disable_tqdm
 import torch
 from fastapi import HTTPException
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -27,13 +28,14 @@ class Translator:
             if config["translation_device"] == "cuda"
             else config["translation_device"]
         )
-        self.tokenizer = SeamlessM4TTokenizer.from_pretrained(
-            config["translation_model"],
-            cache_dir=full_model_path
-        )
-        self.model = SeamlessM4Tv2ForTextToText.from_pretrained(
-            config["translation_model"], cache_dir=full_model_path
-        )
+        with disable_tqdm():
+            self.tokenizer = SeamlessM4TTokenizer.from_pretrained(
+                config["translation_model"],
+                cache_dir=full_model_path
+            )
+            self.model = SeamlessM4Tv2ForTextToText.from_pretrained(
+                config["translation_model"], cache_dir=full_model_path
+            )
 
         self.model.config.max_new_tokens = 512
         self.model.to(self.device)

@@ -21,3 +21,5 @@ transformers==4.49.0
 sentencepiece==0.2.0
 langchain==0.3.19
 torch==2.5.1
+
+tqdm==4.67.1

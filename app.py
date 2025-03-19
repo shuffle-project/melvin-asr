@@ -1,4 +1,6 @@
 """Entry point for the application"""
+from src.helper.logger import init_logger, set_global_loglevel
+init_logger()
 
 import logging
 import multiprocessing
@@ -6,7 +8,6 @@ import os
 import signal
 import sys
 from src.helper.data_handler import DataHandler
-from src.helper.logger import init_logger, set_global_loglevel
 from src.helper.config import CONFIG
 from src.rest.run import run_rest_api
 from src.websocket.run import run_websocket_api
@@ -14,7 +15,6 @@ from src.websocket.run import run_websocket_api
 if sys.version_info < (3, 11):
     sys.exit("Please use Python 3.11+")
 
-init_logger()
 LOGGER = logging.getLogger(__name__)
 
 
