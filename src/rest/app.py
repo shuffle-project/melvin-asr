@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from typing import List, Literal
 import uuid
 from datetime import datetime, timezone
 from random import choice
@@ -16,16 +17,16 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
 from pydub import AudioSegment
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from src.helper.config import CONFIG
+from src.helper.config import CONFIG, ConfigResponse
 from src.helper.data_handler import DataHandler
 from src.helper.SM4T_translate import check_language_supported_guard
 from src.helper.time_it import time_it
-from src.helper.types.transcription_data import TranscriptionData
+from src.helper.types.transcription_data import TranscriptionData, TranscriptionFullResponse, TranscriptionListResponse, TranscriptionPostResponse, WebsocketTranscriptResponse
 from src.helper.types.transcription_status import TranscriptionStatus
 
 LOGGER = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ def require_transcription_enabled():
 
 
 @time_it
-@app.get("/", response_class=JSONResponse, dependencies=[Depends(require_api_key)])
+@app.get("/", response_model=ConfigResponse, dependencies=[Depends(require_api_key)])
 async def show_config():
     """Returns the config of this service, excluding API keys."""
     config_info = config.copy()
@@ -104,7 +105,7 @@ async def show_config():
 
 
 @app.get(
-    "/health", response_class=PlainTextResponse, dependencies=[Depends(require_api_key)]
+    "/health", response_model=Literal["OK"], dependencies=[Depends(require_api_key)]
 )
 async def health_check():
     """Return health status."""
@@ -112,7 +113,7 @@ async def health_check():
 
 
 @time_it
-@app.get("/transcriptions", dependencies=[Depends(require_api_key)])
+@app.get("/transcriptions", dependencies=[Depends(require_api_key)], response_model=List[TranscriptionListResponse])
 async def get_transcriptions():
     """Get all transcriptions and their statuses."""
     transcriptions = []
@@ -131,9 +132,8 @@ async def get_transcriptions():
             DATA_HANDLER.delete_status_file(file_name)
     return JSONResponse(content=transcriptions, status_code=200)
 
-
 @time_it
-@app.get("/transcriptions/{transcription_id}", dependencies=[Depends(require_api_key)])
+@app.get("/transcriptions/{transcription_id}", response_model=TranscriptionFullResponse,dependencies=[Depends(require_api_key)])
 async def get_transcriptions_id(transcription_id: str):
     """Get the status of a transcription by ID."""
     file = DATA_HANDLER.get_status_file_by_id(transcription_id)
@@ -141,11 +141,11 @@ async def get_transcriptions_id(transcription_id: str):
         return JSONResponse(content=file, status_code=200)
     raise HTTPException(status_code=404, detail="Transcription ID not found")
 
-
 @time_it
 @app.post(
     "/transcriptions",
     dependencies=[Depends(require_api_key), Depends(require_transcription_enabled)],
+    response_model=TranscriptionPostResponse,
     responses={
         418: {"description": "Requested Model is not supported"}
     }
@@ -210,7 +210,7 @@ async def post_transcription(
 
 @time_it
 @app.get(
-    "/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)]
+    "/export/transcript/{transcription_id}", dependencies=[Depends(require_api_key)], response_model=List[WebsocketTranscriptResponse]
 )
 async def get_stream_transcript_export(transcription_id: str):
     """Get the transcription JSON for a specific ID."""
@@ -221,7 +221,7 @@ async def get_stream_transcript_export(transcription_id: str):
 
 
 @time_it
-@app.get("/export/audio/{transcription_id}", dependencies=[Depends(require_api_key)])
+@app.get("/export/audio/{transcription_id}", dependencies=[Depends(require_api_key)], response_class=FileResponse)
 async def get_stream_audio_export(transcription_id: str):
     """Get the audio WAV file for a specific transcription ID."""
     file = DATA_HANDLER.get_audio_file_by_id(transcription_id)
@@ -242,6 +242,7 @@ async def get_stream_audio_export(transcription_id: str):
 @app.post(
     "/translate/{target_language}",
     dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
+    response_model=TranscriptionPostResponse
 )
 async def translate(
     target_language: str,
@@ -273,6 +274,7 @@ async def translate(
 @app.get(
     "/translate/{transcription_id}",
     dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
+    response_model=TranscriptionFullResponse
 )
 async def get_translated(transcription_id: str):
     """Get the translated file for a specific ID."""

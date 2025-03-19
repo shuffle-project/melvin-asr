@@ -46,7 +46,7 @@ pip install -r ./requirements.txt
 
 ### Run locally
 
-Locally for a development environment the websocket and the flask api are started seperatly.
+Locally for a development environment the websocket and the fastapi are started seperatly.
 
 ```bash
 python app.py
