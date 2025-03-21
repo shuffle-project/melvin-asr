@@ -1,9 +1,61 @@
 """config file that reads all config from .env or CMD environment for app"""
 
 import os
+from typing import List, Literal
 
+from pydantic import BaseModel
 import yaml
 from faster_whisper.tokenizer import _LANGUAGE_CODES
+
+WhisperModels = Literal["tiny", "small", "medium", "large", "large-v3", "large-v3-turbo"]
+ComputeTypes = Literal["int8", "float16", "int8_float16"]
+LanguageCode = Literal[*list(_LANGUAGE_CODES)]
+
+class RestRunnerConfigResponse(BaseModel):
+    device: str
+    transcription_enabled: bool
+    models: List[WhisperModels]
+    compute_type: ComputeTypes
+    device_index: int
+    num_workers: int
+    cpu_threads: int
+    translation_enabled: bool
+    translation_model: str
+    translation_device: str
+    translation_method: str 
+
+class WebsocketStreamDeviceConfigResponse(BaseModel):
+      active: bool
+      model: WhisperModels
+      device_index: int
+      worker_seats: int
+
+class WebsocketStreamConfigResponse(BaseModel):
+    cpu: WebsocketStreamDeviceConfigResponse
+    cuda: WebsocketStreamDeviceConfigResponse
+
+class TranscriptionDefaultConfigResponse(BaseModel):
+    vad_filter: bool
+    condition_on_previous_text: bool
+
+class ConfigResponse(BaseModel):
+    # Essential Configuration, these are required in config.yml
+    log_level: str
+    rest_runner: List[RestRunnerConfigResponse]
+    rest_models: List[WhisperModels]
+    websocket_stream: WebsocketStreamConfigResponse
+    rest_port: int
+    websocket_port: int
+    host: str
+    status_file_path: str
+    model_path: str
+    audio_file_path: str
+    export_file_path: str
+    audio_file_format: str
+    keep_data_for_hours: int
+    cleanup_schedule_in_minutes: int
+    transcription_default: TranscriptionDefaultConfigResponse
+    supported_language_codes: List[LanguageCode]
 
 
 def read_config(config_yml_path: str) -> dict:

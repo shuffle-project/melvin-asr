@@ -33,7 +33,6 @@ def rest_client():
     client = TestClient(app)
     yield client
 
-
 @pytest.fixture
 def transcription_id(rest_client):
     """Fixture for posting a transcription and retrieving its ID"""
