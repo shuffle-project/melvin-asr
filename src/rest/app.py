@@ -28,6 +28,7 @@ from src.helper.SM4T_translate import check_language_supported_guard
 from src.helper.time_it import time_it
 from src.helper.types.transcription_data import TranscriptionData, TranscriptionFullResponse, TranscriptionListResponse, TranscriptionPostResponse, WebsocketTranscriptResponse
 from src.helper.types.transcription_status import TranscriptionStatus
+from src.helper.types.translation_consts import TranslationPostResults
 
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
@@ -242,7 +243,7 @@ async def get_stream_audio_export(transcription_id: str):
 @app.post(
     "/translate/{target_language}",
     dependencies=[Depends(require_api_key), Depends(require_translation_enabled)],
-    response_model=TranscriptionPostResponse
+    response_model=TranslationPostResults
 )
 async def translate(
     target_language: str,
