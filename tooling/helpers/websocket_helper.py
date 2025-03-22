@@ -66,7 +66,7 @@ def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False
     res = [(None, "")]
     try:
         res = loop.run_until_complete(
-            asyncio.gather(__transcribe_file_websocket(filepath, debug))
+            asyncio.gather(__transcribe_file_websocket(filepath, api_key, debug))
         )
     except Exception:
         print(f"Something during the transcription of {filepath} failed. This will be marked as faulty")
@@ -89,13 +89,14 @@ def transcribe_file_websocket(filepath: str, api_key:str, scale:str, debug=False
     return result
 
 # websockets is heavily integrated with asyncio...so we have to do this in an asyncio way
-async def __transcribe_file_websocket(filepath: str, debug=False) -> Tuple[List[WebsocketResultBlock] | None, str]:
+async def __transcribe_file_websocket(filepath: str, api_key: str, debug=False) -> Tuple[List[WebsocketResultBlock] | None, str]:
     audio_data = await read_wav_file_into_chunks(filepath)
     result: List[WebsocketResultBlock] = [WebsocketResultBlock()]
     id: str = ""
     message_count = 0
     try:
         async with websockets.connect("ws://localhost:8394") as websocket_connection:
+            await websocket_connection.send(json.dumps({"Authorization": api_key}))
             while True:
                 try:
                     if len(audio_data) > 0:
