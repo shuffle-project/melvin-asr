@@ -82,15 +82,21 @@ class WebSocketServer:
             return False
 
         msg = msg["text"]
+        authenticated = False
         try:
             data = json.loads(msg)
             if data["Authorization"] in CONFIG["api_keys"]:
-                return True
+                authenticated = True
         except:
             LOGGER.info("Initial websocket message was invalid json")
             await websocket.send_text("Initial websocket message contained invalid json")
+            return False
 
-        return False
+        if not authenticated:
+            await websocket.send_text("Provided api key is invalid")
+            return False
+
+        return True
 
     async def handle_new_client(self, websocket: WebSocket):
         """Function to handle a new client connection"""
@@ -164,8 +170,8 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         if not (await websocket_server.authenticate_new_client(websocket)):
-            LOGGER.info("Client disconnected due to invalid auth")
             await websocket.close()
+            LOGGER.info("Client disconnected due to invalid auth")
             return
         LOGGER.info("Client sucessfully authenticated")
         await websocket_server.handle_new_client(websocket)
