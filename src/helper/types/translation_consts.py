@@ -1,4 +1,7 @@
 # From https://huggingface.co/facebook/seamless-m4t-v2-large#supported-languages
+from pydantic import BaseModel
+
+
 POSSIBLE_LANGUAGES = [
     "afr",
     "amh",
@@ -297,3 +300,6 @@ LANGUAGE_MAP = {
     "zsm": "zsm",
     "zul": "zul",
 }
+
+class TranslationPostResults(BaseModel):
+    id: str
