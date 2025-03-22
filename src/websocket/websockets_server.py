@@ -76,7 +76,7 @@ class WebSocketServer:
     async def authenticate_new_client(self, websocket: WebSocket) -> bool:
         msg = await websocket.receive()
 
-        if not "text" in msg:
+        if "text" not in msg:
             LOGGER.info("Initial websocket message was not string")
             await websocket.send_text("Initial message was not text and therefore did not match the expected auth format")
             return False
@@ -87,7 +87,7 @@ class WebSocketServer:
             data = json.loads(msg)
             if data["Authorization"] in CONFIG["api_keys"]:
                 authenticated = True
-        except:
+        except Exception:
             LOGGER.info("Initial websocket message was invalid json")
             await websocket.send_text("Initial websocket message contained invalid json")
             return False
