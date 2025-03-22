@@ -13,6 +13,7 @@ This documentation provides a concise guide on connecting to the WebSocket serve
 This is how the workflow for a client does look like:
 
 1. Connect to the WebSocket server.
+1. Authenticate via api key
 1. Capture Audio in chunks of 0.1 - 1 seconds and send them to the server continuously. You do not need to wait for a message in response.
 1. Receive Transcriptions from the server:
     - Partial Transcriptions: Sent periodically based on server’s latency adjustments, part of the next final.
@@ -20,6 +21,14 @@ This is how the workflow for a client does look like:
 1. Send “eof” when audio capture is complete to finalize and export the transcription.
 1. Close Connection.
 1. Get the audio file and transcript of you stream via the REST APIs `export` endpoints. See [REST Documentation](docs/rest-api.md).
+
+### Authentication
+
+When first connecting via websocket the server expects authentication via an api key (specified in the config).
+To do this the first message must be a valid json of format `{"Authorization":"<your api key here>"}`.
+If the authorization is invalid an error message is send and the websocket connection is closed by the server.
+
+When using the Melvin-Asr Websocket backend with BBB ensure that the [first message in configured](https://github.com/bigbluebutton/bbb-transcription-controller/blob/4561ca29dade8923c7af9c1f5ecbb5e66862da7a/config/default.example.yml#L38) accordingly.
 
 ### Multi Client Workflow
 
