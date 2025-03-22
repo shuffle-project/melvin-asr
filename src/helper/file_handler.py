@@ -3,12 +3,46 @@
 import json
 import logging
 import os
+from typing import List, Tuple
+
+from fastapi import UploadFile
+from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 
 LOGGER = logging.getLogger(__name__)
 
+# 5 hours in seconds
+MAX_AUDIO_LENGTH = 5 * 60 * 60
 
 class FileHandler:
     """This class handles the reading and writing of JSON files."""
+
+    @staticmethod
+    def load_into_valid_audiosegment(file: UploadFile) -> Tuple[(AudioSegment | None), List[str]]:
+        errors: List[str] = []
+        audio: AudioSegment | None = None
+        # If this is none we will just assume it is okay...
+        # There should (tm) be no way for this to be none
+        if file.filename is not None:
+            if not file.filename.endswith('.wav'):
+                return (None, ["Uploaded audio file should be of type wav"])
+        try:
+            # Load audio using pydub
+            loaded_audio = AudioSegment.from_file(file.file, format="wav")
+
+            # Check sample rate
+            if loaded_audio.frame_rate != 16000:
+                errors.append("Invalid sample rate. Must be 16 kHz.")
+
+            if loaded_audio.duration_seconds > MAX_AUDIO_LENGTH:
+                errors.append(f"Maximum allowed audio length exceeded. Max audio length is at {MAX_AUDIO_LENGTH} seconds.")
+
+            audio = loaded_audio
+        except CouldntDecodeError:
+            errors.append("Could not decode file using ffmpeg. This is an indicator that the uploaded file is corrupted.")
+        except Exception as e:
+            raise e
+        return (audio, errors)
 
     def read_json(self, file_path):
         """Reads a JSON file and returns the data."""
