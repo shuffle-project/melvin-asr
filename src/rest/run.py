@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 def run_rest_api(port, host) -> dict:
     """Returns the models.yaml file as dict."""
-    flask_process = multiprocessing.Process(
+    app_process = multiprocessing.Process(
         target=run_app,
         args=(port, host),
     )
@@ -24,9 +24,9 @@ def run_rest_api(port, host) -> dict:
         args=(),
     )
 
-    flask_process.start()
+    app_process.start()
     runner_process.start()
-    flask_process.join()
+    app_process.join()
     runner_process.join()
 
 

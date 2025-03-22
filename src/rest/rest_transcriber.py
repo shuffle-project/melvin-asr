@@ -60,6 +60,7 @@ class Transcriber:
         self.model: WhisperModel = None
         ModelHandler().setup_model(self.supported_models[-1])
         self.loaded_model_name = None
+        self.load_model(self.supported_models[-1])
 
     def supports_model(self, requested_model: str) -> bool:
         return requested_model in self.supported_models
