@@ -18,7 +18,6 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydub import AudioSegment
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from src.helper.config import CONFIG
