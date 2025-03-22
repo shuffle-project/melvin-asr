@@ -35,6 +35,8 @@ async function startRecording() {
     socket.onopen = async () => {
         console.log("WebSocket connection established");
 
+        socket.send(JSON.stringify({Authorization: getApiKey()}))
+
         // Initialize AudioContext and Audio Worklet
         audioContext = new AudioContext({sampleRate: 16000});
         await audioContext.audioWorklet.addModule('processor.js');

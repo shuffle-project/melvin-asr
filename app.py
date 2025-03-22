@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def run(port, websocket_port, host):
-    """start flask & websockets apps"""
+    """start fastapi & websockets apps"""
     websocket_server = multiprocessing.Process(
         target=run_websocket_api,
         args=(
@@ -27,7 +27,7 @@ def run(port, websocket_port, host):
             host,
         ),
     )
-    flask_server = multiprocessing.Process(
+    rest_server = multiprocessing.Process(
         target=run_rest_api,
         args=(
             port,
@@ -35,9 +35,9 @@ def run(port, websocket_port, host):
         ),
     )
     websocket_server.start()
-    flask_server.start()
+    rest_server.start()
     websocket_server.join()
-    flask_server.join()
+    rest_server.join()
 
 
 if __name__ == "__main__":

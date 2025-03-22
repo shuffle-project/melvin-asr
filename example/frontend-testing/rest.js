@@ -7,7 +7,8 @@ const ERROR_MESSAGES = {
     NO_FILE: 'Please upload a file first.',
     MISSING_API_KEY: 'API key is missing. Please save your API key first.',
     INVALID_API_KEY: 'Invalid API key. Please save your API key first.',
-    TRANSLATION: 'Could not translate the current text'
+    TRANSLATION: 'Could not translate the current text',
+    REQUESTED_MODEL_NOT_SUPPORTED: 'Requested model is not supported by target instance.'
 };
 
 let selectedLanguage = null;
@@ -193,7 +194,11 @@ async function requestTranscription() {
         });
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
+            // I am a teapot
+            if (response.status == 418){
+                throw new Error(ERROR_MESSAGES.REQUESTED_MODEL_NOT_SUPPORTED);
+            }
+            throw new Error(ERROR_MESSAGES.INVALID_API_KEY);
         }
 
         const data = await response.json();
@@ -203,7 +208,7 @@ async function requestTranscription() {
         // Delegate transcription ID handling to the appropriate function
         requestTranscriptionText(data['transcription_id']);
     } catch (error) {
-        displayError(apiResponse, ERROR_MESSAGES.INVALID_API_KEY);
+        displayError(apiResponse, error.message);
     }
 }
 

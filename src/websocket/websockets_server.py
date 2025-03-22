@@ -1,6 +1,7 @@
 """Module to handle the WebSocket server"""
 
 import asyncio
+import json
 import logging
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -71,6 +72,31 @@ class WebSocketServer:
             LOGGER.info(
                 f"CPU Stream Transcriber is active, Worker Seats: {self.cpu_worker_seats}"
             )
+
+    async def authenticate_new_client(self, websocket: WebSocket) -> bool:
+        msg = await websocket.receive()
+
+        if "text" not in msg:
+            LOGGER.info("Initial websocket message was not string")
+            await websocket.send_text("Initial message was not text and therefore did not match the expected auth format")
+            return False
+
+        msg = msg["text"]
+        authenticated = False
+        try:
+            data = json.loads(msg)
+            if data["Authorization"] in CONFIG["api_keys"]:
+                authenticated = True
+        except Exception:
+            LOGGER.info("Initial websocket message was invalid json")
+            await websocket.send_text("Initial websocket message contained invalid json")
+            return False
+
+        if not authenticated:
+            await websocket.send_text("Provided api key is invalid")
+            return False
+
+        return True
 
     async def handle_new_client(self, websocket: WebSocket):
         """Function to handle a new client connection"""
@@ -143,6 +169,11 @@ websocket_server = WebSocketServer()
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
+        if not (await websocket_server.authenticate_new_client(websocket)):
+            await websocket.close()
+            LOGGER.info("Client disconnected due to invalid auth")
+            return
+        LOGGER.info("Client sucessfully authenticated")
         await websocket_server.handle_new_client(websocket)
     except WebSocketDisconnect:
         LOGGER.info("Client disconnected")
