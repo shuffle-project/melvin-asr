@@ -28,7 +28,7 @@ When first connecting via websocket the server expects authentication via an api
 To do this the first message must be a valid json of format `{"Authorization":"<your api key here>"}`.
 If the authorization is invalid an error message is send and the websocket connection is closed by the server.
 
-When using the Melvin-Asr Websocket backend with BBB ensure that the [first message in configured](https://github.com/bigbluebutton/bbb-transcription-controller/blob/4561ca29dade8923c7af9c1f5ecbb5e66862da7a/config/default.example.yml#L38) accordingly.
+When using the Melvin-Asr Websocket backend with BBB ensure that the [first message is configured](https://github.com/bigbluebutton/bbb-transcription-controller/blob/4561ca29dade8923c7af9c1f5ecbb5e66862da7a/config/default.example.yml#L38) accordingly.
 
 ### Multi Client Workflow
 
