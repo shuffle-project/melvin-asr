@@ -17,6 +17,12 @@ from src.rest.app import app
 EXAMPLE_AUDIO_FILE_PATH = os.path.join(
     os.getcwd(), "src", "helper", "test_base", "example.wav"
 )
+EXAMPLE_RESAMPLED_AUDIO_FILE_PATH = os.path.join(
+    os.getcwd(), "src", "helper", "test_base", "example_resampled.wav"
+)
+EXAMPLE_JSON_FILE_PATH = os.path.join(
+    os.getcwd(), "src", "helper", "test_base", "example.json"
+)
 EXAMPLE_AUTH_KEY = CONFIG["api_keys"][0]
 DATA_HANDLER = DataHandler()
 
@@ -136,6 +142,36 @@ def test_post_transcription_with_wrong_file(rest_client):
             files={"file1": audio_file},
         )
     assert response.status_code == 422
+
+def test_post_transcription_with_wrong_file_type(rest_client):
+    """Test the post transcription endpoint"""
+    with open(EXAMPLE_JSON_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": audio_file},
+        )
+        assert response.status_code == 400
+
+def test_post_transcription_with_wrong_file_type_but_valid_name(rest_client):
+    """Test the post transcription endpoint"""
+    with open(EXAMPLE_JSON_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": ("sample.wav",audio_file)},
+        )
+        assert response.status_code == 400
+
+def test_post_transcription_with_wrong_sample_rate_file(rest_client):
+    """Test the post transcription endpoint"""
+    with open(EXAMPLE_RESAMPLED_AUDIO_FILE_PATH, "rb") as audio_file:
+        response = rest_client.post(
+            "/transcriptions",
+            headers={"Authorization": EXAMPLE_AUTH_KEY},
+            files={"file": audio_file},
+        )
+        assert response.status_code == 400
 
 def test_post_transcription_align(rest_client):
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:

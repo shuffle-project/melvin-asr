@@ -19,12 +19,12 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydub import AudioSegment
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from src.helper.config import CONFIG, ConfigResponse
 from src.helper.data_handler import DataHandler
 from src.helper.SM4T_translate import check_language_supported_guard
+from src.helper.file_handler import FileHandler
 from src.helper.time_it import time_it
 from src.helper.types.transcription_data import TranscriptionData, TranscriptionFullResponse, TranscriptionListResponse, TranscriptionPostResponse, WebsocketTranscriptResponse
 from src.helper.types.transcription_status import TranscriptionStatus
@@ -32,7 +32,6 @@ from src.helper.types.translation_consts import TranslationPostResults
 
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
-
 
 config = CONFIG
 
@@ -162,6 +161,7 @@ async def post_transcription(
     text: str | None = Form(""),
 ):
     """Transcribe an audio file."""
+
     if language and language not in config["supported_language_codes"]:
         raise HTTPException(
             status_code=400,
@@ -176,10 +176,19 @@ async def post_transcription(
 
     transcription_id = str(uuid.uuid4())
     try:
-        audio = AudioSegment.from_file(file.file)
+        audio, validation_erros = FileHandler.load_into_valid_audiosegment(file)
+        if len(validation_erros) > 0:
+            LOGGER.debug("File upload was rejected due to validation errors.")
+            raise HTTPException(
+                status_code=400,
+                detail=validation_erros,
+            )
         result = DATA_HANDLER.save_audio_file(audio, transcription_id)
         if not result["success"]:
-            raise HTTPException(status_code=400, detail=result["message"])
+            # If file could not be saved something is very wrong
+            raise Exception(result["message"])
+    except HTTPException as e:
+        raise e
     except Exception as e:
         LOGGER.error(f"Audio processing error: {e}")
         raise HTTPException(status_code=500, detail="Something went wrong")
