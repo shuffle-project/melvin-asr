@@ -1,9 +1,13 @@
 import time
 from unittest.mock import Mock, patch
+from fastapi import WebSocketDisconnect
+from pytest import raises
 
 from fastapi.testclient import TestClient
+from faster_whisper.transcribe import json
 from pydub import AudioSegment
 
+from src.helper.config import CONFIG
 from src.helper.test.segment_test_data import SEGMENTS_SAMPLE, TRANSCRIPTION_INFO_SAMPLE
 from src.websocket.websockets_server import WebSocketServer, app
 
@@ -95,6 +99,12 @@ def read_wav_file_into_chunks(file_path, chunk_duration=1000):
         chunks.append(audio[i : i + chunk_duration].raw_data)
     return chunks
 
+def authenticate_websocket(websocket):
+    websocket.send_text(json.dumps({"Authorization": CONFIG["api_keys"][-1]}))
+
+def validate_websocket_is_closed(websocket):
+    with raises(WebSocketDisconnect):
+        websocket.receive_json()
 
 # Test Initialization
 def test_websocket_server_initialization():
@@ -111,11 +121,30 @@ def test_websocket_server_transcribers(mock_for_cpu):
     )
     assert server.cpu_transcriber is not None
 
+def test_invalid_apikey_auth_should_fail():
+    client = TestClient(app)
+
+    with client.websocket_connect("/") as websocket:
+        websocket.send_text(json.dumps({"Authorization":"invalid"}))
+        response = websocket.receive_text()
+        assert response == "Provided api key is invalid"
+        validate_websocket_is_closed(websocket)
+
+def test_invalid_data_auth_should_fail():
+    client = TestClient(app)
+
+    with client.websocket_connect("/") as websocket:
+        # send non text auth
+        websocket.send_bytes(bytes(123))
+        response = websocket.receive_text()
+        assert response == "Initial message was not text and therefore did not match the expected auth format"
+        validate_websocket_is_closed(websocket)
 
 def test_start_stream_and_response_to_text():
     client = TestClient(app)
 
     with client.websocket_connect("/") as websocket:
+        authenticate_websocket(websocket)
         websocket.send_text("Hello")
         response = websocket.receive_text()
         assert response == "control message unknown"
@@ -124,6 +153,8 @@ def test_start_stream_and_response_to_text():
 def test_send_eof_and_expect_connection_close():
     client = TestClient(app)
     with client.websocket_connect("/") as websocket:
+        authenticate_websocket(websocket)
+
         websocket.send_text("eof")
         try:
             response = websocket.receive_text()
@@ -147,7 +178,9 @@ def test_start_stream_and_response_to_audio_bytes(mock_spock):
 
     audio_data = read_wav_file_into_chunks(EXAMPLE_WAV_FILE)
     assert len(audio_data) > 0
+
     with client.websocket_connect("/") as websocket:
+        authenticate_websocket(websocket)
         messages = []
         # just walk away when all audio data was send
         # eof test is above
@@ -195,6 +228,7 @@ def test_eof_for_stream_returns_id(mock_spock):
     audio_data = read_wav_file_into_chunks(EXAMPLE_WAV_FILE)[:5]
     assert len(audio_data) > 0
     with client.websocket_connect("/") as websocket:
+        authenticate_websocket(websocket)
         messages = []
         while time.time() - start_time < TEST_TIMEOUT_SECONDS and not eof_sent:
             try:
