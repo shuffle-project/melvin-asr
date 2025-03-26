@@ -27,6 +27,7 @@ class Transcriber:
         #   device_index: 0
         #   num_workers: 1
         #   cpu_threads: 4
+        #   transcription_mode: default
 
         self.device = config.get("device", "cpu")
 
@@ -41,6 +42,8 @@ class Transcriber:
         self.num_workers = config.get("num_workers", 1)
 
         self.cpu_threads = config.get("cpu_threads", 4)
+
+        self.transcription_mode = config.get("transcription_mode", "default")
 
         # Avoiding Compute Type mismatch
         if (
@@ -116,11 +119,15 @@ class Transcriber:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
 
-        batched_model = BatchedInferencePipeline(model=model)
-        # transcribe_stable is deprecated
-        segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
+        if self.transcription_mode == "default":
+            print("Using default settings")
+            segments, _ = model.transcribe(audio, **settings)
 
-        # result = model.transcribe(audio, **settings)
+        elif self.transcription_mode == "batched":
+            print("Using batched settings")
+            batched_model = BatchedInferencePipeline(model=model)
+            segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
+
         result = {"segments": segments}
         # TODO: Maybe aligning the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
         data = parse_stable_whisper_result(result)
