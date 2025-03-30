@@ -277,13 +277,12 @@ async def get_stream_audio_export(transcription_id: str):
     response_model=TranslationPostResults,
 )
 async def translate(
-    target_language: str,
     transcription: TranslationPostData = Body(...),
 ):
     """Translate text to a target language."""
 
     # Raise Bad Request if Language is not supported
-    check_language_supported_guard(target_language)
+    check_language_supported_guard(transcription["target_language"])
     check_language_supported_guard(transcription["language"])
 
     if not transcription["transcript"]["text"]:

@@ -3,13 +3,16 @@
 import os
 from typing import List, Literal
 
-from pydantic import BaseModel
 import yaml
 from faster_whisper.tokenizer import _LANGUAGE_CODES
+from pydantic import BaseModel
 
-WhisperModels = Literal["tiny", "small", "medium", "large", "large-v3", "large-v3-turbo"]
+WhisperModels = Literal[
+    "tiny", "small", "medium", "large", "large-v3", "large-v3-turbo"
+]
 ComputeTypes = Literal["int8", "float16", "int8_float16"]
 LanguageCode = Literal[*list(_LANGUAGE_CODES)]
+
 
 class RestRunnerConfigResponse(BaseModel):
     device: str
@@ -22,21 +25,24 @@ class RestRunnerConfigResponse(BaseModel):
     translation_enabled: bool
     translation_model: str
     translation_device: str
-    translation_method: str 
+
 
 class WebsocketStreamDeviceConfigResponse(BaseModel):
-      active: bool
-      model: WhisperModels
-      device_index: int
-      worker_seats: int
+    active: bool
+    model: WhisperModels
+    device_index: int
+    worker_seats: int
+
 
 class WebsocketStreamConfigResponse(BaseModel):
     cpu: WebsocketStreamDeviceConfigResponse
     cuda: WebsocketStreamDeviceConfigResponse
 
+
 class TranscriptionDefaultConfigResponse(BaseModel):
     vad_filter: bool
     condition_on_previous_text: bool
+
 
 class ConfigResponse(BaseModel):
     # Essential Configuration, these are required in config.yml
