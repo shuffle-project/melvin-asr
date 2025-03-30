@@ -8,11 +8,13 @@ from src.helper.types.transcription_status import TranscriptionStatus
 
 Tasks = Literal["transcribe", "align", "force-align"]
 
+
 class Word(TypedDict):
     text: str
     start: float
     end: float
     probability: float
+
 
 class Segment(TypedDict):
     text: str
@@ -20,9 +22,11 @@ class Segment(TypedDict):
     end: float
     words: List[Word]
 
+
 class Transcript(TypedDict):
     text: str
     segments: List[Segment]
+
 
 class TranscriptionData(TypedDict):
     transcription_id: str
@@ -34,17 +38,21 @@ class TranscriptionData(TypedDict):
     language: str
     transcript: Transcript
 
+
 class WebsocketTranscriptResponse(BaseModel):
     result: List[Word]
     text: str
+
 
 class TranscriptionListResponse(BaseModel):
     transcription_id: str
     status: TranscriptionStatus
 
+
 class TranscriptionTranscriptResponse(BaseModel):
     text: str
     segments: List[Segment]
+
 
 class TranscriptionFullResponse(BaseModel):
     transcription_id: str
@@ -57,6 +65,7 @@ class TranscriptionFullResponse(BaseModel):
     language: str
     transcript: TranscriptionTranscriptResponse
 
+
 class TranscriptionPostResponse(BaseModel):
     transcription_id: str
     status: TranscriptionStatus
@@ -68,3 +77,15 @@ class TranscriptionPostResponse(BaseModel):
     language: str
 
 
+class TranslationPostData(TypedDict):
+    transcription_id: str
+    language: str
+    target_language: str
+    method: str
+    transcript: Transcript
+
+
+class TranslationResponse(TypedDict):
+    transcription_id: str
+    language: str
+    transcript: Transcript

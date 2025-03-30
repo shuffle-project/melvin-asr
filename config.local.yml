@@ -75,4 +75,3 @@ rest_runner:
     translation_enabled: True
     translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large
     translation_device: cpu # cpu | cuda
-    translation_method: segmented # segmented | full
