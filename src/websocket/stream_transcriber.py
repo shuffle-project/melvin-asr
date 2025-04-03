@@ -1,12 +1,12 @@
 """Module to handle the transcription process"""
 
 import io
-from typing import Iterable, Tuple
+from typing import Iterable
 import wave
 
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 from faster_whisper.utils import logging
-from faster_whisper.transcribe import TranscriptionInfo, Segment
+from faster_whisper.transcribe import Segment
 
 from src.helper.model_handler import ModelHandler
 from src.helper.transcription_settings import TranscriptionSettings
