@@ -1,12 +1,13 @@
 """Module to handle the transcription process"""
 
 import logging
+from dataclasses import asdict
 
 from src.helper.forced_alignment import align_ground_truth
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from src.helper.model_handler import ModelHandler
-from src.helper.segment_info_parser import parse_stable_whisper_result
+from src.helper.segment_info_parser import parse_segment_list
 from src.helper.time_it import time_it
 from src.helper.transcription_settings import TranscriptionSettings
 
@@ -119,18 +120,19 @@ class Transcriber:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
 
+        segments = []
+
         if self.transcription_mode == "default":
-            print("Using default settings")
-            segments, _ = model.transcribe(audio, **settings)
+            res = model.transcribe(audio, **settings)
+            segments = [s.to_dict() for s in res.segments]
 
         elif self.transcription_mode == "batched":
-            print("Using batched settings")
             batched_model = BatchedInferencePipeline(model=model)
             segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
+            segments = [asdict(s) for s in segments]
 
-        result = {"segments": segments}
         # TODO: Maybe aligning the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
-        data = parse_stable_whisper_result(result)
+        data = parse_segment_list(segments)
         return data
 
     @time_it
@@ -141,8 +143,8 @@ class Transcriber:
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result = align_ground_truth(self.model, text, audio_file_path)
-            data = parse_stable_whisper_result({"segments": result}
-            )
+            data = parse_segment_list({"segments": result}
+                                      )
 
             return {
                 "success": True,
@@ -168,7 +170,7 @@ class Transcriber:
                     language=language, 
                     verbose=None,
                 )
-                data = parse_stable_whisper_result({"segments": result.segments_to_dicts()})
+                data = parse_segment_list(result.segments_to_dicts())
 
                 return {
                     "success": True,
