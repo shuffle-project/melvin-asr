@@ -170,7 +170,7 @@ def test_send_eof_and_expect_connection_close():
 
 @patch(
     "src.websocket.stream_transcriber.Transcriber._transcribe",
-    return_value=TRANSCRIPTION_MOCK_TUPLE,
+    return_value=TRANSCRIPTION_MOCK_TUPLE[0],
 )
 def test_start_stream_and_response_to_audio_bytes(mock_spock):
     start_time = time.time()
@@ -216,7 +216,7 @@ def test_start_stream_and_response_to_audio_bytes(mock_spock):
 
 @patch(
     "src.websocket.stream_transcriber.Transcriber._transcribe",
-    return_value=TRANSCRIPTION_MOCK_TUPLE,
+    return_value=TRANSCRIPTION_MOCK_TUPLE[0],
 )
 def test_eof_for_stream_returns_id(mock_spock):
     start_time = time.time()
