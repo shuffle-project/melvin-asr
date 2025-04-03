@@ -36,6 +36,7 @@ websocket_stream:
     cpu_threads: 4
     # Number of streams that can be processed in parallel by the CPU
     worker_seats: 1
+    transcription_mode: default # default | batched
 
   cuda:
     active: False
@@ -45,9 +46,8 @@ websocket_stream:
     device_index: 0
     # Number of streams that can be processed in parallel by the GPU
     worker_seats: 1
-
-  transcription_mode: default # default | batched
-
+    transcription_mode: default # default | batched
+  
 rest_runner:
   # device: "cpu" or "cuda"
   - device: cpu
@@ -77,5 +77,5 @@ rest_runner:
     # Translation stuff
     translation_enabled: True
     translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large
-    translation_device: cuda # cpu | cuda
+    translation_device: cpu # cpu | cuda
     translation_method: segmented # segmented | full

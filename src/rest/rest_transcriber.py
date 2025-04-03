@@ -143,8 +143,7 @@ class Transcriber:
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result = align_ground_truth(self.model, text, audio_file_path)
-            data = parse_segment_list({"segments": result}
-                                      )
+            data = parse_segment_list({"segments": result})
 
             return {
                 "success": True,

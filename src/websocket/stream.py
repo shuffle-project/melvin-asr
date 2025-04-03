@@ -218,7 +218,7 @@ class Stream:
             self.bytes_received_since_last_transcription = 0
 
             # Pass the chunk to the transcriber
-            segments, _ = self.transcriber._transcribe(
+            segments = self.transcriber._transcribe(
                 window_content,
             )
 
