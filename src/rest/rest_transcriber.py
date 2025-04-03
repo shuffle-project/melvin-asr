@@ -124,7 +124,7 @@ class Transcriber:
 
         if self.transcription_mode == "default":
             res = model.transcribe(audio, **settings)
-            segments = [s.to_dict() for s in res.segments]
+            segments = res.segments_to_dicts()
 
         elif self.transcription_mode == "batched":
             batched_model = BatchedInferencePipeline(model=model)

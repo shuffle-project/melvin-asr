@@ -1,5 +1,6 @@
 """This File contains tests for the parser functions."""
 
+from dataclasses import asdict
 import pytest
 from faster_whisper.transcribe import (
     TranscriptionInfo,
@@ -7,6 +8,7 @@ from faster_whisper.transcribe import (
 )
 
 from src.helper.segment_info_parser import (
+    parse_segment_list,
     parse_segment_words_to_dict,
     parse_segments_and_info_to_dict,
     parse_transcription_info_to_dict,
@@ -84,7 +86,6 @@ def test_parse_segment_words_to_dict_not_string():
     ]
     assert parse_segment_words_to_dict(words_array) == expected_word_dict
 
-
 def test_parse_transcription_info_to_dict_with_empty_options():
     """Tests the parse_transcription_info_to_dict function with empty lists for options."""
     mock_info = TranscriptionInfo(
@@ -107,6 +108,34 @@ def test_parse_transcription_info_to_dict_with_empty_options():
     }
 
     assert parse_transcription_info_to_dict(mock_info) == expected_info_dict
+
+def test_parse_segment_list():
+    """Tests the parse_segment_words_to_dict function with non-string word."""
+    segments_list = [asdict(s) for s in SEGMENTS_SAMPLE]
+
+    expected_full_text = "Hello worldThis is a test"
+
+    res = parse_segment_list(segments_list)
+
+    assert  res["text"] == expected_full_text
+
+    actual_segments = res["segments"]
+
+    segment_pointer = 0
+    word_pointer = 0
+    for word in "Hello world This is a test".split():
+        # Test if values have been reassigned correctly
+        expected = {
+            "text": word,
+            "start": actual_segments[segment_pointer]["words"][word_pointer]["start"],
+            "end": actual_segments[segment_pointer]["words"][word_pointer]["end"],
+            "probability": actual_segments[segment_pointer]["words"][word_pointer]["probability"],
+        }
+        assert actual_segments[segment_pointer]["words"][word_pointer] == expected
+        word_pointer += 1
+        if word_pointer == len(actual_segments[segment_pointer]["words"]):
+            segment_pointer += 1
+            word_pointer = 0
 
 
 if __name__ == "__main__":
