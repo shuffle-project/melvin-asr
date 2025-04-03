@@ -50,7 +50,7 @@ websocket_stream:
   
 rest_runner:
   # device: "cpu" or "cuda"
-  - device: cpu
+  - device: cuda
     transcription_enabled: True
     # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
     models:
@@ -77,5 +77,5 @@ rest_runner:
     # Translation stuff
     translation_enabled: True
     translation_model: facebook/seamless-m4t-v2-large # facebook/seamless-m4t-v2-large
-    translation_device: cpu # cpu | cuda
+    translation_device: cuda # cpu | cuda
     translation_method: segmented # segmented | full
