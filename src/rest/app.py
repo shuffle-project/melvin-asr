@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -270,6 +271,13 @@ async def get_stream_audio_export(transcription_id: str):
     )
 
 
+with open(
+    os.path.join(os.getcwd(), "src", "helper", "test_base", "example_translation.json"),
+    "r",
+) as file:
+    example_request = json.load(file)
+
+
 @time_it
 @app.post(
     "/translate",
@@ -277,7 +285,7 @@ async def get_stream_audio_export(transcription_id: str):
     response_model=TranslationPostResults,
 )
 async def translate(
-    transcription: TranslationPostData = Body(...),
+    transcription: TranslationPostData = Body(..., example=example_request),
 ):
     """Translate text to a target language."""
 
@@ -294,6 +302,9 @@ async def translate(
     transcription["transcription_id"] = transcription_id
     transcription["task"] = "translate"
     transcription["status"] = TranscriptionStatus.IN_QUERY.value
+    transcription["start_time"] = (
+        datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    )
     DATA_HANDLER.write_status_file(transcription_id, transcription)
 
     return JSONResponse(content={"id": transcription_id}, status_code=200)

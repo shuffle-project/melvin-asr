@@ -78,7 +78,6 @@ class TranscriptionPostResponse(BaseModel):
 
 
 class TranslationPostData(TypedDict):
-    transcription_id: str
     language: str
     target_language: str
     method: str
@@ -88,4 +87,7 @@ class TranslationPostData(TypedDict):
 class TranslationResponse(TypedDict):
     transcription_id: str
     language: str
+    start_time: str
+    end_time: str
+    status: TranscriptionStatus
     transcript: Transcript
