@@ -320,7 +320,7 @@ def test_translation_with_unsupported_target_language(rest_client):
     response = rest_client.post(
         "/translate",
         headers={"Authorization": EXAMPLE_AUTH_KEY},
-        json=EXAMPLE_TRANSCRIPT,
+        json=invalid_payload,
     )
     assert response.status_code == 400
 
