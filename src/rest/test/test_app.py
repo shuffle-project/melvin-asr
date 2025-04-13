@@ -347,3 +347,28 @@ def test_fail_translate_with_nsupported_original_language(rest_client):
         json=invalid_payload,
     )
     assert response.status_code == 400
+
+
+def test_using_default_translation_method(rest_client):
+    """Test the translation endpoint with a working translation"""
+    invalid_payload = EXAMPLE_TRANSCRIPT.copy()
+    invalid_payload["method"] = "default"
+
+    response = rest_client.post(
+        "/translate",
+        headers={"Authorization": EXAMPLE_AUTH_KEY},
+        json=invalid_payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["id"] is not None
+
+    # Fetch the saved translation settings
+    get_response = rest_client.get(
+        f"/translate/{transcription_id}",
+        headers={"Authorization": EXAMPLE_AUTH_KEY},
+    )
+
+    assert get_response.status_code == 200
+    data = get_response.json()
+
+    assert data["method"] == CONFIG["translation_default_method"]

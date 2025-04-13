@@ -113,8 +113,6 @@ class Runner:
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
         self.log.debug("translating: " + task_id)
-        if transcription["method"] is None:
-            transcription["method"] = "segmented"  # Defaulting
 
         if transcription["method"] == "full":
             translated_text = self.translator.translate_text(

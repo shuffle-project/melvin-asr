@@ -299,6 +299,8 @@ async def translate(
             detail="No text provided in the transcription data to translate.",
         )
     transcription_id = str(uuid.uuid4())
+    if transcription["method"] not in {"segmented", "full"}:
+        transcription["method"] = config["translation_default_method"]
     transcription["transcription_id"] = transcription_id
     transcription["task"] = "translate"
     transcription["status"] = TranscriptionStatus.IN_QUERY.value
