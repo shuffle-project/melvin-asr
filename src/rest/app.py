@@ -38,6 +38,7 @@ from src.helper.types.transcription_data import (
 )
 from src.helper.types.transcription_status import TranscriptionStatus
 from src.helper.types.translation_consts import TranslationPostResults
+from src.helper.util import load_example_translation
 
 LOGGER = logging.getLogger(__name__)
 DATA_HANDLER = DataHandler()
@@ -271,13 +272,6 @@ async def get_stream_audio_export(transcription_id: str):
     )
 
 
-with open(
-    os.path.join(os.getcwd(), "src", "helper", "test_base", "example_translation.json"),
-    "r",
-) as file:
-    example_request = json.load(file)
-
-
 @time_it
 @app.post(
     "/translate",
@@ -285,7 +279,7 @@ with open(
     response_model=TranslationPostResults,
 )
 async def translate(
-    transcription: TranslationPostData = Body(..., example=example_request),
+    transcription: TranslationPostData = Body(..., example=load_example_translation()),
 ):
     """Translate text to a target language."""
 

@@ -77,7 +77,7 @@ class TranscriptionPostResponse(BaseModel):
     language: str
 
 
-class TranslationPostData(TypedDict):
+class TranslationPostData(BaseModel):
     language: str
     target_language: str
     method: str
