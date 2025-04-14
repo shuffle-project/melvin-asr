@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel
 from typing_extensions import TypedDict
@@ -8,11 +8,13 @@ from src.helper.types.transcription_status import TranscriptionStatus
 
 Tasks = Literal["transcribe", "align", "force-align"]
 
+
 class Word(TypedDict):
     text: str
     start: float
     end: float
     probability: float
+
 
 class Segment(TypedDict):
     text: str
@@ -20,9 +22,11 @@ class Segment(TypedDict):
     end: float
     words: List[Word]
 
+
 class Transcript(TypedDict):
     text: str
     segments: List[Segment]
+
 
 class TranscriptionData(TypedDict):
     transcription_id: str
@@ -34,17 +38,21 @@ class TranscriptionData(TypedDict):
     language: str
     transcript: Transcript
 
+
 class WebsocketTranscriptResponse(BaseModel):
     result: List[Word]
     text: str
+
 
 class TranscriptionListResponse(BaseModel):
     transcription_id: str
     status: TranscriptionStatus
 
+
 class TranscriptionTranscriptResponse(BaseModel):
     text: str
     segments: List[Segment]
+
 
 class TranscriptionFullResponse(BaseModel):
     transcription_id: str
@@ -57,6 +65,7 @@ class TranscriptionFullResponse(BaseModel):
     language: str
     transcript: TranscriptionTranscriptResponse
 
+
 class TranscriptionPostResponse(BaseModel):
     transcription_id: str
     status: TranscriptionStatus
@@ -68,3 +77,21 @@ class TranscriptionPostResponse(BaseModel):
     language: str
 
 
+class TranslationPostData(BaseModel):
+    language: str
+    target_language: str
+    method: Optional[str] = None
+    transcript: Transcript
+    transcription_id: Optional[str] = None
+    task: Optional[Tasks] = None
+    status: Optional[TranscriptionStatus] = None
+    start_time: Optional[str] = None
+
+
+class TranslationResponse(TypedDict):
+    transcription_id: str
+    language: str
+    start_time: str
+    end_time: str
+    status: TranscriptionStatus
+    transcript: Transcript

@@ -27,7 +27,7 @@ EXAMPLE_AUTH_KEY = CONFIG["api_keys"][0]
 DATA_HANDLER = DataHandler()
 
 EXAMPLE_TRANSCRIPT_PATH = os.path.join(
-    os.getcwd(), "src", "helper", "test_base", "example.json"
+    os.getcwd(), "src", "helper", "test_base", "example_translation.json"
 )
 
 EXAMPLE_TRANSCRIPT = json.load(open(EXAMPLE_TRANSCRIPT_PATH, "r"))
@@ -38,6 +38,7 @@ def rest_client():
     """Create a FastAPI test client using TestClient"""
     client = TestClient(app)
     yield client
+
 
 @pytest.fixture
 def transcription_id(rest_client):
@@ -50,6 +51,7 @@ def transcription_id(rest_client):
         )
     response_dict = response.json()
     return response_dict["transcription_id"]
+
 
 def check_post_transcription_response(response):
     response_dict = response.json()
@@ -65,6 +67,7 @@ def check_post_transcription_response(response):
         is not None
     )
 
+
 def check_transcription_with_model(rest_client, model: str):
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
@@ -76,6 +79,7 @@ def check_transcription_with_model(rest_client, model: str):
     check_post_transcription_response(response)
 
     assert response.json()["model"] == model
+
 
 def test_health_check(rest_client):
     """Test the health check endpoint"""
@@ -109,10 +113,12 @@ def test_post_transcription(rest_client):
         )
     check_post_transcription_response(response)
 
+
 def test_post_transcription_with_different_supported_models(rest_client):
     """Test the post transcription endpoint with different models -> does model loading work"""
     check_transcription_with_model(rest_client, CONFIG["rest_runner"][0]["models"][0])
     check_transcription_with_model(rest_client, CONFIG["rest_runner"][0]["models"][1])
+
 
 def test_post_transcription_without_file(rest_client):
     """Test the post transcription endpoint without a file"""
@@ -120,6 +126,7 @@ def test_post_transcription_without_file(rest_client):
         "/transcriptions", headers={"Authorization": EXAMPLE_AUTH_KEY}
     )
     assert response.status_code == 422
+
 
 def test_post_transcription_with_unconfigured_model(rest_client):
     """Test the post transcription endpoint with a model that has no configured runner"""
@@ -143,6 +150,7 @@ def test_post_transcription_with_wrong_file(rest_client):
         )
     assert response.status_code == 422
 
+
 def test_post_transcription_with_wrong_file_type(rest_client):
     """Test the post transcription endpoint"""
     with open(EXAMPLE_JSON_FILE_PATH, "rb") as audio_file:
@@ -153,15 +161,17 @@ def test_post_transcription_with_wrong_file_type(rest_client):
         )
         assert response.status_code == 400
 
+
 def test_post_transcription_with_wrong_file_type_but_valid_name(rest_client):
     """Test the post transcription endpoint"""
     with open(EXAMPLE_JSON_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
             "/transcriptions",
             headers={"Authorization": EXAMPLE_AUTH_KEY},
-            files={"file": ("sample.wav",audio_file)},
+            files={"file": ("sample.wav", audio_file)},
         )
         assert response.status_code == 400
+
 
 def test_post_transcription_with_wrong_sample_rate_file(rest_client):
     """Test the post transcription endpoint"""
@@ -173,15 +183,20 @@ def test_post_transcription_with_wrong_sample_rate_file(rest_client):
         )
         assert response.status_code == 400
 
+
 def test_post_transcription_align(rest_client):
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
         response = rest_client.post(
             "/transcriptions",
             headers={"Authorization": EXAMPLE_AUTH_KEY},
             files={"file": audio_file},
-            data={"task":"align", "text":"And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'"}
+            data={
+                "task": "align",
+                "text": "And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'",
+            },
         )
     check_post_transcription_response(response)
+
 
 def test_post_transcription_forced_align(rest_client):
     with open(EXAMPLE_AUDIO_FILE_PATH, "rb") as audio_file:
@@ -189,9 +204,13 @@ def test_post_transcription_forced_align(rest_client):
             "/transcriptions",
             headers={"Authorization": EXAMPLE_AUTH_KEY},
             files={"file": audio_file},
-            data={"task":"force-align", "text":"And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'"}
+            data={
+                "task": "force-align",
+                "text": "And so, my fellow Americans: ask not what your country can do for you — ask what you can do for your country.'",
+            },
         )
     check_post_transcription_response(response)
+
 
 def test_post_transcription_align_no_text(rest_client):
     """Test the post transcription endpoint"""
@@ -200,9 +219,10 @@ def test_post_transcription_align_no_text(rest_client):
             "/transcriptions",
             headers={"Authorization": EXAMPLE_AUTH_KEY},
             files={"file": audio_file},
-            data={"task":"align"}
+            data={"task": "align"},
         )
     assert response.status_code == 400
+
 
 def test_get_transcriptions_id(rest_client, transcription_id):
     """Test the get transcription by ID endpoint"""
@@ -293,12 +313,14 @@ def test_post_transc_with_too_many_audio_files_stored_not_including_model(rest_c
     assert response_dict["transcription_id"] is not None
 
 
-def test_translation_with_wrong_language(rest_client):
+def test_translation_with_unsupported_target_language(rest_client):
     """Test the translation endpoint with a wrong language"""
+    invalid_payload = EXAMPLE_TRANSCRIPT.copy()
+    invalid_payload["target_language"] = "wrong"
     response = rest_client.post(
-        "/translate/wrong",
+        "/translate",
         headers={"Authorization": EXAMPLE_AUTH_KEY},
-        json=EXAMPLE_TRANSCRIPT,
+        json=invalid_payload,
     )
     assert response.status_code == 400
 
@@ -306,7 +328,7 @@ def test_translation_with_wrong_language(rest_client):
 def test_working_translation(rest_client):
     """Test the translation endpoint with a working translation"""
     response = rest_client.post(
-        "/translate/de",
+        "/translate",
         headers={"Authorization": EXAMPLE_AUTH_KEY},
         json=EXAMPLE_TRANSCRIPT,
     )
@@ -314,14 +336,42 @@ def test_working_translation(rest_client):
     assert response.json()["id"] is not None
 
 
-def test_fail_translate_with_invalid_original_language(rest_client):
+def test_fail_translate_with_nsupported_original_language(rest_client):
     """Test the translation endpoint with a working translation"""
     invalid_payload = EXAMPLE_TRANSCRIPT.copy()
     invalid_payload["language"] = "wrong"
 
     response = rest_client.post(
-        "/translate/de",
+        "/translate",
         headers={"Authorization": EXAMPLE_AUTH_KEY},
         json=invalid_payload,
     )
     assert response.status_code == 400
+
+
+def test_using_faulty_translations_method(rest_client):
+    """Test the translation endpoint with a working translation"""
+    invalid_payload = EXAMPLE_TRANSCRIPT.copy()
+    invalid_payload["method"] = "default"
+
+    response = rest_client.post(
+        "/translate",
+        headers={"Authorization": EXAMPLE_AUTH_KEY},
+        json=invalid_payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["id"] is not None
+
+
+def test_using_no_translations_method(rest_client):
+    """Test the translation endpoint with a working translation"""
+    invalid_payload = EXAMPLE_TRANSCRIPT.copy()
+    del invalid_payload["method"]
+
+    response = rest_client.post(
+        "/translate",
+        headers={"Authorization": EXAMPLE_AUTH_KEY},
+        json=invalid_payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["id"] is not None

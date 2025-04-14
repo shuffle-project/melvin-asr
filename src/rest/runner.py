@@ -26,7 +26,6 @@ class Runner:
         self.transcriber = (
             Transcriber(config) if config.get("transcription_enabled") else None
         )
-        self.translation_method = config.get("translation_method")
 
         self.log = logger.get_logger_with_id(__name__, identifier)
         self.data_handler = DataHandler()
@@ -114,7 +113,8 @@ class Runner:
             datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         )
         self.log.debug("translating: " + task_id)
-        if self.translation_method == "full":
+
+        if transcription["method"] == "full":
             translated_text = self.translator.translate_text(
                 transcription["transcript"]["text"],
                 transcription["language"],
@@ -125,8 +125,7 @@ class Runner:
             transcription["transcript"] = align_segments(
                 transcription["transcript"], translated_text
             )
-
-        elif self.translation_method == "segmented":
+        elif transcription["method"] == "segmented":
             transcription["transcript"]["text"] = ""
             # next_segment_starting_small = True
             for segment in transcription["transcript"]["segments"]:
@@ -151,7 +150,7 @@ class Runner:
                 segment["words"] = temp_transcript["segments"][0]["words"]
         else:
             raise ValueError(
-                f"Translation method '{self.translation_method}' not supported"
+                f"Translation method {transcription['method']} not supported"
             )
 
         transcription["language"] = transcription["target_language"]
@@ -190,10 +189,11 @@ class Runner:
                     start_time = data.get("start_time")
                     model = data.get("model")
 
-                    if start_time is None or current_status is None:
-                        continue
-
-                    if current_status != TranscriptionStatus.IN_QUERY.value:
+                    if (
+                        start_time is None
+                        or current_status is None
+                        or current_status != TranscriptionStatus.IN_QUERY.value
+                    ):
                         continue
 
                     if (
@@ -224,7 +224,7 @@ class Runner:
             except Exception as e:
                 self.log.error(
                     f"Caught Exception of type {type(e).__name__}"
-                    + f"while getting oldest status file: {str(e)}"
+                    + f" while getting oldest status file: {str(e)}"
                 )
                 transcription_id = filename.split(".")[0]
                 data_handler.delete_status_file(transcription_id)

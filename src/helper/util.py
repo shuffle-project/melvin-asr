@@ -1,6 +1,8 @@
-from contextlib import contextmanager
+import json
 import os
 import sys
+from contextlib import contextmanager
+
 
 @contextmanager
 def disable_tqdm():
@@ -11,3 +13,11 @@ def disable_tqdm():
         yield
     finally:
         sys.stderr = stderr
+
+
+def load_example_translation():
+    path = os.path.join(
+        os.getcwd(), "src", "helper", "test_base", "example_translation.json"
+    )
+    with open(path, "r") as file:
+        return json.load(file)

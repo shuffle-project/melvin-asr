@@ -1,0 +1,150 @@
+{
+  "language": "en",
+  "method": "segmented",
+  "target_language": "de",
+  "transcript": {
+    "text": " And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+    "segments": [
+      {
+        "text": " And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+        "start": 0.0,
+        "end": 10.36,
+        "words": [
+          {
+            "text": " And",
+            "start": 0.0,
+            "end": 0.52,
+            "probability": 0.8055007457733154
+          },
+          {
+            "text": " so,",
+            "start": 0.52,
+            "end": 0.86,
+            "probability": 0.9971357583999634
+          },
+          {
+            "text": " my",
+            "start": 1.08,
+            "end": 1.2,
+            "probability": 0.9989123344421387
+          },
+          {
+            "text": " fellow",
+            "start": 1.2,
+            "end": 1.54,
+            "probability": 0.9994364380836487
+          },
+          {
+            "text": " Americans,",
+            "start": 1.54,
+            "end": 2.1,
+            "probability": 0.988408625125885
+          },
+          {
+            "text": " ask",
+            "start": 3.32,
+            "end": 3.78,
+            "probability": 0.9925883412361145
+          },
+          {
+            "text": " not",
+            "start": 3.78,
+            "end": 4.34,
+            "probability": 0.9911147356033325
+          },
+          {
+            "text": " what",
+            "start": 4.34,
+            "end": 5.56,
+            "probability": 0.9904032945632935
+          },
+          {
+            "text": " your",
+            "start": 5.56,
+            "end": 5.8,
+            "probability": 0.9968758821487427
+          },
+          {
+            "text": " country",
+            "start": 5.8,
+            "end": 6.24,
+            "probability": 0.9995386600494385
+          },
+          {
+            "text": " can",
+            "start": 6.24,
+            "end": 6.62,
+            "probability": 0.9997383952140808
+          },
+          {
+            "text": " do",
+            "start": 6.62,
+            "end": 6.82,
+            "probability": 0.9997807145118713
+          },
+          {
+            "text": " for",
+            "start": 6.82,
+            "end": 7.06,
+            "probability": 0.9996654987335205
+          },
+          {
+            "text": " you,",
+            "start": 7.06,
+            "end": 7.42,
+            "probability": 0.9998328685760498
+          },
+          {
+            "text": " ask",
+            "start": 7.78,
+            "end": 8.52,
+            "probability": 0.9986575841903687
+          },
+          {
+            "text": " what",
+            "start": 8.52,
+            "end": 8.78,
+            "probability": 0.9996857643127441
+          },
+          {
+            "text": " you",
+            "start": 8.78,
+            "end": 9.04,
+            "probability": 0.9985575079917908
+          },
+          {
+            "text": " can",
+            "start": 9.04,
+            "end": 9.34,
+            "probability": 0.9999109506607056
+          },
+          {
+            "text": " do",
+            "start": 9.34,
+            "end": 9.56,
+            "probability": 0.9997203946113586
+          },
+          {
+            "text": " for",
+            "start": 9.56,
+            "end": 9.78,
+            "probability": 0.9997568726539612
+          },
+          {
+            "text": " your",
+            "start": 9.78,
+            "end": 9.96,
+            "probability": 0.9997344613075256
+          },
+          {
+            "text": " country.",
+            "start": 9.96,
+            "end": 10.36,
+            "probability": 0.999894380569458
+          }
+        ]
+      }
+    ]
+  },
+  "end_time": "2025-01-11T22:31:22+00:00"
+}
