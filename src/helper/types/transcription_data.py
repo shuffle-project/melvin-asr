@@ -80,7 +80,7 @@ class TranscriptionPostResponse(BaseModel):
 class TranslationPostData(BaseModel):
     language: str
     target_language: str
-    method: str
+    method: Optional[str] = None
     transcript: Transcript
     transcription_id: Optional[str] = None
     task: Optional[Tasks] = None
