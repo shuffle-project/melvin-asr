@@ -18,7 +18,7 @@ transcription_default:
   vad_filter: True
   condition_on_previous_text: False
 
-translation_default_method: "segmented" # "segmented" | "full"
+translation_default_method: segmented # segmented | full
 
 # Runner Configuration
 # The max. count of runners for rest_runner is 10
