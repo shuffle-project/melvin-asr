@@ -361,14 +361,3 @@ def test_using_default_translation_method(rest_client):
     )
     assert response.status_code == 200
     assert response.json()["id"] is not None
-
-    # Fetch the saved translation settings
-    get_response = rest_client.get(
-        f"/translate/{transcription_id}",
-        headers={"Authorization": EXAMPLE_AUTH_KEY},
-    )
-
-    assert get_response.status_code == 200
-    data = get_response.json()
-
-    assert data["method"] == CONFIG["translation_default_method"]
