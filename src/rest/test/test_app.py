@@ -371,4 +371,4 @@ def test_using_default_translation_method(rest_client):
     assert get_response.status_code == 200
     data = get_response.json()
 
-    assert data["method"] == CONFIG["translation_default_method"]
+    assert data["method"] == CONFIG["rest_runner"][0]["translation_default_method"]
