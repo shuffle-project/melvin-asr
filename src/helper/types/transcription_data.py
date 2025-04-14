@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel
 from typing_extensions import TypedDict
@@ -82,6 +82,10 @@ class TranslationPostData(BaseModel):
     target_language: str
     method: str
     transcript: Transcript
+    transcription_id: Optional[str] = None
+    task: Optional[Tasks] = None
+    status: Optional[TranscriptionStatus] = None
+    start_time: Optional[str] = None
 
 
 class TranslationResponse(TypedDict):

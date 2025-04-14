@@ -283,24 +283,24 @@ async def translate(
     """Translate text to a target language."""
 
     # Raise Bad Request if Language is not supported
-    check_language_supported_guard(transcription["target_language"])
-    check_language_supported_guard(transcription["language"])
+    check_language_supported_guard(transcription.target_language)
+    check_language_supported_guard(transcription.language)
 
-    if not transcription["transcript"]["text"]:
+    if not transcription.transcript["text"]:
         raise HTTPException(
             status_code=400,
             detail="No text provided in the transcription data to translate.",
         )
     transcription_id = str(uuid.uuid4())
-    if transcription["method"] not in {"segmented", "full"}:
-        transcription["method"] = config["translation_default_method"]
-    transcription["transcription_id"] = transcription_id
-    transcription["task"] = "translate"
-    transcription["status"] = TranscriptionStatus.IN_QUERY.value
-    transcription["start_time"] = (
+    if transcription.method not in {"segmented", "full"}:
+        transcription.method = config["translation_default_method"]
+    transcription.transcription_id = transcription_id
+    transcription.task = "translate"
+    transcription.status = TranscriptionStatus.IN_QUERY.value
+    transcription.start_time = (
         datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     )
-    DATA_HANDLER.write_status_file(transcription_id, transcription)
+    DATA_HANDLER.write_status_file(transcription_id, transcription.model_dump_json())
 
     return JSONResponse(content={"id": transcription_id}, status_code=200)
 
