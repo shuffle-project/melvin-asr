@@ -36,6 +36,7 @@ websocket_stream:
     cpu_threads: 4
     # Number of streams that can be processed in parallel by the CPU
     worker_seats: 1
+    transcription_mode: default # default | batched
 
   cuda:
     active: False
@@ -45,7 +46,8 @@ websocket_stream:
     device_index: 0
     # Number of streams that can be processed in parallel by the GPU
     worker_seats: 1
-
+    transcription_mode: default # default | batched
+  
 rest_runner:
   # device: "cpu" or "cuda"
   - device: cuda
@@ -69,6 +71,8 @@ rest_runner:
     # for 64 cores, use 4/8
     # for 32 cores, use 2/4
     cpu_threads: 4
+
+    transcription_mode: default # default | batched
 
     # Translation stuff
     translation_enabled: True

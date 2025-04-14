@@ -34,6 +34,8 @@ websocket_stream:
     # Number of streams that can be processed in parallel by the CPU
     worker_seats: 2
 
+    transcription_mode: default # default | batched
+
   cuda:
     active: False
     # model: tiny, small, medium, large, large-v3, large-v3-turbo (https://huggingface.co/Systran)
@@ -42,6 +44,9 @@ websocket_stream:
     device_index: 0
     # Number of streams that can be processed in parallel by the GPU
     worker_seats: 1
+
+    transcription_mode: default # default | batched
+
 
 rest_runner:
   # device: "cpu" or "cuda"
@@ -63,6 +68,8 @@ rest_runner:
     # for 64 cores, use 4/8
     # for 32 cores, use 2/4
     cpu_threads: 4
+
+    transcription_mode: default # default | batched
 
     # Translation configs
     translation_enabled: True

@@ -1,6 +1,8 @@
 """Function to parse the segment and info results from the faster whisper transcription to dict"""
 
 from dataclasses import asdict
+from typing import List, Dict
+
 
 def parse_segments_and_info_to_dict(segments: tuple, info) -> dict:
     """parses the segments and info to a dictionary"""
@@ -75,14 +77,12 @@ def parse_transcription_segments_to_dict(segment):  # type segment -> [dict]
     return new_segments_array
 
 
-def parse_stable_whisper_result(result) -> dict:
+def parse_segment_list(segment_list: List[Dict]) -> dict:
     """Parses the stable whisper result to a dictionary"""
-    data = result if isinstance(result, dict) else asdict(result)
 
     text = ""
     segments = []
-    for segment in data["segments"]:
-        segment = segment if isinstance(segment, dict) else asdict(segment)
+    for segment in segment_list:
         text += segment["text"]
 
         words = []

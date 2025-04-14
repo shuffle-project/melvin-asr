@@ -1,12 +1,13 @@
 """Module to handle the transcription process"""
 
 import logging
+from dataclasses import asdict
 
 from src.helper.forced_alignment import align_ground_truth
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from src.helper.model_handler import ModelHandler
-from src.helper.segment_info_parser import parse_stable_whisper_result
+from src.helper.segment_info_parser import parse_segment_list
 from src.helper.time_it import time_it
 from src.helper.transcription_settings import TranscriptionSettings
 
@@ -27,6 +28,7 @@ class Transcriber:
         #   device_index: 0
         #   num_workers: 1
         #   cpu_threads: 4
+        #   transcription_mode: default
 
         self.device = config.get("device", "cpu")
 
@@ -41,6 +43,8 @@ class Transcriber:
         self.num_workers = config.get("num_workers", 1)
 
         self.cpu_threads = config.get("cpu_threads", 4)
+
+        self.transcription_mode = config.get("transcription_mode", "default")
 
         # Avoiding Compute Type mismatch
         if (
@@ -116,14 +120,19 @@ class Transcriber:
         """Function to transcribe with settings"""
         settings = TranscriptionSettings().get_and_update_settings(settings)
 
-        batched_model = BatchedInferencePipeline(model=model)
-        # transcribe_stable is deprecated
-        segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
+        segments = []
 
-        # result = model.transcribe(audio, **settings)
-        result = {"segments": segments}
+        if self.transcription_mode == "default":
+            res = model.transcribe(audio, **settings)
+            segments = res.segments_to_dicts()
+
+        elif self.transcription_mode == "batched":
+            batched_model = BatchedInferencePipeline(model=model)
+            segments, _ = batched_model.transcribe(audio, batch_size=16, **settings)
+            segments = [asdict(s) for s in segments]
+
         # TODO: Maybe aligning the result can give us the same quality of results that transcribe_stable would have given us. This can be validated with rest benchmarks
-        data = parse_stable_whisper_result(result)
+        data = parse_segment_list(segments)
         return data
 
     @time_it
@@ -134,8 +143,7 @@ class Transcriber:
         try:
             LOGGER.info("Align transcript for file: " + str(audio_file_path))
             result = align_ground_truth(self.model, text, audio_file_path)
-            data = parse_stable_whisper_result({"segments": result}
-            )
+            data = parse_segment_list({"segments": result})
 
             return {
                 "success": True,
@@ -161,7 +169,7 @@ class Transcriber:
                     language=language, 
                     verbose=None,
                 )
-                data = parse_stable_whisper_result({"segments": result.segments_to_dicts()})
+                data = parse_segment_list(result.segments_to_dicts())
 
                 return {
                     "success": True,

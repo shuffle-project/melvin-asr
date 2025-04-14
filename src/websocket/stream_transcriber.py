@@ -1,12 +1,12 @@
 """Module to handle the transcription process"""
 
 import io
-from typing import Iterable, Tuple
+from typing import Iterable
 import wave
 
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 from faster_whisper.utils import logging
-from faster_whisper.transcribe import TranscriptionInfo, Segment
+from faster_whisper.transcribe import Segment
 
 from src.helper.model_handler import ModelHandler
 from src.helper.transcription_settings import TranscriptionSettings
@@ -23,6 +23,7 @@ class Transcriber:
         device_index: list,
         cpu_threads: int,
         num_workers: int,
+        mode: str = "default",
     ):
         """
         This class converts audio to text. You should use it by initializing a Transcriber once and then pass it to all streams that you want to transcribe at.
@@ -34,6 +35,7 @@ class Transcriber:
             compute_type: Quantization of the Whisper model
             cpu_threads: Number of threads to use when running on CPU (4 by default)
             num_workers: Having multiple workers enables true parallelism when running the model
+            should_use_batched: Should use batched inference pipeline
         """
 
         self._log = LOGGER
@@ -44,7 +46,11 @@ class Transcriber:
         self._cpu_threads = cpu_threads
         self._num_workers = num_workers
         self._model: WhisperModel = self._load_model()
-        self._batched_model = BatchedInferencePipeline(model=self._model)
+        self.should_use_batched = mode == "batched"
+        self._batched_model = None
+        if self.should_use_batched:
+            self._log.info("Stream transcriber using batched inference pipeline")
+            self._batched_model = BatchedInferencePipeline(model=self._model)
 
     @classmethod
     def for_gpu(cls, model_name: str, device_index: list):
@@ -85,7 +91,7 @@ class Transcriber:
         self,
         audio_chunk: bytes,
         prompt: str = "",
-    ) -> Tuple[Iterable[Segment], TranscriptionInfo]:
+    ) -> Iterable[Segment]:
         """Function to run the transcription process"""
         sample_rate = 16000
         num_channels = 1
@@ -101,4 +107,6 @@ class Transcriber:
             settings = TranscriptionSettings().get_and_update_settings(
                 {"initial_prompt": prompt}
             )
-            return self._batched_model.transcribe(wav_io, batch_size=16, **settings)
+            if self.should_use_batched:
+                return self._batched_model.transcribe(wav_io, batch_size=16, **settings)[0]
+            return self._model.transcribe(wav_io, **settings)[0]
