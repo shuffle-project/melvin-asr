@@ -132,6 +132,7 @@ def read_config(config_yml_path: str) -> dict:
         ),
         # Transcription default Configuration
         "transcription_default": get_config("transcription_default"),
+        "translation_default_method": get_config("translation_default_method"),
         "supported_language_codes": list(_LANGUAGE_CODES),
     }
 

@@ -18,6 +18,8 @@ transcription_default:
   vad_filter: True
   condition_on_previous_text: False
 
+translation_default_method: "segmented" # "segmented" | "full"
+
 # Runner Configuration
 # The max. count of runners for rest_runner is 10
 # The max. count of runners for stream_runner is 1
@@ -47,7 +49,7 @@ websocket_stream:
     # Number of streams that can be processed in parallel by the GPU
     worker_seats: 1
     transcription_mode: default # default | batched
-  
+
 rest_runner:
   # device: "cpu" or "cuda"
   - device: cuda
