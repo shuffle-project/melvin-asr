@@ -300,7 +300,7 @@ async def translate(
     transcription.start_time = (
         datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     )
-    DATA_HANDLER.write_status_file(transcription_id, transcription.model_dump_json())
+    DATA_HANDLER.write_status_file(transcription_id, transcription.model_dump())
 
     return JSONResponse(content={"id": transcription_id}, status_code=200)
 
