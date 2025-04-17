@@ -23,23 +23,23 @@ class FileHandler:
         audio: AudioSegment | None = None
         # If this is none we will just assume it is okay...
         # There should (tm) be no way for this to be none
-        if file.filename is not None:
-            if not file.filename.endswith('.wav'):
-                return (None, ["Uploaded audio file should be of type wav"])
+        # if file.filename is not None:
+        #     if not file.filename.endswith('.wav'):
+        #         return (None, ["Uploaded audio file should be of type wav"])
         try:
             # Load audio using pydub
-            loaded_audio = AudioSegment.from_file(file.file, format="wav")
+            loaded_audio = AudioSegment.from_file(file.file)
 
-            # Check sample rate
-            if loaded_audio.frame_rate != 16000:
-                errors.append("Invalid sample rate. Must be 16 kHz.")
+            # # Check sample rate
+            # if loaded_audio.frame_rate != 16000:
+            #     errors.append("Invalid sample rate. Must be 16 kHz.")
 
             if loaded_audio.duration_seconds > MAX_AUDIO_LENGTH:
                 errors.append(f"Maximum allowed audio length exceeded. Max audio length is at {MAX_AUDIO_LENGTH} seconds.")
 
             audio = loaded_audio
         except CouldntDecodeError:
-            errors.append("Could not decode file using ffmpeg. This is an indicator that the uploaded file is corrupted.")
+            errors.append("Could not decode file using pydub. This is an indicator that the uploaded file is corrupted or not supported.")
         except Exception as e:
             raise e
         return (audio, errors)
