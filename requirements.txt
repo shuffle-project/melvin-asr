@@ -1,25 +1,13 @@
 faster-whisper==1.1.1
-python-dotenv==1.0.1
 pydub==0.25.1
-pytest==8.3.4
-pytest-asyncio==0.25.3 
-pytest-cov==6.0.0
 websockets==15.0.1
-SpeechRecognition==3.10.1
-stable_ts_whisperless==2.18.3
-ruff==0.9.9
-numpy<2
+stable_ts_whisperless==2.19.0
 ctranslate2==4.4.0 # 4.4 runs cuda 12 and cudnn 8 but installing cuda via torch requires cu12 and cnn9
-fastapi==0.115.11
-python-multipart==0.0.20 # required by our usecase with file uploads
-httpx==0.28.1 # required by starlette.testclient (FastAPI)
-uvicorn==0.34.0
-nltk==3.9.1 
-
-# Translations
-transformers==4.49.0
-sentencepiece==0.2.0
-langchain==0.3.19
-torch==2.5.1
-
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic==2.11.4
+python-multipart==0.0.20
+transformers==4.51.3
+torch==2.7.0
 tqdm==4.67.1
+sentencepiece==0.2.0

@@ -15,19 +15,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && python3 -m pip install --upgrade pip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 8394
-EXPOSE 8393
+EXPOSE 8000
 
-WORKDIR /asr
+WORKDIR /melvin-asr/app
 
 COPY ./requirements.txt ./requirements.txt
 
 RUN python3.11 -m pip install --no-cache-dir -r ./requirements.txt
 
-COPY ./src ./src
-COPY ./app.py ./app.py
+COPY ./melvin-asr .
 
 ENV TQDM_DISABLE=1
 
 # Set unbuffered output for Python, facilitating real-time log output
-CMD ["python3.11", "-u", "app.py"]
+CMD ["python3.11", "-u", "main.py"]

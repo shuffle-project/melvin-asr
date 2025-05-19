@@ -1,0 +1,100 @@
+from datetime import datetime
+from enum import Enum
+from typing import Annotated, Literal, Optional, Union
+from uuid import UUID
+
+from pydantic import BaseModel, Field
+
+from .transcript import Transcript
+
+
+class JobStatus(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class JobType(str, Enum):
+    TRANSCRIPTION = "transcription"
+    TRANSLATION = "translation"
+    ALIGNMENT = "alignment"
+
+class BaseJob(BaseModel):
+    id: UUID
+    job_type: JobType
+    status: JobStatus
+    created_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+# Transcription
+
+class TranscriptionRequest(BaseModel):
+    audio_filename: str = Field(..., description="Filename of a previously uploaded audio file")
+    language: Optional[str] = Field(None, description="Language code for the audio")
+    vad_filter: Optional[bool] = Field(None, description="Enable VAD filter")
+    condition_on_previous_text: Optional[bool] = Field(None, description="Condition on previous text")
+    batched_inference: Optional[bool] = Field(None, description="Enable batched inference")
+    initial_prompt: Optional[str] = Field(None, description="Initial prompt for transcription")
+
+class TranscriptionJob(BaseJob):
+    job_type: Literal[JobType.TRANSCRIPTION] = JobType.TRANSCRIPTION
+    settings: TranscriptionRequest
+
+# Translation
+
+class TranslationRequest(BaseModel):
+    source_language: str = Field(..., description="Language code of the source transcript")
+    target_language: str = Field(..., description="Language code for translated transcript")
+    transcript: Transcript = Field(..., description="Transcript object containing the text to be translated")
+
+class TranslationJob(BaseJob):
+    job_type: Literal[JobType.TRANSLATION] = JobType.TRANSLATION
+    settings: TranslationRequest
+
+# Alignment
+
+class AlignmentMethod(Enum):
+    BY_AUDIO = "by_audio"
+    BY_TRANSCRIPT = "by_transcript"
+    BY_TIME = "by_time"
+
+class AlignmentBaseRequest(BaseModel):
+    method: AlignmentMethod = Field(..., description="Method for alignment")
+    transcript: Transcript = Field(..., description="Transcript object containing the text to be aligned")
+class AlignmentByAudioRequest(AlignmentBaseRequest):
+    method: AlignmentMethod = Literal[AlignmentMethod.BY_AUDIO]
+    audio_filename: str = Field(..., description="Filename of a previously uploaded audio file")
+
+class AlignmentByTranscriptRequest(AlignmentBaseRequest):
+    method: AlignmentMethod = Literal[AlignmentMethod.BY_TRANSCRIPT]
+    transcript_with_timings: Transcript = Field(..., description="Transcript object containing the text with timings")
+
+class AlignmentByTimeRequest(AlignmentBaseRequest):
+    method: AlignmentMethod = Literal[AlignmentMethod.BY_TIME]
+    start: float = Field(..., description="Start time for alignment")
+    end: float = Field(..., description="End time for alignment")
+    
+AlignmentRequest = Annotated[
+    Union[AlignmentByAudioRequest, AlignmentByTranscriptRequest, AlignmentByTimeRequest],
+    Field(discriminator="method")
+]
+class AlignmentRequest(BaseModel):
+    transcript: Transcript
+    method: AlignmentMethod
+    audio: Optional[str]
+
+class AlignmentJob(BaseJob, AlignmentRequest):
+    job_type: Literal[JobType.ALIGNMENT] = JobType.ALIGNMENT
+    settings: AlignmentRequest
+
+# Job
+
+Job = Annotated[
+    Union[TranscriptionJob, TranslationJob, AlignmentJob],
+    Field(discriminator="job_type")
+]
+
+class JobResult(BaseModel):
+    transcript: Transcript
+    raw_result: Optional[dict] = None

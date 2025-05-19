@@ -1,4 +1,0 @@
-# config_dev.yml
-# This file is used to configure the service locally for development
-log_level: DEBUG 
-host: "0.0.0.0"

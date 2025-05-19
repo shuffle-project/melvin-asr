@@ -5,18 +5,16 @@ services:
       dockerfile: Dockerfile
     container_name: melvin-asr
     volumes:
-      - ./models:/asr/models
-      - ./data:/asr/data
-      - ./config.yml:/asr/config.yml
+      - ./data:/melvin-asr/data
+      - ./config.yml:/melvin-asr/config.yml:ro
     ports:
-      - "8393:8393"
-      - "8394:8394"
+      - "8000:8000"
 
-    # Use the following part to utilize GPU
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["0"]
-              capabilities: [gpu]
+    # # Use the following part to utilize GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           device_ids: ["0"]
+    #           capabilities: [gpu]
