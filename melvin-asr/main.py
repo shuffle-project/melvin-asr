@@ -9,7 +9,7 @@ from app import app as app_fastapi
 from core import cleanup
 from core.config import BatchWorkerConfig, config
 from core.job_handler import JobHandler
-from core.logger import get_logger
+from core.logger import LOGGING_CONFIG, get_logger
 from worker.batch_worker import BatchWorker
 
 logger = get_logger(__name__)
@@ -109,7 +109,7 @@ async def main():
         # Run the FastAPI server in the main thread
         logger.info(f"Starting FastAPI server on {config.host}:{config.port}")
 
-        server = Server(config=uvicorn.Config(app_fastapi, workers=1, host=config.host, port=config.port, loop="asyncio"))
+        server = Server(config=uvicorn.Config(app_fastapi, workers=1, host=config.host, port=config.port, loop="asyncio", log_config=LOGGING_CONFIG))
         fastapi = asyncio.create_task(server.serve())
         scheduler = asyncio.create_task(cleanup.periodic_cleanup(job_handler))
 
