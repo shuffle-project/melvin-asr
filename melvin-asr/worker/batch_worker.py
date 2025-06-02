@@ -78,7 +78,7 @@ class BatchWorker:
                     transcript = alignment.align_by_transcript(job.settings.transcript_with_timings, job.settings.transcript)
                     result = JobResult(transcript=transcript, raw_result={})
                 elif job.settings.method == AlignmentMethod.BY_TIME:
-                    transcript = alignment.align_by_time(job.settings.start, job.settings.end, job.settings.transcript.text)
+                    transcript = alignment.align_by_time(job.settings.start, job.settings.end, job.settings.transcript)
                     result = JobResult(transcript=transcript, raw_result={})
                 else:
                     raise ValueError(f"Invalid alignment method: {job.settings.method}")
@@ -99,6 +99,7 @@ class BatchWorker:
                 job.status = JobStatus.FAILED
                 job.completed_at = datetime.now()
                 self.job_handler.update_job(job)
+                self.logger.info(f"Finished job {job.id}")
             except Exception as e:
                 self.logger.error(f"Error updating job status {job.id}: {e}")
                 

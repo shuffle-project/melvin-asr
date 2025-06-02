@@ -54,7 +54,7 @@ class TranslationJob(BaseJob):
 
 # Alignment
 
-class AlignmentMethod(Enum):
+class AlignmentMethod(str, Enum):
     BY_AUDIO = "by_audio"
     BY_TRANSCRIPT = "by_transcript"
     BY_TIME = "by_time"
@@ -62,16 +62,18 @@ class AlignmentMethod(Enum):
 class AlignmentBaseRequest(BaseModel):
     method: AlignmentMethod = Field(..., description="Method for alignment")
     transcript: Transcript = Field(..., description="Transcript object containing the text to be aligned")
+
 class AlignmentByAudioRequest(AlignmentBaseRequest):
-    method: AlignmentMethod = Literal[AlignmentMethod.BY_AUDIO]
+    method: Literal[AlignmentMethod.BY_AUDIO] = AlignmentMethod.BY_AUDIO
+    language: str = Field(..., description="Language code for the audio")
     audio_filename: str = Field(..., description="Filename of a previously uploaded audio file")
 
 class AlignmentByTranscriptRequest(AlignmentBaseRequest):
-    method: AlignmentMethod = Literal[AlignmentMethod.BY_TRANSCRIPT]
+    method: Literal[AlignmentMethod.BY_TRANSCRIPT] = AlignmentMethod.BY_TRANSCRIPT
     transcript_with_timings: Transcript = Field(..., description="Transcript object containing the text with timings")
 
 class AlignmentByTimeRequest(AlignmentBaseRequest):
-    method: AlignmentMethod = Literal[AlignmentMethod.BY_TIME]
+    method: Literal[AlignmentMethod.BY_TIME] = AlignmentMethod.BY_TIME
     start: float = Field(..., description="Start time for alignment")
     end: float = Field(..., description="End time for alignment")
     
@@ -79,12 +81,8 @@ AlignmentRequest = Annotated[
     Union[AlignmentByAudioRequest, AlignmentByTranscriptRequest, AlignmentByTimeRequest],
     Field(discriminator="method")
 ]
-class AlignmentRequest(BaseModel):
-    transcript: Transcript
-    method: AlignmentMethod
-    audio: Optional[str]
 
-class AlignmentJob(BaseJob, AlignmentRequest):
+class AlignmentJob(BaseJob):
     job_type: Literal[JobType.ALIGNMENT] = JobType.ALIGNMENT
     settings: AlignmentRequest
 

@@ -9,4 +9,5 @@ router = APIRouter()
 
 @router.get("/", response_model=Settings, response_model_exclude={"api_keys"}, dependencies=[Depends(require_api_key)])
 async def get_settings():
-    return Settings(config)
+    settings = Settings.model_validate_json(config.model_dump_json())
+    return settings

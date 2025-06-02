@@ -12,7 +12,7 @@ from pydub import AudioSegment
 router = APIRouter()
 
 @router.post("/", response_model=UploadResponse, dependencies=[Depends(require_api_key), Depends(require_transcription_enabled)])
-async def create_transcription(
+async def create_upload(
     audio_file: UploadFile = File(...)
 ):
     try:

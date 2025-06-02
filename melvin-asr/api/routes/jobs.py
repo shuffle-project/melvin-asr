@@ -10,9 +10,10 @@ from dependencies import (require_alignment_enabled, require_api_key,
                           require_translation_enabled)
 from fastapi import APIRouter, Depends, HTTPException, Path
 from fastapi.params import Param
-from models.job import (AlignmentJob, BaseJob, Job, JobResult, JobStatus,
-                        JobType, TranscriptionJob, TranscriptionRequest,
-                        TranslationJob, TranslationRequest)
+from models.job import (AlignmentJob, AlignmentRequest, BaseJob, Job,
+                        JobResult, JobStatus, JobType, TranscriptionJob,
+                        TranscriptionRequest, TranslationJob,
+                        TranslationRequest)
 
 router = APIRouter()
 
@@ -68,12 +69,21 @@ async def create_translation(
     )
     return job_handler.create_job(job)
 
-@router.post("/alignment", response_model=AlignmentJob, dependencies=[Depends(require_api_key), Depends(require_alignment_enabled)])
-async def create_transcription():
+@router.post("/alignment", response_model=AlignmentJob, response_model_exclude={"settings"}, dependencies=[Depends(require_api_key), Depends(require_alignment_enabled)])
+async def create_alignment(
+    request: AlignmentRequest
+):
+    if "language" in request and not whisper.is_language_supported(request.language):
+        raise HTTPException(status_code=400, detail={
+            "error": "Unsupported language {request.language}",
+            "supported_languages": whisper.get_supported_languages()
+        })
+    
     job = AlignmentJob(
         id=uuid.uuid4(),
         status=JobStatus.PENDING,
         created_at=datetime.now(),
+        settings=request.model_dump(exclude_unset=True)
     )
     return job_handler.create_job(job)
 
@@ -81,15 +91,21 @@ async def create_transcription():
 async def get_job_by_id(
     job_id = Annotated[uuid.UUID, Path()]
 ):
-    job = job_handler.get_job(job_id)
-    return job
+    try:
+        job = job_handler.get_job(job_id)
+        return job
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
 @router.get("/{job_id}/result", response_model=JobResult, dependencies=[Depends(require_api_key)])
 async def get_job_result(
     job_id = Annotated[uuid.UUID, Path()]
 ):
-    job = job_handler.get_job(job_id)
-    if job.status != JobStatus.COMPLETED:
-        raise HTTPException(status_code=400, detail="Job is not completed yet")
-    result = job_handler.get_job_result(job_id)
-    return result
+    try:
+        job = job_handler.get_job(job_id)
+        if job.status != JobStatus.COMPLETED:
+            raise HTTPException(status_code=400, detail="Job is not completed yet")
+        result = job_handler.get_job_result(job_id)
+        return result
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")

@@ -8,8 +8,10 @@ from core.paths import models_path
 from core.tqdm import disable_tqdm
 from core.upload_handler import upload_handler
 from faster_whisper import available_models, download_model
-from models.job import JobResult, TranscriptionRequest
+from models.job import AlignmentByAudioRequest, JobResult, TranscriptionRequest
 from models.transcript import Segment, Transcript, Word
+
+from .languages import is_language_supported
 
 logger = get_logger(__name__)
 class Whisper:
@@ -46,6 +48,7 @@ class Whisper:
     def transcribe(self, settings: TranscriptionRequest) -> JobResult:
         # TODO: transcription settings
         # TODO: mode default and batched
+
         try:
             audio_filepath = upload_handler.get_file_path(settings.audio_filename)
             with disable_tqdm():
@@ -61,10 +64,11 @@ class Whisper:
             logger.error(f"Error transcribing audio: {e}")
             raise
 
-    def align_transcript_to_audio(self, audio_file_path: str, text: str, language: str):
+    def align_transcript_to_audio(self, settings: AlignmentByAudioRequest) -> JobResult:
         try:
+            audio_filepath = upload_handler.get_file_path(settings.audio_filename)
             with disable_tqdm():
-                result: stable_whisper.WhisperResult = self.model.align(audio=audio_file_path, text=text, language=language, verbose=True)
+                result: stable_whisper.WhisperResult = self.model.align(audio=audio_filepath, text=settings.transcript.text, language=settings.language, verbose=False)
             
             raw_result = result.to_dict()
             transcript = self.result_to_transcript(raw_result)

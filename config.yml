@@ -1,4 +1,4 @@
-host: 0.0.0.0
+host: 127.0.0.1
 port: 8000
 api_keys:
   - "secret"
@@ -15,5 +15,3 @@ batch_workers:
       condition_on_previous_text: False
     translation_enabled: True
     translation_model: facebook/seamless-m4t-v2-large
-    translation_model_settings:
-      method: "segmented"

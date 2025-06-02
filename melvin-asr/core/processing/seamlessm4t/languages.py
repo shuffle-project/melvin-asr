@@ -101,8 +101,8 @@ SUPPORTED_LANGUAGES = {
     "cn": "cmn",
 }
 
-def get_supported_languages() -> list:
-    return list[SUPPORTED_LANGUAGES.keys()]
+def get_supported_languages() -> list[str]:
+    return list(SUPPORTED_LANGUAGES.keys())
 
 def is_language_supported(language: str) -> bool:
     return language in SUPPORTED_LANGUAGES

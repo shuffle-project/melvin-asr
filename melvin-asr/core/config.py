@@ -9,9 +9,6 @@ class TranscriptionModelSettings(BaseModel):
     vad_filter: bool = True
     condition_on_previous_text: bool = False
 
-class TranslationModelSettings(BaseModel):
-    method: str
-
 class BaseBatchWorker(BaseModel):
     cpu_threads: int
     num_workers: int = 1
@@ -21,7 +18,6 @@ class BaseBatchWorker(BaseModel):
     transcription_model_settings: Optional[TranscriptionModelSettings]
     translation_enabled: bool
     translation_model: Optional[str]
-    translation_model_settings: Optional[TranslationModelSettings]
 
 class CPUBatchWorker(BaseBatchWorker):
     device: Literal["cpu"]

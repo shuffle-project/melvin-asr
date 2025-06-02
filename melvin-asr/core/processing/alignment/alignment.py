@@ -3,23 +3,29 @@ from models.transcript import Segment, Transcript, Word
 
 logger = get_logger(__name__)
 
-def align_by_time(start: float, end: float, text: str) -> Transcript:
+def align_by_time(start: float, end: float, transcript: Transcript) -> Transcript:
+    duration = end - start
+    segment_duration = duration / len(transcript.segments)
+    
+    segments: list[Segment] = []
+    for i, segment in enumerate(transcript.segments):
+        words: list[Word] = []
+        segment_start = start + i * segment_duration
+        segment_end = start + (i + 1) * segment_duration
+        word_duration = segment_duration / len(segment.words)
+        for j, word in enumerate(segment.words):
+            word_start = segment_start + j * word_duration
+            word_end = segment_start + (j + 1) * word_duration
+            words.append(Word(text=word.text, start=word_start, end=word_end, probability=word.probability))
+        
+        segments.append(Segment(text=segment.text, start=segment_start, end=segment_end, words=words))
+    
     fake_transcript = Transcript(
-        text="A Z",
-        segments=[
-            Segment(
-                text="A Z",
-                start=start,
-                end=end,
-                words=[
-                    Word(text="A", start=start, end=start, probability=1.0),
-                    Word(text="Z", start=end, end=end, probability=1.0),
-                ],
-            )
-        ],
+        text=transcript.text,
+        segments=segments
     )
 
-    return align_by_transcript(fake_transcript, text)
+    return align_by_transcript(fake_transcript, transcript)
 
 def align_by_transcript(transcript_with_timings: Transcript, transcript: Transcript) -> Transcript:
     """
@@ -40,7 +46,7 @@ def align_by_transcript(transcript_with_timings: Transcript, transcript: Transcr
             for word_index, w in enumerate(seg.words):
                 flat_words.append((segment_index, word_index, w))
 
-        translated_words = text.split()
+        translated_words = transcript.text.split()
 
         N = len(flat_words)
         M = len(translated_words)
@@ -79,7 +85,7 @@ def align_by_transcript(transcript_with_timings: Transcript, transcript: Transcr
             if i_end >= j_end and overlap <= 0:
                 j += 1
 
-        new_transcript = Transcript(text=text, segments=[])
+        new_transcript = Transcript(text=transcript.text, segments=[])
 
         # Initialize new segments
         for seg in transcript_with_timings.segments:
