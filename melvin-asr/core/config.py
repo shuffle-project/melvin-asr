@@ -13,6 +13,7 @@ class TranslationModelSettings(BaseModel):
     method: str
 
 class BaseBatchWorker(BaseModel):
+    cpu_threads: int
     num_workers: int = 1
     device_index: int = 0
     transcription_enabled: bool
@@ -25,14 +26,13 @@ class BaseBatchWorker(BaseModel):
 class CPUBatchWorker(BaseBatchWorker):
     device: Literal["cpu"]
     compute_type: Literal["int8"]
-    cpu_threads: int
 
     def get_device(self):
         return "cpu"
 
 class GPUBatchWorker(BaseBatchWorker):
     device: Literal["cuda"]
-    compute_type: Literal["float_16", "int8_float16"]
+    compute_type: Literal["float16", "int8_float16"]
 
     def get_device(self):
         return f"cuda:{self.device_index}" if self.device_index == None else "cuda"
