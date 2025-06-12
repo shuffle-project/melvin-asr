@@ -19,7 +19,7 @@ router = APIRouter()
 
 job_handler = JobHandler()
 
-@router.get("/", response_model=List[BaseJob], dependencies=[Depends(require_api_key)])
+@router.get("", response_model=List[BaseJob], dependencies=[Depends(require_api_key)])
 async def get_jobs():
     jobs = job_handler.list_jobs()
     return [job.model_dump(exclude={'settings'}) for job in jobs]
