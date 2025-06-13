@@ -65,7 +65,7 @@ class BatchWorker:
         try:
             # Update job status
             job.status = JobStatus.IN_PROGRESS
-            job.created_at = datetime.now()
+            job.started_at = datetime.now()
             self.job_handler.update_job(job)
 
             result: JobResult = None
