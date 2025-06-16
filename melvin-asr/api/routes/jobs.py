@@ -103,9 +103,11 @@ async def get_job_result(
 ):
     try:
         job = job_handler.get_job(job_id)
-        if job.status != JobStatus.COMPLETED:
+        if job.status == JobStatus.COMPLETED:
+            return job_handler.get_job_result(job_id)
+        elif job.status == JobStatus.FAILED:
+            raise HTTPException(status_code=400, detail=f"Job has failed failed")
+        else:
             raise HTTPException(status_code=400, detail="Job is not completed yet")
-        result = job_handler.get_job_result(job_id)
-        return result
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")

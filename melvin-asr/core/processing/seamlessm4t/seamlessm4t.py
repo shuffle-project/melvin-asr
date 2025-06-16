@@ -1,6 +1,7 @@
 
 
 import os
+from typing import List
 
 import torch
 from core.config import BatchWorkerConfig
@@ -8,7 +9,8 @@ from core.logger import get_logger
 from core.paths import models_path
 from core.processing.alignment import alignment
 from core.tqdm import disable_tqdm
-from models.job import JobResult, TranslationRequest
+from models.job import (JobResult, TranslationAlignmentMethod,
+                        TranslationRequest)
 from models.transcript import Segment, Transcript, Word
 from transformers import SeamlessM4TTokenizer, SeamlessM4Tv2ForTextToText
 
@@ -44,33 +46,34 @@ class SeamlessM4T:
             raise
 
     # TODO: Extend this to support multiple languages and sentence ending characters
-    def get_translation_chunks(self, text: str) -> list[str]:
-        words = text.split()
-        sentence = ""
-        sentences: list[str] = []
+    def get_translation_chunks(self, words: List[Word]) -> List[List[Word]]:
+        sentence_words: List[Word] = [] 
+        chunks: List[List[Word]] = []
         for word in words:
-            if sentence == "":
-                sentence += word
+            sentence = " ".join([w.text.strip() for w in sentence_words])
+            if len(sentence_words) == 0:
+                sentence_words.append(word)
                 continue
 
-            is_end = word.endswith(".")
-            if len(sentence + word) > 256:
-                sentences.append(sentence)
-                sentence = word
-            elif len(sentence + word) > 64 and is_end:
-                sentence += " "+word
-                sentences.append(sentence)
-                sentence = ""
+            is_end = word.text.endswith(".")
+            new_sentence = sentence + " " + word.text
+            if len(new_sentence) > 256:
+                chunks.append(sentence_words)
+                sentence_words = [word]
+            elif len(new_sentence) > 64 and is_end:
+                sentence_words.append(word)
+                chunks.append(sentence_words)
+                sentence_words = []
             else:
-                sentence += " " + word
+                sentence_words.append(word)
 
-        if sentence != "":
-            sentences.append(sentence)
+        if len(sentence_words) > 0:
+            chunks.append(sentence_words)
 
-        return sentences
+        return chunks
     
-    def interpolate_timestamps(self, words: list[str], start: float, end: float) -> list[Word]:
-        aligned_words: list[Word] = []
+    def interpolate_timestamps(self, words: List[str], start: float, end: float) -> List[Word]:
+        aligned_words: List[Word] = []
 
         N = len(words)
         if N == 0:
@@ -95,38 +98,54 @@ class SeamlessM4T:
             source_language = map_language_code(settings.source_language)
             target_language = map_language_code(settings.target_language)
 
-            translated_segments: list[str] = []
+            translated_segments: List[Segment] = []
             for segment in settings.transcript.segments:
-                segmented_text: list[str] = self.get_translation_chunks(segment.text)
+                word_chunks = self.get_translation_chunks(segment.words)
                 
-                translated_chunks: list[str] = []
-                for chunk in segmented_text:
-                    inputs = self.tokenizer(chunk,return_tensors="pt",src_lang=source_language,).to(self.device)
+                translated_and_aligned_words: List[Word] = []
+                for chunk in word_chunks:
+                    text = " ".join([word.text for word in chunk])
+                    inputs = self.tokenizer(text, return_tensors="pt", src_lang=source_language,).to(self.device)
 
                     with torch.no_grad():
                         outputs = self.model.generate(**inputs, tgt_lang=target_language)
 
-                    translated_chunk: list[str] = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-                    for segment in translated_chunk:
-                        translated_chunks.append(segment)
+                    translated_texts: List[str] = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+                    translated_words: List[str] = []
+                    for translated_text in translated_texts:
+                        translated_words.extend([word.strip() for word in translated_text.split() if word.strip()])
 
-                translated_text = " ".join(translated_chunks)
-                translated_segments.append(translated_text)
+                    timestamps = [word.start for word in chunk if word.start is not None] + [word.end for word in chunk if word.end is not None]
+                    start = min(timestamps) or segment.start
+                    end = max(timestamps) or segment.end
 
-            
-            transcript = Transcript(text=" ".join(translated_segments), segments=[])
-            for i, segment in enumerate(settings.transcript.segments):
-                aligned_words = self.interpolate_timestamps(translated_segments[i].split(), segment.start, segment.end)
-                transcript.segments.append(
+                    words = self.interpolate_timestamps(translated_words, start, end)
+                    translated_and_aligned_words.extend(words)
+
+                translated_segments.append(
                     Segment(
-                        text=translated_segments[i],
+                        text=" ".join([word.text for word in translated_and_aligned_words]),
                         start=segment.start,
                         end=segment.end,
-                        words=aligned_words,
+                        words=translated_and_aligned_words,
                     )
                 )
 
-            return JobResult(transcript=transcript)
+            translated_text = " ".join([segment.text for segment in translated_segments])
+            translated_transcript = Transcript(text=translated_text, segments=translated_segments)
+
+            if settings.alignment_method == TranslationAlignmentMethod.SEGMENT_LEVEL:
+                for segment in translated_transcript.segments:
+                    segment.words = self.interpolate_timestamps(
+                        [word.text for word in segment.words],
+                        segment.start,
+                        segment.end
+                    )
+            elif settings.alignment_method == TranslationAlignmentMethod.WORD_LEVEL:
+                # This is already handled when translating chunks with seamlessm4t
+                pass
+
+            return JobResult(transcript=translated_transcript)
 
         except Exception as e:
             logger.error(f"Error translating text: {e}")

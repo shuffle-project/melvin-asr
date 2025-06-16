@@ -19,6 +19,10 @@ class JobType(str, Enum):
     TRANSLATION = "translation"
     ALIGNMENT = "alignment"
 
+class TranslationAlignmentMethod(str, Enum):
+    SEGMENT_LEVEL = "segment_level"
+    WORD_LEVEL = "word_level"
+
 class BaseJob(BaseModel):
     id: UUID
     job_type: JobType
@@ -47,6 +51,7 @@ class TranslationRequest(BaseModel):
     source_language: str = Field(..., description="Language code of the source transcript")
     target_language: str = Field(..., description="Language code for translated transcript")
     transcript: Transcript = Field(..., description="Transcript object containing the text to be translated")
+    alignment_method: TranslationAlignmentMethod = Field(TranslationAlignmentMethod.WORD_LEVEL, description="Method for aligning translated text with original transcript")
 
 class TranslationJob(BaseJob):
     job_type: Literal[JobType.TRANSLATION] = JobType.TRANSLATION

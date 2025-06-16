@@ -1,7 +1,5 @@
 import logging
 
-from core.config import config
-
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -25,18 +23,17 @@ LOGGING_CONFIG = {
         "uvicorn.error": {
             "level": "INFO",
             "handlers": ["default"],
-            "propagate": "no",
+            "propagate": False,
         },
         "uvicorn.access": {
             "level": "INFO",
             "handlers": ["access"],
-            "propagate": "no",
+            "propagate": False,
         },
     },
     "root": {
         "level": "INFO",
         "handlers": ["default"],
-        "propagate": "no",
     }
 }
 
