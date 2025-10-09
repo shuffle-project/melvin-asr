@@ -13,5 +13,18 @@ batch_workers:
     transcription_model_settings:
       vad_filter: True
       condition_on_previous_text: False
+    translation_enabled: False
+    translation_model: facebook/seamless-m4t-v2-large
+
+  - device: cuda
+    cpu_threads: 4
+    compute_type: float16
+    num_workers: 1
+    device_index: 0
+    transcription_enabled: True
+    transcription_model: tiny
+    transcription_model_settings:
+      vad_filter: True
+      condition_on_previous_text: False
     translation_enabled: True
     translation_model: facebook/seamless-m4t-v2-large

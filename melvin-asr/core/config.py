@@ -31,7 +31,7 @@ class GPUBatchWorker(BaseBatchWorker):
     compute_type: Literal["float16", "int8_float16"]
 
     def get_device(self):
-        return f"cuda:{self.device_index}" if self.device_index == None else "cuda"
+        return f"cuda:{self.device_index}" if self.device_index != None else "cuda"
 
 BatchWorkerConfig = Annotated[
     Union[CPUBatchWorker, GPUBatchWorker], 

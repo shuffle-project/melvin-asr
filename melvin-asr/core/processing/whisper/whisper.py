@@ -40,6 +40,7 @@ class Whisper:
                 device=self.config.get_device(),
                 compute_type=self.config.compute_type,
                 cpu_threads=self.config.cpu_threads,
+                num_workers=self.config.num_workers,
             )
         except:
             logger.error(f"Error loading model {model_name}")

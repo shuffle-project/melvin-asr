@@ -63,7 +63,7 @@ def start_workers_sequentially(job_handler: JobHandler):
     global worker_processes, worker_status_queue
 
     for i, batch_worker_config in enumerate(config.batch_workers):
-        logger.info(f"Starting worker {i} with device {batch_worker_config.device}")
+        logger.info(f"Starting worker {i} with device {batch_worker_config.get_device()}")
 
         worker_process = multiprocessing.Process(
             target=start_batch_worker, 
@@ -104,7 +104,10 @@ async def main():
     try:   
         # Start worker processes
         job_handler = JobHandler()
-        start_workers_sequentially(job_handler)
+        workers_started = start_workers_sequentially(job_handler)
+
+        if not workers_started:
+            raise RuntimeError("Failed to start all workers")
         
         # Run the FastAPI server in the main thread
         logger.info(f"Starting FastAPI server on {config.host}:{config.port}")
