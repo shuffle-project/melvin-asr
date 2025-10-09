@@ -35,9 +35,11 @@ class Whisper:
         try:
             logger.info(f"Loading model {model_name}")
             
+            
             self.model = stable_whisper.load_faster_whisper(
                 local_model_path,
-                device=self.config.get_device(),
+                device=self.config.device,
+                device_index=self.config.device_index,
                 compute_type=self.config.compute_type,
                 cpu_threads=self.config.cpu_threads,
                 num_workers=self.config.num_workers,
